@@ -21,23 +21,7 @@ This mod is open source, you can check the code yourself
 - new chunks: renders red rectangles around 1.19+ chunks, enabling you to follow chunk trails
 - sign reader: posts text of signs you pass by in chat HUD
 
-<br/>
-![screenshot1](./screenshots/1.png)
-<br/>
-![screenshot2](./screenshots/2.png)
-<br/>
-![screenshot3](./screenshots/3.png)
-<br/>
-![screenshot4](./screenshots/4.png)
-<br/>
-![screenshot5](./screenshots/5.png)
-<br/>
-![screenshot6](./screenshots/6.png)
-<br/>
-![screenshot7](./screenshots/7.png)
-<br/>
-![screenshot8](./screenshots/8.png)
-<br/>
+![alt text](screenshots/1.png)
 
 ## How to build jar from source
 
