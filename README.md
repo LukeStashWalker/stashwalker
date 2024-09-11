@@ -22,21 +22,21 @@ This mod is open source, you can check the code yourself
 - sign reader: posts text of signs you pass by in chat HUD
 
 <br/>
-![screenshot1](./screenshots/2024-09-11_10.56.51.png)
+![screenshot1](./screenshots/1.png)
 <br/>
-![screenshot2](./screenshots/2024-09-11_10.57.14.png)
+![screenshot2](./screenshots/2.png)
 <br/>
-![screenshot3](./screenshots/2024-09-11_10.57.20.png)
+![screenshot3](./screenshots/3.png)
 <br/>
-![screenshot4](./screenshots/2024-09-11_10.57.52.png)
+![screenshot4](./screenshots/4.png)
 <br/>
-![screenshot5](./screenshots/2024-09-11_10.58.17.png)
+![screenshot5](./screenshots/5.png)
 <br/>
-![screenshot6](./screenshots/2024-09-11_10.58.34.png)
+![screenshot6](./screenshots/6.png)
 <br/>
-![screenshot7](./screenshots/2024-09-11_10.59.09.png)
+![screenshot7](./screenshots/7.png)
 <br/>
-![screenshot8](./screenshots/2024-09-11_11.17.46.png)
+![screenshot8](./screenshots/8.png)
 <br/>
 
 ## How to build jar from source
