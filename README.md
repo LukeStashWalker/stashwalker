@@ -22,21 +22,21 @@ This mod is open source, you can check the code yourself
 - sign reader: posts text of signs you pass by in chat HUD
 
 <br/>
-![screenshot1](/screenshots/2024-09-11_10.56.51.png)
+![screenshot1](./screenshots/2024-09-11_10.56.51.png)
 <br/>
-![screenshot2](/screenshots/2024-09-11_10.57.14.png)
+![screenshot2](./screenshots/2024-09-11_10.57.14.png)
 <br/>
-![screenshot3](/screenshots/2024-09-11_10.57.20.png)
+![screenshot3](./screenshots/2024-09-11_10.57.20.png)
 <br/>
-![screenshot4](/screenshots/2024-09-11_10.57.52.png)
+![screenshot4](./screenshots/2024-09-11_10.57.52.png)
 <br/>
-![screenshot5](/screenshots/2024-09-11_10.58.17.png)
+![screenshot5](./screenshots/2024-09-11_10.58.17.png)
 <br/>
-![screenshot6](/screenshots/2024-09-11_10.58.34.png)
+![screenshot6](./screenshots/2024-09-11_10.58.34.png)
 <br/>
-![screenshot7](/screenshots/2024-09-11_10.59.09.png)
+![screenshot7](./screenshots/2024-09-11_10.59.09.png)
 <br/>
-![screenshot8](/screenshots/2024-09-11_11.17.46.png)
+![screenshot8](./screenshots/2024-09-11_11.17.46.png)
 <br/>
 
 ## How to build jar from source
@@ -44,6 +44,9 @@ This mod is open source, you can check the code yourself
 - build: ./gradlew build 
 - the jar will be in the build/libs/ directory
 
+## Pre-built releases
+
+- can be found in the 'releases' folder
 
 ## How to use
 
