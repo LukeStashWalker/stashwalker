@@ -1,7 +1,7 @@
 # Fabric Stashwalker Mod
 
 Mod that can be used alongside a hacked client like Rusherhack, Meteor or Future Client
-This mod is open source, you can check the code yourself
+This mod is open source, you can check the code yourself. This mod has been tested on 2b2t.
 
 ## Features
 
