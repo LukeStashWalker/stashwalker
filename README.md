@@ -54,3 +54,7 @@ This mod is open source, you can check the code yourself
 	- "minecraft": "1.20.4",
 	- "java": "17",
 	- "fabric-api": "*"
+
+## Contact
+
+- feedback or feature requests can be sent to original_plan_c@hotmail.com
