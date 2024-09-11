@@ -1,0 +1,293 @@
+package com.stashwalker.finders;
+
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.ChestBlock;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.ChestBlockEntity;
+import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.ChestBoatEntity;
+import net.minecraft.entity.vehicle.ChestMinecartEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.entity.ItemEntity;
+import net.minecraft.item.Items;
+import net.minecraft.state.property.Properties;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.World;
+import net.minecraft.entity.passive.AbstractDonkeyEntity;
+import net.minecraft.entity.passive.LlamaEntity;
+
+import net.minecraft.world.chunk.Chunk;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import com.stashwalker.constants.Constants;
+
+import java.util.HashSet;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.math.Box;
+
+public class Finder {
+
+    public List<BlockEntity> findBlockEntities (PlayerEntity player) {
+
+        World world = player.getWorld(); // Use getWorld() method
+        List<BlockEntity> doubleChests = new ArrayList<>();
+
+        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+
+        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+        int xStart = playerChunkPosX - playerRenderDistance;
+        int xEnd = playerChunkPosX + playerRenderDistance + 1;
+        int zStart = playerChunkPosZ - playerRenderDistance;
+        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+
+        for (int x = xStart; x < xEnd; x++) {
+
+            for (int z = zStart; z < zEnd; z++) {
+
+                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
+                Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                for (BlockPos blockPos : blockPositions) {
+
+                    BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
+
+                    if (blockEntity instanceof ChestBlockEntity
+                            && (isNonDungeonDoubleChest(world, blockEntity.getPos())
+                            // || (
+                            // x < playerChunkPosX + 16 && z < playerChunkPosZ + 16
+                            // && isKitShopDropOff(world, blockPos)
+                            // )
+                            )) {
+
+                        doubleChests.add(blockEntity);
+                    }
+                }
+            }
+        }
+
+        return doubleChests;
+    }
+
+    public List<BlockEntity> findSigns (PlayerEntity player) {
+
+        List<BlockEntity> signs = new ArrayList<>();
+
+        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+
+        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+        int xStart = playerChunkPosX - playerRenderDistance;
+        int xEnd = playerChunkPosX + playerRenderDistance + 1;
+        int zStart = playerChunkPosZ - playerRenderDistance;
+        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+
+        for (int x = xStart; x < xEnd; x++) {
+
+            for (int z = zStart; z < zEnd; z++) {
+
+                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
+                Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                for (BlockPos blockPos : blockPositions) {
+
+                    BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
+
+                    if (blockEntity instanceof SignBlockEntity) {
+
+                        signs.add(blockEntity);
+                    }
+                }
+            }
+        }
+
+        return signs;
+    }
+
+    public List<Entity> findEntities (PlayerEntity player) {
+
+        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in
+                                                                                                  // chunks
+        double searchRadius = renderDistanceChunks;
+
+        List<Entity> entities = player.getWorld().getEntitiesByClass(Entity.class,
+                player.getBoundingBox().expand(searchRadius), e -> {
+
+                    if (e instanceof ItemEntity) {
+
+                        ItemEntity itemEntity = (ItemEntity) e;
+                        ItemStack itemStack = itemEntity.getStack();
+                        if (
+                            itemStack.getItem() == Items.ELYTRA
+
+                            || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+
+                            || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+
+                            || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+
+                            || itemStack.getItem() == Items.NETHERITE_BOOTS
+                            || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
+                            || itemStack.getItem() == Items.NETHERITE_HELMET
+                            || itemStack.getItem() == Items.NETHERITE_HOE
+                            || itemStack.getItem() == Items.NETHERITE_LEGGINGS
+                            || itemStack.getItem() == Items.NETHERITE_PICKAXE
+                            || itemStack.getItem() == Items.NETHERITE_AXE
+                            || itemStack.getItem() == Items.NETHERITE_SHOVEL
+                            || itemStack.getItem() == Items.NETHERITE_SWORD
+
+                            || itemStack.getItem() == Items.DIAMOND_BOOTS
+                            || itemStack.getItem() == Items.DIAMOND_CHESTPLATE
+                            || itemStack.getItem() == Items.DIAMOND_HELMET
+                            || itemStack.getItem() == Items.DIAMOND_LEGGINGS
+                            || itemStack.getItem() == Items.DIAMOND_PICKAXE
+                            || itemStack.getItem() == Items.DIAMOND_AXE
+                            || itemStack.getItem() == Items.DIAMOND_SHOVEL
+                            || itemStack.getItem() == Items.DIAMOND_SWORD
+
+                            || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
+                        ) {
+
+                            return true;
+                        } else {
+
+                            return false;
+                        }
+                    } else if ((e instanceof AbstractDonkeyEntity
+                            && ((AbstractDonkeyEntity) e).hasChest()
+                            && !((AbstractDonkeyEntity) e).hasPlayerRider())
+                            ||
+                            (e instanceof LlamaEntity
+                                    && ((LlamaEntity) e).hasChest()
+                                    && !((LlamaEntity) e).hasPlayerRider())
+                            ||
+                            (e instanceof ChestBoatEntity
+                                    && !((ChestBoatEntity) e).hasPlayerRider())) {
+
+                        return true;
+                    } else {
+
+                        return false;
+                    }
+                });
+
+        entities.addAll(findOverlappingMinecartChests(player));
+
+        return entities;
+    }
+
+    public List<Chunk> findNewChunks (PlayerEntity player) {
+
+        List<Chunk> result = new ArrayList<>();
+        World world = player.getWorld();
+        int chunkRadius = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in chunks
+        int startX = player.getChunkPos().x - chunkRadius;
+        int endX = player.getChunkPos().x + chunkRadius;
+        int startZ = player.getChunkPos().z - chunkRadius;
+        int endZ = player.getChunkPos().z + chunkRadius;
+
+        // Iterate through the chunks around the player
+        for (int chunkX = startX; chunkX <= endX; chunkX++) {
+
+            for (int chunkZ = startZ; chunkZ <= endZ; chunkZ++) {
+
+                Chunk chunk = world.getChunk(chunkX, chunkZ);
+
+                for (BlockPos pos : BlockPos.iterate(
+
+                        chunk.getPos().getStartX(), world.getBottomY(), chunk.getPos().getStartZ(),
+                        chunk.getPos().getEndX(), world.getTopY(), chunk.getPos().getEndZ())) {
+
+                    Block block = chunk.getBlockState(pos).getBlock();
+                    if (block == Blocks.COPPER_ORE || block == Blocks.ANCIENT_DEBRIS) {
+
+                        result.add(chunk);
+
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private List<Entity> findOverlappingMinecartChests (PlayerEntity player) {
+
+        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in
+                                                                                                  // chunks
+        double searchRadius = renderDistanceChunks * 512; // Convert chunks to blocks
+
+        Set<ChestMinecartEntity> minecartChests = new HashSet<>();
+
+        // Get all MinecartChests within the calculated radius
+        List<ChestMinecartEntity> entities = player.getWorld().getEntitiesByClass(ChestMinecartEntity.class,
+                player.getBoundingBox().expand(searchRadius), e -> true);
+
+        Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
+
+        for (ChestMinecartEntity minecart : entities) {
+
+            Box minecartBox = minecart.getBoundingBox();
+
+            // Check for overlaps with existing minecarts
+            for (ChestMinecartEntity otherMinecart : minecartChests) {
+
+                if (minecart != otherMinecart && minecartBox.intersects(otherMinecart.getBoundingBox())) {
+
+                    foundChestMinecastEntities.add(minecart);
+                    foundChestMinecastEntities.add(otherMinecart);
+                }
+            }
+
+            minecartChests.add(minecart);
+        }
+
+        return new ArrayList<>(foundChestMinecastEntities);
+    }
+
+    // Helper method to determine if a chest block is part of a double chest
+    private boolean isNonDungeonDoubleChest (World world, BlockPos pos) {
+
+        BlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
+
+        if (!(block instanceof ChestBlock)) {
+
+            return false;
+        }
+
+        Direction[] directions = { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST };
+        for (Direction direction : directions) {
+
+            BlockPos adjacentPos = pos.offset(direction);
+            BlockState adjacentState = world.getBlockState(adjacentPos);
+            Block adjacentBlock = adjacentState.getBlock();
+
+            BlockPos adjacentDownPos = adjacentPos.offset(Direction.DOWN);
+            BlockState adjacentDownState = world.getBlockState(adjacentDownPos);
+            Block adjacentDownBlock = adjacentDownState.getBlock();
+
+            BlockPos downBlockPos = pos.offset(Direction.DOWN);
+            BlockState downState = world.getBlockState(downBlockPos);
+            Block downBlock = downState.getBlock();
+
+            if (downBlock == Blocks.MOSSY_COBBLESTONE || adjacentDownBlock == Blocks.MOSSY_COBBLESTONE) {
+
+                return false;
+            }
+
+            if (adjacentBlock instanceof ChestBlock
+                    && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+}
