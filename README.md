@@ -58,3 +58,4 @@ This mod is open source, you can check the code yourself. This mod has been test
 ## Contact
 
 - feedback or feature requests can be sent to original_plan_c@hotmail.com
+- patreon.com/LukeStashWalker
