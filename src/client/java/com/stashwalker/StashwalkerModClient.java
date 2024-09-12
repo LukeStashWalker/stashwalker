@@ -49,7 +49,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private DoubleBuffer<BlockEntity> blockEntityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Chunk> chunkBuffer = new DoubleBuffer<>();
-    private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(1000);
+    private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(5000);
     private ExecutorService threadPool = Executors.newFixedThreadPool(3, new DaemonThreadFactory());
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockEntityTracers;
@@ -188,6 +188,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean signReader = !this.configData.get(Constants.SIGN_READER);
                 this.configData.put(Constants.SIGN_READER, signReader);
+                this.signsSet.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
@@ -227,7 +228,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                         if (!this.signsSet.contains(sign.hashCode())) {
 
                              String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                            if (!signText.isEmpty() && !signText.equals("---->") && !signText.equals("<----")) {
+                            if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
 
                                 Text styledText = Text.empty()
                                         .append(Text.literal("[")
@@ -239,7 +240,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         .append(Text.literal("]:\n")
                                                 .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                                         .append(Text.literal(signText)
-                                                .setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE)));
+                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
                                 this.renderer.sendClientSideMessage(styledText);
                                 this.signsSet.add(sign.hashCode());
                             }

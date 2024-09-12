@@ -150,6 +150,8 @@ public class Finder {
                             || itemStack.getItem() == Items.DIAMOND_SWORD
 
                             || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
+
+                            || itemStack.getItem() == Items.SHULKER_BOX
                         ) {
 
                             return true;
