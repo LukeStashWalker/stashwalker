@@ -12,7 +12,9 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.text.Text;
+import net.minecraft.text.Style;
+import net.minecraft.util.Formatting;
 
 import net.minecraft.world.chunk.Chunk;
 import java.util.List;
@@ -137,7 +139,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean entityTracers = !this.configData.get(Constants.ENTITY_TRACERS);
                 this.configData.put(Constants.ENTITY_TRACERS, entityTracers);
-                this.renderer.sendClientSideMessage("Stashwalker entity tracers set to " + entityTracers);
+                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
             }
 
             entityTracersWasPressed = true;
@@ -153,7 +155,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean blockEntityTracers = !this.configData.get(Constants.BLOCK_ENTITY_TRACERS);
                 this.configData.put(Constants.BLOCK_ENTITY_TRACERS, blockEntityTracers);
-                this.renderer.sendClientSideMessage("Stashwalker block entity tracers set to " + blockEntityTracers);
+                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_ENTITY_TRACERS, blockEntityTracers));
             }
 
             blockEntityTracersWasPressed = true;
@@ -169,7 +171,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean newChunks = !this.configData.get(Constants.NEW_CHUNKS);
                 this.configData.put(Constants.NEW_CHUNKS, newChunks);
-                this.renderer.sendClientSideMessage("Stashwalker new chunks set to " + newChunks);
+
+                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
             }
 
             newChunksWasPressed = true;
@@ -185,7 +188,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean signReader = !this.configData.get(Constants.SIGN_READER);
                 this.configData.put(Constants.SIGN_READER, signReader);
-                this.renderer.sendClientSideMessage("Stashwalker sign reader set to " + signReader);
+
+                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
 
             signReaderWasPressed = true;
@@ -223,10 +227,21 @@ public class StashwalkerModClient implements ClientModInitializer {
                         if (!this.signsSet.contains(sign.hashCode())) {
 
                              String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                            if (!signText.isEmpty() && !signText.equals("-->") && !signText.equals("<--")) {
+                            if (!signText.isEmpty() && !signText.equals("---->") && !signText.equals("<----")) {
 
-                                 this.renderer.sendClientSideMessage("Stashwalker, sign text: " + signText);
-                                 this.signsSet.add(sign.hashCode());
+                                Text styledText = Text.empty()
+                                        .append(Text.literal("[")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal("Stashwalker, ")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                        .append(Text.literal("signReader")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                        .append(Text.literal("]:\n")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal(signText)
+                                                .setStyle(Style.EMPTY.withColor(Formatting.LIGHT_PURPLE)));
+                                this.renderer.sendClientSideMessage(styledText);
+                                this.signsSet.add(sign.hashCode());
                             }
                         }
                     }
@@ -316,4 +331,21 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         });
     }
+
+    private Text createStyledTextForFeature (String featureName, boolean featureToggle) {
+
+
+                return Text.empty()
+                        .append(Text.literal("[")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal("Stashwalker, ")
+                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                        .append(Text.literal(featureName)
+                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                        .append(Text.literal("]:")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal(featureToggle ? " enabled" : " disabled")
+                                .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
+    }
+
 }

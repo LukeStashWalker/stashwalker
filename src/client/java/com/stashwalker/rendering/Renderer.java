@@ -165,9 +165,9 @@ public class Renderer {
         }
     }
 
-    public void sendClientSideMessage (String message) {
+    public void sendClientSideMessage (Text text) {
 
-        Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(Text.literal(message));
+        Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
     }
 
     public void renderHUDText (DrawContext drawContext, String text, int x, int y, int color) {
