@@ -21,6 +21,8 @@ import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ChunkStatus;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -51,21 +53,27 @@ public class Finder {
 
             for (int z = zStart; z < zEnd; z++) {
 
-                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
-                Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                for (BlockPos blockPos : blockPositions) {
+                Chunk chunk = this.getChunk(x, z);
+                if (chunk != null) {
 
-                    BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
+                    Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                    if (blockPositions != null) {
 
-                    if (blockEntity instanceof ChestBlockEntity
-                            && (isNonDungeonDoubleChest(world, blockEntity.getPos())
-                            // || (
-                            // x < playerChunkPosX + 16 && z < playerChunkPosZ + 16
-                            // && isKitShopDropOff(world, blockPos)
-                            // )
+                        for (BlockPos blockPos : blockPositions) {
+
+                            BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
+
+                            if (blockEntity instanceof ChestBlockEntity
+                                    && (isNonDungeonDoubleChest(world, blockEntity.getPos())
+                                    // || (
+                                    // x < playerChunkPosX + 16 && z < playerChunkPosZ + 16
+                                    // && isKitShopDropOff(world, blockPos)
+                                    // )
                             )) {
 
-                        doubleChests.add(blockEntity);
+                                doubleChests.add(blockEntity);
+                            }
+                        }
                     }
                 }
             }
@@ -91,7 +99,7 @@ public class Finder {
 
             for (int z = zStart; z < zEnd; z++) {
 
-                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
+                Chunk chunk = this.getChunk(x, z);
                 Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
                 for (BlockPos blockPos : blockPositions) {
 
@@ -197,7 +205,7 @@ public class Finder {
 
             for (int chunkZ = startZ; chunkZ <= endZ; chunkZ++) {
 
-                Chunk chunk = world.getChunk(chunkX, chunkZ);
+                Chunk chunk = this.getChunk(chunkX, chunkZ);
 
                 for (BlockPos pos : BlockPos.iterate(
 
@@ -291,5 +299,33 @@ public class Finder {
         }
 
         return false;
+    }
+
+    private Chunk getChunk (int x, int z) {
+
+        Chunk chunk = null;
+
+        List<ChunkStatus> chunkStatuses = new ArrayList<>();
+        chunkStatuses.add(ChunkStatus.BIOMES);
+        chunkStatuses.add(ChunkStatus.CARVERS);
+        chunkStatuses.add(ChunkStatus.FEATURES);
+        chunkStatuses.add(ChunkStatus.FULL);
+        chunkStatuses.add(ChunkStatus.INITIALIZE_LIGHT);
+        chunkStatuses.add(ChunkStatus.LIGHT);
+        chunkStatuses.add(ChunkStatus.NOISE);
+        // chunkStatuses.add(ChunkStatus.SPAWN);
+        chunkStatuses.add(ChunkStatus.STRUCTURE_REFERENCES);
+        chunkStatuses.add(ChunkStatus.STRUCTURE_STARTS);
+        chunkStatuses.add(ChunkStatus.SURFACE);
+        for (ChunkStatus status: chunkStatuses) {
+
+            chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z, status);
+            if (chunk != null) {
+
+                return chunk;
+            }
+        }
+
+        return chunk;
     }
 }
