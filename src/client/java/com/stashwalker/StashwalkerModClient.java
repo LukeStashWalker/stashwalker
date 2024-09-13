@@ -71,7 +71,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         Runtime.getRuntime().addShutdownHook(new Thread(this::saveConfig)); // Save config on shutdown
 
         // Register a rendering event
-        ClientTickEvents.END_CLIENT_TICK.register(this::onClientTickStart);
+        ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStart);
         WorldRenderEvents.LAST.register(this::onRenderWorld);
 
         keyBindingEntityTracers = KeyBindingHelper.registerKeyBinding(new KeyBinding(
