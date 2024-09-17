@@ -47,7 +47,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
 
-    private DoubleBuffer<BlockPos> blockEntityBuffer = new DoubleBuffer<>();
+    private DoubleBuffer<BlockPos> blockPositionsBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Chunk> chunkBuffer = new DoubleBuffer<>();
     private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(5000);
@@ -206,7 +206,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             threadPool.submit(() -> {
 
-                this.blockEntityBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
+                this.blockPositionsBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
             });
 
             threadPool.submit(() -> {
@@ -265,20 +265,20 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-            List<BlockPos> blockpositions = this.blockEntityBuffer.readBuffer();
+            List<BlockPos> blockpositions = this.blockPositionsBuffer.readBuffer();
             if (!blockpositions.isEmpty()) {
 
                 // MatrixStack matrixStack = context.matrixStack(); // Use matrixStack() method
 
                 for (BlockPos pos : blockpositions) {
 
-                    Vec3d blockEntityPos = new Vec3d(
+                    Vec3d blockPos = new Vec3d(
                             pos.getX() + 0.5D,
                             pos.getY() + 0.5D,
                             pos.getZ() + 0.5D
                     );
 
-                    this.renderer.drawLine(context, blockEntityPos, 0, 0, 255, 255);
+                    this.renderer.drawLine(context, blockPos, 0, 0, 255, 255);
                 }
             }
         }

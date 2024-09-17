@@ -8,7 +8,7 @@ public class Constants {
     public static MinecraftClient MC_CLIENT_INSTANCE = MinecraftClient.getInstance();
     public static List<String> FEATURE_NAMES = new ArrayList<>();
     public static String ENTITY_TRACERS = "entityTracers";
-    public static String BLOCK_TRACERS = "blockEntityTracers";
+    public static String BLOCK_TRACERS = "blockTracers";
     public static String NEW_CHUNKS = "newChunks";
     public static String SIGN_READER = "signReader";
     

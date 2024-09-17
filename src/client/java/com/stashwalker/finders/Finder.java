@@ -3,9 +3,7 @@ package com.stashwalker.finders;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.ChestBlock;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.ChestBlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
@@ -43,7 +41,7 @@ public class Finder {
         int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
         int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
-        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance() - 2;
         int xStart = playerChunkPosX - playerRenderDistance;
         int xEnd = playerChunkPosX + playerRenderDistance + 1;
         int zStart = playerChunkPosZ - playerRenderDistance;
@@ -76,13 +74,13 @@ public class Finder {
                                             )
                                         )
 
-                                        // ||
+                                        ||
 
                                         // Potential shop drop off spot
-                                        // (
-                                        //     this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
-                                        //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                        // )
+                                        (
+                                            this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
+                                            && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                        )
 
                                 ) {
 
@@ -340,7 +338,7 @@ public class Finder {
 
             for (int zI = z - 1; zI < z + 1; zI++) {
 
-                if (!Constants.MC_CLIENT_INSTANCE.world.isChunkLoaded(x, z)) {
+                if (Constants.MC_CLIENT_INSTANCE.world.getChunk(xI, zI, ChunkStatus.FULL, false) == null) {
 
                     return false;
                 }
