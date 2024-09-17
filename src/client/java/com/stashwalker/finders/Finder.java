@@ -73,15 +73,15 @@ public class Finder {
                                     )
                                 )
 
-                                    ||
+                                //     ||
 
-                                     // Potential shop drop off spot
-                                (
-                                    blockEntity instanceof ChestBlockEntity
-                                    && this.areAdjacentChunksLoaded(x, z)
-                                    && this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                    && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                )
+                                //      // Potential shop drop off spot
+                                // (
+                                //     blockEntity instanceof ChestBlockEntity
+                                //     && this.areAdjacentChunksLoaded(x, z)
+                                //     && this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                // )
 
                             ) {
 
