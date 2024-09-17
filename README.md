@@ -17,7 +17,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     - xp bottle item
     - totem item
     - smithing template item
-- blue block entity tracers, draws a blue tracer to:
+- blue block tracers, draws a blue tracer to:
     - any double chest if the chest is not in a dungeon
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders red rectangles around 1.19+ chunks, enabling you to follow chunk trails

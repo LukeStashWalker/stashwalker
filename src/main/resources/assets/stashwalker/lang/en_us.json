@@ -1,7 +1,7 @@
 {
   "category.stashwalker.keys": "Stashwalker",
   "key.stashwalker.entity_tracers": "Entity tracers toggle",
-  "key.stashwalker.block_entity_tracers": "Block entity tracers toggle",
+  "key.stashwalker.block_tracers": "Block tracers toggle",
   "key.stashwalker.new_chunks": "New chunks toggle",
   "key.stashwalker.sign_reader": "Sign reader toggle"
 }

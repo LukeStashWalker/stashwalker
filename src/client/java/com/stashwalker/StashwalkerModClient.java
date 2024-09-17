@@ -15,6 +15,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.Text;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 
 import net.minecraft.world.chunk.Chunk;
 import java.util.List;
@@ -46,17 +47,17 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
 
-    private DoubleBuffer<BlockEntity> blockEntityBuffer = new DoubleBuffer<>();
+    private DoubleBuffer<BlockPos> blockEntityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Chunk> chunkBuffer = new DoubleBuffer<>();
     private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(5000);
     private ExecutorService threadPool = Executors.newFixedThreadPool(3, new DaemonThreadFactory());
     private KeyBinding keyBindingEntityTracers;
-    private KeyBinding keyBindingBlockEntityTracers;
+    private KeyBinding keyBindingBlockTracers;
     private KeyBinding keyBindingNewChunks;
     private KeyBinding keyBindingSignReader;
     private boolean entityTracersWasPressed;
-    private boolean blockEntityTracersWasPressed;
+    private boolean blockTracersWasPressed;
     private boolean newChunksWasPressed;
     private boolean signReaderWasPressed;
     private Renderer renderer = new Renderer();
@@ -80,8 +81,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_6,
                 "category.stashwalker.keys"
         ));
-        keyBindingBlockEntityTracers = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.stashwalker.block_entity_tracers",
+        keyBindingBlockTracers = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.stashwalker.block_tracers",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_7,
                 "category.stashwalker.keys"
@@ -148,20 +149,20 @@ public class StashwalkerModClient implements ClientModInitializer {
             entityTracersWasPressed = false;
         }
 
-        if (keyBindingBlockEntityTracers.isPressed()) {
+        if (keyBindingBlockTracers.isPressed()) {
 
-            if (!blockEntityTracersWasPressed) {
+            if (!blockTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean blockEntityTracers = !this.configData.get(Constants.BLOCK_ENTITY_TRACERS);
-                this.configData.put(Constants.BLOCK_ENTITY_TRACERS, blockEntityTracers);
-                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_ENTITY_TRACERS, blockEntityTracers));
+                boolean blockTracers = !this.configData.get(Constants.BLOCK_TRACERS);
+                this.configData.put(Constants.BLOCK_TRACERS, blockTracers);
+                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
             }
 
-            blockEntityTracersWasPressed = true;
+            blockTracersWasPressed = true;
         } else {
 
-            blockEntityTracersWasPressed = false;
+            blockTracersWasPressed = false;
         }
 
         if (keyBindingNewChunks.isPressed()) {
@@ -205,7 +206,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             threadPool.submit(() -> {
 
-                this.blockEntityBuffer.updateBuffer(this.finder.findBlockEntities(client.player));
+                this.blockEntityBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
             });
 
             threadPool.submit(() -> {
@@ -262,19 +263,19 @@ public class StashwalkerModClient implements ClientModInitializer {
             return;
         }
 
-        if (this.configData.get(Constants.BLOCK_ENTITY_TRACERS)) {
+        if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-            List<BlockEntity> blockEntities = this.blockEntityBuffer.readBuffer();
-            if (!blockEntities.isEmpty()) {
+            List<BlockPos> blockpositions = this.blockEntityBuffer.readBuffer();
+            if (!blockpositions.isEmpty()) {
 
                 // MatrixStack matrixStack = context.matrixStack(); // Use matrixStack() method
 
-                for (BlockEntity blockEntity : blockEntities) {
+                for (BlockPos pos : blockpositions) {
 
                     Vec3d blockEntityPos = new Vec3d(
-                            blockEntity.getPos().getX() + 0.5D,
-                            blockEntity.getPos().getY() + 0.5D,
-                            blockEntity.getPos().getZ() + 0.5D
+                            pos.getX() + 0.5D,
+                            pos.getY() + 0.5D,
+                            pos.getZ() + 0.5D
                     );
 
                     this.renderer.drawLine(context, blockEntityPos, 0, 0, 255, 255);

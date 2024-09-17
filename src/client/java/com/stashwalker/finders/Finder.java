@@ -35,10 +35,10 @@ import net.minecraft.util.math.Box;
 
 public class Finder {
 
-    public List<BlockEntity> findBlockEntities (PlayerEntity player) {
+    public List<BlockPos> findBlockPositions (PlayerEntity player) {
 
         World world = player.getWorld(); // Use getWorld() method
-        List<BlockEntity> doubleChests = new ArrayList<>();
+        List<BlockPos> doubleChests = new ArrayList<>();
 
         int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
         int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
@@ -53,7 +53,7 @@ public class Finder {
 
             for (int z = zStart; z < zEnd; z++) {
 
-                Chunk chunk = this.getChunk(x, z);
+                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
                 if (chunk != null) {
 
                     Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
@@ -61,32 +61,35 @@ public class Finder {
 
                         for (BlockPos blockPos : blockPositions) {
 
-                            BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
                             if (
-                                (
-                                    blockEntity instanceof ChestBlockEntity
-                                    && this.areAdjacentChunksLoaded(x, z)
-                                    && this.isDoubleChest(world, blockEntity.getPos())
-                                    && ( // Not a Dungeon
-                                        !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                        && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                    )
-                                )
-
-                                //     ||
-
-                                //      // Potential shop drop off spot
-                                // (
-                                //     blockEntity instanceof ChestBlockEntity
-                                //     && this.areAdjacentChunksLoaded(x, z)
-                                //     && this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                // )
-
+                                Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).getBlock() == Blocks.CHEST
+                                && this.areAdjacentChunksLoaded(x, z)
                             ) {
 
-                                doubleChests.add(blockEntity);
+                                if (
+                                        (
+                                            this.isDoubleChest(world, blockPos)
+                                            && ( 
+                                                // Not a Dungeon
+                                                !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                                && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                            )
+                                        )
+
+                                        // ||
+
+                                        // Potential shop drop off spot
+                                        // (
+                                        //     this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
+                                        //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                        // )
+
+                                ) {
+
+                                    doubleChests.add(blockPos);
+                                }
                             }
+
                         }
                     }
                 }
@@ -113,7 +116,7 @@ public class Finder {
 
             for (int z = zStart; z < zEnd; z++) {
 
-                Chunk chunk = this.getChunk(x, z);
+                Chunk chunk = this.getChunkEarly(x, z);
                 Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
                 for (BlockPos blockPos : blockPositions) {
 
@@ -217,8 +220,7 @@ public class Finder {
 
             for (int chunkZ = startZ; chunkZ <= endZ; chunkZ++) {
 
-                Chunk chunk = this.getChunk(chunkX, chunkZ);
-
+                Chunk chunk = this.getChunkEarly(chunkX, chunkZ);
                 for (BlockPos pos : BlockPos.iterate(
 
                         chunk.getPos().getStartX(), world.getBottomY(), chunk.getPos().getStartZ(),
@@ -276,15 +278,17 @@ public class Finder {
 
         BlockState state = world.getBlockState(pos);
 
-        Direction[] directions = { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST };
+        Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
         for (Direction direction : directions) {
 
             BlockPos adjacentPos = pos.offset(direction);
             BlockState adjacentState = world.getBlockState(adjacentPos);
             Block adjacentBlock = adjacentState.getBlock();
 
-            if (adjacentBlock instanceof ChestBlock
-                    && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)) {
+            if (
+                adjacentBlock == Blocks.CHEST
+                && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)
+            ) {
 
                 return true;
             }
@@ -302,7 +306,7 @@ public class Finder {
         });
     }
 
-    private Chunk getChunk (int x, int z) {
+    private Chunk getChunkEarly (int x, int z) {
 
         Chunk chunk = null;
 
@@ -336,12 +340,9 @@ public class Finder {
 
             for (int zI = z - 1; zI < z + 1; zI++) {
 
-                if (xI != x && zI != z) {
+                if (!Constants.MC_CLIENT_INSTANCE.world.isChunkLoaded(x, z)) {
 
-                    if (Constants.MC_CLIENT_INSTANCE.world.getChunk(xI, zI) == null) {
-
-                        return false;
-                    }
+                    return false;
                 }
             }
         }
