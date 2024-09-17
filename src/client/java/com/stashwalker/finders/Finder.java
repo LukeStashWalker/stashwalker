@@ -63,24 +63,25 @@ public class Finder {
 
                             BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
                             if (
-                                    (
-                                        blockEntity instanceof ChestBlockEntity
-                                        && this.areAdjacentChunksLoaded(x, z)
-                                        && this.isDoubleChest(world, blockEntity.getPos())
-                                        && ( // Not a Dungeon
-                                            !this.isBlockNearby(world, blockPos, 5, Blocks.MOSSY_COBBLESTONE)
-                                            && !this.isBlockNearby(world, blockPos, 5, Blocks.SPAWNER)
-                                        )
+                                (
+                                    blockEntity instanceof ChestBlockEntity
+                                    && this.areAdjacentChunksLoaded(x, z)
+                                    && this.isDoubleChest(world, blockEntity.getPos())
+                                    && ( // Not a Dungeon
+                                        !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                        && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
                                     )
+                                )
 
                                     ||
 
-                                    ( // Potential shop drop off spot
-                                        blockEntity instanceof ChestBlockEntity
-                                        && this.areAdjacentChunksLoaded(x, z)
-                                        && this.isBlockNearby(world, blockPos, 5, Blocks.MOSSY_COBBLESTONE)
-                                        && !this.isBlockNearby(world, blockPos, 5, Blocks.SPAWNER)
-                                    )
+                                     // Potential shop drop off spot
+                                (
+                                    blockEntity instanceof ChestBlockEntity
+                                    && this.areAdjacentChunksLoaded(x, z)
+                                    && this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                    && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                )
 
                             ) {
 
@@ -142,38 +143,36 @@ public class Finder {
 
                         ItemEntity itemEntity = (ItemEntity) e;
                         ItemStack itemStack = itemEntity.getStack();
-                        if (
-                            itemStack.getItem() == Items.ELYTRA
+                        if (itemStack.getItem() == Items.ELYTRA
 
-                            || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+                                || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
 
-                            || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+                                || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
 
-                            || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+                                || itemStack.getItem() == Items.TOTEM_OF_UNDYING
 
-                            || itemStack.getItem() == Items.NETHERITE_BOOTS
-                            || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
-                            || itemStack.getItem() == Items.NETHERITE_HELMET
-                            || itemStack.getItem() == Items.NETHERITE_HOE
-                            || itemStack.getItem() == Items.NETHERITE_LEGGINGS
-                            || itemStack.getItem() == Items.NETHERITE_PICKAXE
-                            || itemStack.getItem() == Items.NETHERITE_AXE
-                            || itemStack.getItem() == Items.NETHERITE_SHOVEL
-                            || itemStack.getItem() == Items.NETHERITE_SWORD
+                                || itemStack.getItem() == Items.NETHERITE_BOOTS
+                                || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
+                                || itemStack.getItem() == Items.NETHERITE_HELMET
+                                || itemStack.getItem() == Items.NETHERITE_HOE
+                                || itemStack.getItem() == Items.NETHERITE_LEGGINGS
+                                || itemStack.getItem() == Items.NETHERITE_PICKAXE
+                                || itemStack.getItem() == Items.NETHERITE_AXE
+                                || itemStack.getItem() == Items.NETHERITE_SHOVEL
+                                || itemStack.getItem() == Items.NETHERITE_SWORD
 
-                            || itemStack.getItem() == Items.DIAMOND_BOOTS
-                            || itemStack.getItem() == Items.DIAMOND_CHESTPLATE
-                            || itemStack.getItem() == Items.DIAMOND_HELMET
-                            || itemStack.getItem() == Items.DIAMOND_LEGGINGS
-                            || itemStack.getItem() == Items.DIAMOND_PICKAXE
-                            || itemStack.getItem() == Items.DIAMOND_AXE
-                            || itemStack.getItem() == Items.DIAMOND_SHOVEL
-                            || itemStack.getItem() == Items.DIAMOND_SWORD
+                                || itemStack.getItem() == Items.DIAMOND_BOOTS
+                                || itemStack.getItem() == Items.DIAMOND_CHESTPLATE
+                                || itemStack.getItem() == Items.DIAMOND_HELMET
+                                || itemStack.getItem() == Items.DIAMOND_LEGGINGS
+                                || itemStack.getItem() == Items.DIAMOND_PICKAXE
+                                || itemStack.getItem() == Items.DIAMOND_AXE
+                                || itemStack.getItem() == Items.DIAMOND_SHOVEL
+                                || itemStack.getItem() == Items.DIAMOND_SWORD
 
-                            || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
+                                || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
 
-                            || itemStack.getItem() == Items.SHULKER_BOX
-                        ) {
+                                || itemStack.getItem() == Items.SHULKER_BOX) {
 
                             return true;
                         } else {
@@ -284,10 +283,8 @@ public class Finder {
             BlockState adjacentState = world.getBlockState(adjacentPos);
             Block adjacentBlock = adjacentState.getBlock();
 
-            if (
-                adjacentBlock instanceof ChestBlock
-                && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)
-            ) {
+            if (adjacentBlock instanceof ChestBlock
+                    && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)) {
 
                 return true;
             }
@@ -296,27 +293,13 @@ public class Finder {
         return false;
     }
 
-    private boolean isBlockNearby (World world, BlockPos pos, int radius, Block block) {
+    private boolean isBlockInHorizontalRadius (World world, BlockPos pos, int radius, Block block) {
 
-        Box searchBox = new Box(pos).expand(radius);
-    
+        Box searchBox = new Box(pos).expand(radius, 0, radius);
+
         return BlockPos.stream(searchBox).anyMatch(bp -> {
             return world.getBlockState(bp).getBlock() == block;
-        }
-    );
-}
-
-    private boolean isBlockOnChunkBorder (World world, BlockPos pos) {
-
-        int x = pos.getX();
-        int z = pos.getZ();
-        if (x == 0 || x == 15 || z == 0 || z == 15) {
-
-            return true;
-        } else {
-
-            return false;
-        }
+        });
     }
 
     private Chunk getChunk (int x, int z) {
@@ -335,7 +318,7 @@ public class Finder {
         chunkStatuses.add(ChunkStatus.STRUCTURE_REFERENCES);
         chunkStatuses.add(ChunkStatus.STRUCTURE_STARTS);
         chunkStatuses.add(ChunkStatus.SURFACE);
-        for (ChunkStatus status: chunkStatuses) {
+        for (ChunkStatus status : chunkStatuses) {
 
             chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z, status);
             if (chunk != null) {
@@ -355,7 +338,7 @@ public class Finder {
 
                 if (xI != x && zI != z) {
 
-                    if (getChunk(xI, zI) == null) {
+                    if (Constants.MC_CLIENT_INSTANCE.world.getChunk(xI, zI) == null) {
 
                         return false;
                     }
