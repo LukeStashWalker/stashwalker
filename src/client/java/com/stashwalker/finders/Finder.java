@@ -62,14 +62,27 @@ public class Finder {
                         for (BlockPos blockPos : blockPositions) {
 
                             BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
+                            if (
+                                    (
+                                        blockEntity instanceof ChestBlockEntity
+                                        && this.areAdjacentChunksLoaded(x, z)
+                                        && this.isDoubleChest(world, blockEntity.getPos())
+                                        && ( // Not a Dungeon
+                                            !this.isBlockNearby(world, blockPos, 5, Blocks.MOSSY_COBBLESTONE)
+                                            && !this.isBlockNearby(world, blockPos, 5, Blocks.SPAWNER)
+                                        )
+                                    )
 
-                            if (blockEntity instanceof ChestBlockEntity
-                                    && (isNonDungeonDoubleChest(world, blockEntity.getPos())
-                                    // || (
-                                    // x < playerChunkPosX + 16 && z < playerChunkPosZ + 16
-                                    // && isKitShopDropOff(world, blockPos)
-                                    // )
-                            )) {
+                                    ||
+
+                                    ( // Potential shop drop off spot
+                                        blockEntity instanceof ChestBlockEntity
+                                        && this.areAdjacentChunksLoaded(x, z)
+                                        && this.isBlockNearby(world, blockPos, 5, Blocks.MOSSY_COBBLESTONE)
+                                        && !this.isBlockNearby(world, blockPos, 5, Blocks.SPAWNER)
+                                    )
+
+                            ) {
 
                                 doubleChests.add(blockEntity);
                             }
@@ -260,16 +273,9 @@ public class Finder {
         return new ArrayList<>(foundChestMinecastEntities);
     }
 
-    // Helper method to determine if a chest block is part of a double chest
-    private boolean isNonDungeonDoubleChest (World world, BlockPos pos) {
+    private boolean isDoubleChest (World world, BlockPos pos) {
 
         BlockState state = world.getBlockState(pos);
-        Block block = state.getBlock();
-
-        if (!(block instanceof ChestBlock)) {
-
-            return false;
-        }
 
         Direction[] directions = { Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST };
         for (Direction direction : directions) {
@@ -278,27 +284,39 @@ public class Finder {
             BlockState adjacentState = world.getBlockState(adjacentPos);
             Block adjacentBlock = adjacentState.getBlock();
 
-            BlockPos adjacentDownPos = adjacentPos.offset(Direction.DOWN);
-            BlockState adjacentDownState = world.getBlockState(adjacentDownPos);
-            Block adjacentDownBlock = adjacentDownState.getBlock();
-
-            BlockPos downBlockPos = pos.offset(Direction.DOWN);
-            BlockState downState = world.getBlockState(downBlockPos);
-            Block downBlock = downState.getBlock();
-
-            if (downBlock == Blocks.MOSSY_COBBLESTONE || adjacentDownBlock == Blocks.MOSSY_COBBLESTONE) {
-
-                return false;
-            }
-
-            if (adjacentBlock instanceof ChestBlock
-                    && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)) {
+            if (
+                adjacentBlock instanceof ChestBlock
+                && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)
+            ) {
 
                 return true;
             }
         }
 
         return false;
+    }
+
+    private boolean isBlockNearby (World world, BlockPos pos, int radius, Block block) {
+
+        Box searchBox = new Box(pos).expand(radius);
+    
+        return BlockPos.stream(searchBox).anyMatch(bp -> {
+            return world.getBlockState(bp).getBlock() == block;
+        }
+    );
+}
+
+    private boolean isBlockOnChunkBorder (World world, BlockPos pos) {
+
+        int x = pos.getX();
+        int z = pos.getZ();
+        if (x == 0 || x == 15 || z == 0 || z == 15) {
+
+            return true;
+        } else {
+
+            return false;
+        }
     }
 
     private Chunk getChunk (int x, int z) {
@@ -327,5 +345,24 @@ public class Finder {
         }
 
         return chunk;
+    }
+
+    private boolean areAdjacentChunksLoaded (int x, int z) {
+
+        for (int xI = x - 1; xI < x + 1; xI++) {
+
+            for (int zI = z - 1; zI < z + 1; zI++) {
+
+                if (xI != x && zI != z) {
+
+                    if (getChunk(xI, zI) == null) {
+
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 }
