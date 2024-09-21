@@ -21,6 +21,7 @@ import net.minecraft.world.chunk.Chunk;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -294,7 +295,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                             blockPos.getZ() + 0.5D
                     );
 
-                    this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
+                    this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), false);
                 }
             }
         }
@@ -306,13 +307,25 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 for (Entity entity : entities) {
 
-                    Vec3d entityPos = new Vec3d(
+                    Vec3d entityPos;
+                    if (entity instanceof ItemFrameEntity) {
+
+                        entityPos = new Vec3d(
+                            entity.getPos().getX(),
+                            entity.getPos().getY(),
+                            entity.getPos().getZ()
+                        );
+                    } else {
+
+
+                        entityPos = new Vec3d(
                             entity.getPos().getX(),
                             entity.getPos().getY() + 0.5D,
                             entity.getPos().getZ()
-                    );
+                        );
+                    }
 
-                    this.renderer.drawLine(context, entityPos, 255, 0, 0, 255);
+                    this.renderer.drawLine(context, entityPos, 255, 0, 0, 255, true);
                 }
             }
         }

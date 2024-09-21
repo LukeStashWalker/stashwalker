@@ -2,6 +2,7 @@ package com.stashwalker.finders;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
@@ -55,7 +56,7 @@ public class Finder {
 
             for (int z = zStart; z < zEnd; z++) {
 
-                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
+                Chunk chunk = this.getChunkEarly(x, z);
                 if (chunk != null) {
 
                     Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
@@ -89,7 +90,6 @@ public class Finder {
 
                                 foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.WHITE));
                             } else if (
-
                                 this.isBlockType(blockPos, Blocks.HOPPER)
                                 || this.isBlockType(blockPos, Blocks.DROPPER)
                                 || this.isBlockType(blockPos, Blocks.DISPENSER)
@@ -98,7 +98,49 @@ public class Finder {
                             ) {
 
                                 foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.BLACK));
+                            } else if (
+                                this.isBlockType(blockPos, Blocks.NETHER_PORTAL)
+                            ) {
+
+                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.MAGENTA));
+                            } else if (
+                                this.isBlockType(blockPos, Blocks.OAK_SIGN)
+                                || this.isBlockType(blockPos, Blocks.SPRUCE_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BIRCH_SIGN)
+                                || this.isBlockType(blockPos, Blocks.ACACIA_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CHERRY_SIGN)
+                                || this.isBlockType(blockPos, Blocks.JUNGLE_SIGN)
+                                || this.isBlockType(blockPos, Blocks.DARK_OAK_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CRIMSON_SIGN)
+                                || this.isBlockType(blockPos, Blocks.MANGROVE_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BAMBOO_SIGN)
+
+                                || this.isBlockType(blockPos, Blocks.OAK_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.SPRUCE_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BIRCH_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.ACACIA_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CHERRY_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.JUNGLE_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.DARK_OAK_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CRIMSON_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.MANGROVE_WALL_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BAMBOO_WALL_SIGN)
+
+                                || this.isBlockType(blockPos, Blocks.OAK_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.SPRUCE_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BIRCH_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.ACACIA_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CHERRY_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.JUNGLE_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.DARK_OAK_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.CRIMSON_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.MANGROVE_HANGING_SIGN)
+                                || this.isBlockType(blockPos, Blocks.BAMBOO_HANGING_SIGN)
+                            ) {
+
+                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.CYAN));
                             }
+
                         }
                     }
                 }
@@ -243,7 +285,7 @@ public class Finder {
                     Block block = chunk.getBlockState(pos).getBlock();
                     if (
                         block == Blocks.COPPER_ORE 
-                        || block == Blocks.DEEPSLATE_COPPER_ORE
+                        // || block == Blocks.DEEPSLATE_COPPER_ORE
                         || block == Blocks.ANCIENT_DEBRIS
                     ) {
 

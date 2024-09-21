@@ -17,8 +17,20 @@ This mod is open source, you can check the code yourself. This mod has been test
     - xp bottle item
     - totem item
     - smithing template item
-- colored block tracers, draws a tracer to:
-    - any double chest if the chest is not in a dungeon
+- different colored tracers to interesting blocks:
+    - white
+        - shulkerbox
+    - brown
+        - any double chest that is not in a dungeon
+        - barrel
+    - black
+        - hopper
+        - dropper
+        - dispenser
+        - blast furnace
+        - furnace
+    - cyan
+        - any type of sign
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders red rectangles around 1.19+ chunks, enabling you to follow chunk trails
 - sign reader: posts text of signs you pass by in chat HUD
