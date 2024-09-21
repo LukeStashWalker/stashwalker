@@ -11,6 +11,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.sound.SoundEvents;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stashwalker.constants.Constants;
@@ -165,7 +166,13 @@ public class Renderer {
         }
     }
 
-    public void sendClientSideMessage (Text text) {
+    public void sendClientSideMessage(Text text) {
+
+        Constants.MC_CLIENT_INSTANCE.player.playSound(
+            SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
+            1.0F, // Volume
+            1.0F  // Pitch
+        );
 
         Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
     }

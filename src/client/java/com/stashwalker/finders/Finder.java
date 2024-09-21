@@ -41,7 +41,7 @@ public class Finder {
         int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
         int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
-        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance() - 2;
+        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
         int xStart = playerChunkPosX - playerRenderDistance;
         int xEnd = playerChunkPosX + playerRenderDistance + 1;
         int zStart = playerChunkPosZ - playerRenderDistance;
@@ -74,13 +74,13 @@ public class Finder {
                                             )
                                         )
 
-                                        ||
+                                        // ||
 
                                         // Potential shop drop off spot
-                                        (
-                                            this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
-                                            && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                        )
+                                        // (
+                                        //     this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
+                                        //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                        // )
 
                                 ) {
 

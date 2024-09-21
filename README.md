@@ -19,7 +19,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     - smithing template item
 - blue block tracers, draws a blue tracer to:
     - any double chest if the chest is not in a dungeon
-    - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location)
+    <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders red rectangles around 1.19+ chunks, enabling you to follow chunk trails
 - sign reader: posts text of signs you pass by in chat HUD
 
@@ -33,7 +33,7 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ![alt text](screenshots/5.png)
 
-![alt text](screenshots/6.png)
+<!-- ![alt text](screenshots/6.png) -->
 
 ![alt text](screenshots/7.png)
 
