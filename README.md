@@ -51,6 +51,8 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ![alt text](screenshots/8.png)
 
+![alt text](screenshots/9.png)
+
 ## How to build jar from source
 
 - build: ./gradlew build 
