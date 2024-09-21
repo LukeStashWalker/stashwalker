@@ -32,13 +32,15 @@ import net.minecraft.client.util.InputUtil;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.config.ConfigManager;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.extractors.SignTextExtractor;
+import com.stashwalker.utils.SignTextExtractor;
 import com.stashwalker.finders.Finder;
-import com.stashwalker.rendering.DoubleBuffer;
+import com.stashwalker.utils.DoubleBuffer;
 import com.stashwalker.rendering.Renderer;
-import com.stashwalker.threads.DaemonThreadFactory;
+import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.MaxSizeSet;
+import com.stashwalker.utils.Pair;
 
+import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +49,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
 
-    private DoubleBuffer<BlockPos> blockPositionsBuffer = new DoubleBuffer<>();
+    private DoubleBuffer<Pair<BlockPos, Color>> blockPositionsBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Chunk> chunkBuffer = new DoubleBuffer<>();
     private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(5000);
@@ -204,51 +206,63 @@ public class StashwalkerModClient implements ClientModInitializer {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTime >= 20) {
 
-            threadPool.submit(() -> {
+            if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-                this.blockPositionsBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
-            });
+                threadPool.submit(() -> {
 
-            threadPool.submit(() -> {
+                    this.blockPositionsBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
+                });
+            }
 
-                this.entityBuffer.updateBuffer(this.finder.findEntities(client.player));
-            });
+            if (this.configData.get(Constants.ENTITY_TRACERS)) {
 
-            threadPool.submit(() -> {
+                threadPool.submit(() -> {
 
-                this.chunkBuffer.updateBuffer(this.finder.findNewChunks(client.player));
-            });
+                    this.entityBuffer.updateBuffer(this.finder.findEntities(client.player));
+                });
+            }
 
-            threadPool.submit(() -> {
+            if (this.configData.get(Constants.NEW_CHUNKS)) {
 
-                if (this.configData.get(Constants.SIGN_READER)) {
+                threadPool.submit(() -> {
 
-                    List<BlockEntity> signs = this.finder.findSigns(client.player);
-                    for (BlockEntity sign: signs) {
+                    this.chunkBuffer.updateBuffer(this.finder.findNewChunks(client.player));
+                });
+            }
 
-                        if (!this.signsSet.contains(sign.hashCode())) {
+            if (this.configData.get(Constants.SIGN_READER)) {
 
-                             String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                            if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+                threadPool.submit(() -> {
 
-                                Text styledText = Text.empty()
-                                        .append(Text.literal("[")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                        .append(Text.literal("Stashwalker, ")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                        .append(Text.literal("signReader")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                        .append(Text.literal("]:\n")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                        .append(Text.literal(signText)
-                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                                this.renderer.sendClientSideMessage(styledText);
-                                this.signsSet.add(sign.hashCode());
+                    if (this.configData.get(Constants.SIGN_READER)) {
+
+                        List<BlockEntity> signs = this.finder.findSigns(client.player);
+                        for (BlockEntity sign : signs) {
+
+                            if (!this.signsSet.contains(sign.hashCode())) {
+
+                                String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
+                                if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+
+                                    Text styledText = Text.empty()
+                                            .append(Text.literal("[")
+                                                    .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                            .append(Text.literal("Stashwalker, ")
+                                                    .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                            .append(Text.literal("signReader")
+                                                    .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                            .append(Text.literal("]:\n")
+                                                    .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                            .append(Text.literal(signText)
+                                                    .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                                    this.renderer.sendClientSideMessage(styledText);
+                                    this.signsSet.add(sign.hashCode());
+                                }
                             }
                         }
                     }
-                }
-            });
+                });
+            }
 
             lastTime = currentTime;
         }
@@ -265,20 +279,22 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-            List<BlockPos> blockpositions = this.blockPositionsBuffer.readBuffer();
-            if (!blockpositions.isEmpty()) {
+            List<Pair<BlockPos, Color>> blockPairs = this.blockPositionsBuffer.readBuffer();
+            if (!blockPairs.isEmpty()) {
 
                 // MatrixStack matrixStack = context.matrixStack(); // Use matrixStack() method
 
-                for (BlockPos pos : blockpositions) {
+                for (Pair<BlockPos, Color> pair : blockPairs) {
 
-                    Vec3d blockPos = new Vec3d(
-                            pos.getX() + 0.5D,
-                            pos.getY() + 0.5D,
-                            pos.getZ() + 0.5D
+                    BlockPos blockPos = pair.getKey();
+                    Color color = pair.getValue();
+                    Vec3d newBlockPos = new Vec3d(
+                            blockPos.getX() + 0.5D,
+                            blockPos.getY() + 0.5D,
+                            blockPos.getZ() + 0.5D
                     );
 
-                    this.renderer.drawLine(context, blockPos, 0, 0, 255, 255);
+                    this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha());
                 }
             }
         }

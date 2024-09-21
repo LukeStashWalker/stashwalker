@@ -2,10 +2,12 @@ package com.stashwalker.rendering;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.BufferBuilder;
+import net.minecraft.client.render.BufferRenderer;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.Tessellator;
 import net.minecraft.client.render.VertexFormat;
 import net.minecraft.client.render.VertexFormats;
+import net.minecraft.client.render.VertexFormat.DrawMode;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
@@ -57,13 +59,14 @@ public class Renderer {
         GL11.glLineWidth(1.0f);
 
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        BufferBuilder bufferBuilder = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION);
         RenderSystem.setShader(GameRenderer::getPositionProgram);
 
-        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
-        bufferBuilder.vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z).next();
-        bufferBuilder.vertex(matrix4f, (float) end.x, (float) end.y, (float) end.z).next();
-        tessellator.draw();
+        bufferBuilder
+            .vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z)
+            .vertex(matrix4f, (float) end.x, (float) end.y, (float) end.z);
+
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
 
         end();
     }
@@ -84,16 +87,18 @@ public class Renderer {
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
 
+        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f);
+
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glLineWidth(1.0f);
 
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
-        BufferBuilder bufferBuilder = tessellator.getBuffer();
+        BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
         RenderSystem.setShader(GameRenderer::getPositionProgram);
-        bufferBuilder.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
 
-        double topHeight = (rectangleLevel + rectableHeight) - cameraPos.y; // height 100 in world coordinates
+        double topHeight = (rectangleLevel + rectableHeight) - cameraPos.y;
 
         for (Chunk chunk : chunks) {
 
@@ -104,45 +109,49 @@ public class Renderer {
             double y = rectangleLevel - cameraPos.y;
 
             // Draw the base square around the chunk
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) startZ).next();
+            bufferBuilder
+                .vertex(matrix, (float) startX, (float) y, (float) startZ)
+                .vertex(matrix, (float) endX, (float) y, (float) startZ)
+                .vertex(matrix, (float) endX, (float) y, (float) startZ)
+                .vertex(matrix, (float) endX, (float) y, (float) endZ)
+                .vertex(matrix, (float) endX, (float) y, (float) endZ)
+                .vertex(matrix, (float) startX, (float) y, (float) endZ)
+                .vertex(matrix, (float) startX, (float) y, (float) endZ)
+                .vertex(matrix, (float) startX, (float) y, (float) startZ)
 
-            // Draw vertical lines from each corner to the top height
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) startZ).next();
+                // Draw vertical lines from each corner to the top height
+                .vertex(matrix, (float) startX, (float) y, (float) startZ)
+                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ)
 
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) startZ).next();
+                .vertex(matrix, (float) endX, (float) y, (float) startZ)
+                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
 
-            bufferBuilder.vertex(matrix, (float) endX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) endZ).next();
+                .vertex(matrix, (float) endX, (float) y, (float) endZ)
+                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
 
-            bufferBuilder.vertex(matrix, (float) startX, (float) y, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) endZ).next();
+                .vertex(matrix, (float) startX, (float) y, (float) endZ)
+                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
 
-            // Draw the top square at height 100
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) startZ).next();
+                // Draw the top square at height 100
+                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ)
+                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
 
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) startZ).next();
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) endZ).next();
+                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
+                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
 
-            bufferBuilder.vertex(matrix, (float) endX, (float) topHeight, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) endZ).next();
+                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
+                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
 
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) endZ).next();
-            bufferBuilder.vertex(matrix, (float) startX, (float) topHeight, (float) startZ).next();
+                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
+                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ);
         }
 
-        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f);
-        tessellator.draw();
 
+        if (chunks.size() > 0) {
+
+            BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        } 
+        
         end();
     }
 
@@ -153,7 +162,7 @@ public class Renderer {
 
         if (cameraEntity instanceof PlayerEntity playerEntity) {
 
-            float f = Constants.MC_CLIENT_INSTANCE.getTickDelta();
+            float f = Constants.MC_CLIENT_INSTANCE.getRenderTickCounter().getTickDelta(false);
             float g = playerEntity.horizontalSpeed - playerEntity.prevHorizontalSpeed;
             float h = -(playerEntity.horizontalSpeed + g * f);
             float i = MathHelper.lerp(f, playerEntity.prevStrideDistance, playerEntity.strideDistance);

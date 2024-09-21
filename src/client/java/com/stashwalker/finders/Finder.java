@@ -10,6 +10,7 @@ import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Items;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -25,7 +26,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import java.awt.Color;
+
 import com.stashwalker.constants.Constants;
+import com.stashwalker.utils.*;
 
 import java.util.HashSet;
 import net.minecraft.entity.Entity;
@@ -33,10 +37,10 @@ import net.minecraft.util.math.Box;
 
 public class Finder {
 
-    public List<BlockPos> findBlockPositions (PlayerEntity player) {
+    public List<Pair<BlockPos, Color>> findBlockPositions (PlayerEntity player) {
 
         World world = player.getWorld(); // Use getWorld() method
-        List<BlockPos> doubleChests = new ArrayList<>();
+        List<Pair<BlockPos, Color>> foundBlockPositions = new ArrayList<>();
 
         int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
         int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
@@ -59,42 +63,49 @@ public class Finder {
 
                         for (BlockPos blockPos : blockPositions) {
 
+
                             if (
-                                Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).getBlock() == Blocks.CHEST
-                                && this.areAdjacentChunksLoaded(x, z)
+
+                                this.isBlockType(blockPos, Blocks.BARREL)
+
+                                ||
+
+                                (
+                                    this.areAdjacentChunksLoaded(x, z)
+                                    &&
+                                    (
+                                        this.isDoubleChest(world, blockPos)
+                                        && ( 
+                                            // Not a Dungeon
+                                            !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                            && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                        )
+                                    )
+                                )
                             ) {
 
-                                if (
-                                        (
-                                            this.isDoubleChest(world, blockPos)
-                                            && ( 
-                                                // Not a Dungeon
-                                                !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                                && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                            )
-                                        )
+                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, new Color(210, 105, 30)));
+                            } else if (this.isBlockType(blockPos, Blocks.SHULKER_BOX)) {
 
-                                        // ||
+                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.WHITE));
+                            } else if (
 
-                                        // Potential shop drop off spot
-                                        // (
-                                        //     this.isBlockInHorizontalRadius(world, blockPos.down(), 5,Blocks.MOSSY_COBBLESTONE)
-                                        //     && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
-                                        // )
+                                this.isBlockType(blockPos, Blocks.HOPPER)
+                                || this.isBlockType(blockPos, Blocks.DROPPER)
+                                || this.isBlockType(blockPos, Blocks.DISPENSER)
+                                || this.isBlockType(blockPos, Blocks.BLAST_FURNACE)
+                                || this.isBlockType(blockPos, Blocks.FURNACE)
+                            ) {
 
-                                ) {
-
-                                    doubleChests.add(blockPos);
-                                }
+                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.BLACK));
                             }
-
                         }
                     }
                 }
             }
         }
 
-        return doubleChests;
+        return foundBlockPositions;
     }
 
     public List<BlockEntity> findSigns (PlayerEntity player) {
@@ -173,14 +184,16 @@ public class Finder {
 
                                 || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
 
-                                || itemStack.getItem() == Items.SHULKER_BOX) {
+                                || itemStack.getItem() == Items.SHULKER_BOX
+                        ) {
 
                             return true;
                         } else {
 
                             return false;
                         }
-                    } else if ((e instanceof AbstractDonkeyEntity
+                    } else if (
+                        (e instanceof AbstractDonkeyEntity
                             && ((AbstractDonkeyEntity) e).hasChest()
                             && !((AbstractDonkeyEntity) e).hasPlayerRider())
                             ||
@@ -189,7 +202,10 @@ public class Finder {
                                     && !((LlamaEntity) e).hasPlayerRider())
                             ||
                             (e instanceof ChestBoatEntity
-                                    && !((ChestBoatEntity) e).hasPlayerRider())) {
+                                    && !((ChestBoatEntity) e).hasPlayerRider())
+                            || 
+                            (e instanceof ItemFrameEntity)
+                            ) {
 
                         return true;
                     } else {
@@ -225,7 +241,11 @@ public class Finder {
                         chunk.getPos().getEndX(), world.getTopY(), chunk.getPos().getEndZ())) {
 
                     Block block = chunk.getBlockState(pos).getBlock();
-                    if (block == Blocks.COPPER_ORE || block == Blocks.ANCIENT_DEBRIS) {
+                    if (
+                        block == Blocks.COPPER_ORE 
+                        || block == Blocks.DEEPSLATE_COPPER_ORE
+                        || block == Blocks.ANCIENT_DEBRIS
+                    ) {
 
                         result.add(chunk);
 
@@ -274,6 +294,14 @@ public class Finder {
 
     private boolean isDoubleChest (World world, BlockPos pos) {
 
+        if (
+            !this.isBlockType(pos, Blocks.CHEST)
+            && !this.isBlockType(pos, Blocks.TRAPPED_CHEST)
+        ) {
+
+            return false;
+        }
+
         BlockState state = world.getBlockState(pos);
 
         Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
@@ -284,7 +312,10 @@ public class Finder {
             Block adjacentBlock = adjacentState.getBlock();
 
             if (
-                adjacentBlock == Blocks.CHEST
+                (
+                    adjacentBlock == Blocks.CHEST 
+                    || adjacentBlock == Blocks.TRAPPED_CHEST
+                )
                 && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)
             ) {
 
@@ -346,5 +377,10 @@ public class Finder {
         }
 
         return true;
+    }
+
+    private boolean isBlockType (BlockPos blockPos, Block block) {
+
+        return Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).getBlock() == block;
     }
 }

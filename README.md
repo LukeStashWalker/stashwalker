@@ -17,7 +17,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     - xp bottle item
     - totem item
     - smithing template item
-- blue block tracers, draws a blue tracer to:
+- colored block tracers, draws a tracer to:
     - any double chest if the chest is not in a dungeon
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders red rectangles around 1.19+ chunks, enabling you to follow chunk trails
@@ -52,10 +52,10 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 - place the jar inside your Minecraft mods directory
 - this mod has the following dependencies:
-    - "fabricloader": ">=0.15.11",
-	- "minecraft": "1.20.4",
-	- "java": "17",
-	- "fabric-api": "*"
+	-	"fabricloader": ">=0.16.5",
+	-	"minecraft": "1.21.1",
+	-	"java": "21",
+	-	"fabric-api": ">=0.103.0+1.21.1"
 
 ## Contact
 
