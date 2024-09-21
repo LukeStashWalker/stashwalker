@@ -49,6 +49,7 @@ import java.util.Map;
 public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
+    private long lastTime2 = 0;
 
     private DoubleBuffer<Pair<BlockPos, Color>> blockPositionsBuffer = new DoubleBuffer<>();
     private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
@@ -205,7 +206,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 20) {
+        if (currentTime - lastTime >= 50) {
 
             if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
@@ -220,14 +221,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                 threadPool.submit(() -> {
 
                     this.entityBuffer.updateBuffer(this.finder.findEntities(client.player));
-                });
-            }
-
-            if (this.configData.get(Constants.NEW_CHUNKS)) {
-
-                threadPool.submit(() -> {
-
-                    this.chunkBuffer.updateBuffer(this.finder.findNewChunks(client.player));
                 });
             }
 
@@ -266,6 +259,19 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
 
             lastTime = currentTime;
+        }
+
+        if (currentTime - lastTime2 >= 50) {
+
+            if (this.configData.get(Constants.NEW_CHUNKS)) {
+
+                threadPool.submit(() -> {
+
+                    this.chunkBuffer.updateBuffer(this.finder.findNewChunks(client.player));
+                });
+            }
+
+            lastTime2 = currentTime;
         }
     }
 
