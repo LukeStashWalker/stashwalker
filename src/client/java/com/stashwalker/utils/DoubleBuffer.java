@@ -1,27 +1,30 @@
 package com.stashwalker.utils;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 // DoubleBuffer class that uses a generic type T
 public class DoubleBuffer<T> {
 
-    private final List<T> buffer1 = new ArrayList<>();
-    private final List<T> buffer2 = new ArrayList<>();
-    private final AtomicReference<List<T>> currentBufferRef = new AtomicReference<>(buffer1);
+    private T buffer1; // Initialize to null implicitly
+    private T buffer2; // Initialize to null implicitly
+    private final AtomicReference<T> currentBufferRef = new AtomicReference<>();
     private final Object lock = new Object(); // Lock object to manage buffer switching
 
     // Method to add multiple items to the inactive buffer
-    public void updateBuffer (List<T> newData) {
+    public void updateBuffer (T newData) {
 
-        List<T> inactiveBuffer = getInactiveBuffer();
+        T inactiveBuffer = getInactiveBuffer();
 
-        // Update the inactive buffer
-        synchronized (inactiveBuffer) {
+        synchronized (lock) {
 
-            inactiveBuffer.clear();
-            inactiveBuffer.addAll(newData);
+            // Update the inactive buffer directly
+            if (inactiveBuffer == buffer1) {
+
+                buffer1 = newData;
+            } else {
+
+                buffer2 = newData;
+            }
         }
 
         // Switch to the newly updated buffer
@@ -29,7 +32,7 @@ public class DoubleBuffer<T> {
     }
 
     // Method to get the inactive buffer
-    private List<T> getInactiveBuffer () {
+    private T getInactiveBuffer () {
 
         synchronized (lock) {
 
@@ -43,20 +46,16 @@ public class DoubleBuffer<T> {
 
         synchronized (lock) {
 
-            List<T> inactiveBuffer = getInactiveBuffer();
+            T inactiveBuffer = getInactiveBuffer();
             currentBufferRef.set(inactiveBuffer);
         }
     }
 
     // Method for the reader to get data from the current buffer
-    public List<T> readBuffer () {
+    public T readBuffer () {
 
-        List<T> currentBuffer = currentBufferRef.get();
+        T currentBuffer = currentBufferRef.get();
 
-        // Return a copy of the current buffer to avoid modification issues
-        synchronized (currentBuffer) {
-
-            return new ArrayList<>(currentBuffer);
-        }
+        return currentBuffer; // No need for additional synchronization here
     }
 }

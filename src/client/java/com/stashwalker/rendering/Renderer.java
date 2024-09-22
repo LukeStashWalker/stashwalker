@@ -18,11 +18,11 @@ import net.minecraft.sound.SoundEvents;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stashwalker.constants.Constants;
 
-import net.minecraft.world.chunk.Chunk;
 import java.util.Collection;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
@@ -75,7 +75,7 @@ public class Renderer {
 
     public void drawChunkSquare (
         WorldRenderContext context, 
-        Collection<Chunk> chunks, 
+        Collection<ChunkPos> chunkPositions, 
         int rectangleLevel,
         int rectableHeight, 
         int r, 
@@ -101,12 +101,12 @@ public class Renderer {
 
         double topHeight = (rectangleLevel + rectableHeight) - cameraPos.y;
 
-        for (Chunk chunk : chunks) {
+        for (ChunkPos pos : chunkPositions) {
 
-            double startX = chunk.getPos().getStartX() - cameraPos.x;
-            double endX = chunk.getPos().getEndX() + 1 - cameraPos.x;
-            double startZ = chunk.getPos().getStartZ() - cameraPos.z;
-            double endZ = chunk.getPos().getEndZ() + 1 - cameraPos.z;
+            double startX = pos.getStartX() - cameraPos.x;
+            double endX = pos.getEndX() + 1 - cameraPos.x;
+            double startZ = pos.getStartZ() - cameraPos.z;
+            double endZ = pos.getEndZ() + 1 - cameraPos.z;
             double y = rectangleLevel - cameraPos.y;
 
             // Draw the base square around the chunk
@@ -148,7 +148,7 @@ public class Renderer {
         }
 
 
-        if (chunks.size() > 0) {
+        if (chunkPositions.size() > 0) {
 
             BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         } 
@@ -190,12 +190,12 @@ public class Renderer {
         double endY;
         if (withSmallBox) {
 
-            startX = vec3d.x - 0.2D;
-            endX = vec3d.x + 0.2D;
-            startZ = vec3d.z - 0.2D;
-            endZ = vec3d.z + 0.5D;
-            startY = vec3d.y - 0.2D;
-            endY = vec3d.y + 0.2D;
+            startX = vec3d.x - 0.1D;
+            endX = vec3d.x + 0.1D;
+            startZ = vec3d.z - 0.1D;
+            endZ = vec3d.z + 0.1D;
+            startY = vec3d.y - 0.1D;
+            endY = vec3d.y + 0.1D;
         } else {
 
             startX = vec3d.x - 0.5D;

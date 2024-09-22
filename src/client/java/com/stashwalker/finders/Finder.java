@@ -2,10 +2,10 @@ package com.stashwalker.finders;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.NetherPortalBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
@@ -35,13 +35,15 @@ import com.stashwalker.utils.*;
 import java.util.HashSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.ChunkPos;
 
 public class Finder {
 
-    public List<Pair<BlockPos, Color>> findBlockPositions (PlayerEntity player) {
+    Set<Integer> chunksCache = new MaxSizeSet<>(4096);
 
-        World world = player.getWorld(); // Use getWorld() method
-        List<Pair<BlockPos, Color>> foundBlockPositions = new ArrayList<>();
+    public Set<ChunkPos> findChunkPositions () {
+
+        World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
 
         int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
         int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
@@ -52,22 +54,98 @@ public class Finder {
         int zStart = playerChunkPosZ - playerRenderDistance;
         int zEnd = playerChunkPosZ + playerRenderDistance + 1;
 
+        Set<ChunkPos> result = new HashSet<>();
+
+        for (int x = xStart; x < xEnd; x++) {
+
+            for (int z = zStart; z < zEnd; z++) {
+
+                // Chunk chunk = this.getChunkEarly(x, z);
+                Chunk chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z);
+
+                if (chunk != null) {
+
+                    // if (!this.chunksCache.contains(chunk.getPos().hashCode())) {
+
+                        for (
+                            BlockPos pos : BlockPos.iterate(
+
+                                chunk.getPos().getStartX(), world.getBottomY(), chunk.getPos().getStartZ(),
+                                chunk.getPos().getEndX(), world.getTopY(), chunk.getPos().getEndZ())
+                            ) {
+
+                            if (this.isBlockType(pos, Blocks.COPPER_ORE)
+                                    || this.isBlockType(pos, Blocks.ANCIENT_DEBRIS)) {
+
+                                result.add(chunk.getPos());
+                                // this.chunksCache.add(pos.hashCode());
+
+                                break;
+                            }
+                        }
+                    // } else {
+
+                    //     result.add(chunk.getPos());
+                    // }
+
+                }
+            }
+        }
+
+        return result;
+    }
+
+    public FinderResult findBlocks () {
+
+        World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
+        ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
+
+        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+
+        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+        int xStart = playerChunkPosX - playerRenderDistance;
+        int xEnd = playerChunkPosX + playerRenderDistance + 1;
+        int zStart = playerChunkPosZ - playerRenderDistance;
+        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+
+        FinderResult finderResult = new FinderResult();
+
         for (int x = xStart; x < xEnd; x++) {
 
             for (int z = zStart; z < zEnd; z++) {
 
                 Chunk chunk = this.getChunkEarly(x, z);
+
                 if (chunk != null) {
 
                     Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
                     if (blockPositions != null) {
 
-                        for (BlockPos blockPos : blockPositions) {
+                        for (BlockPos pos: blockPositions) {
 
+                            BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
+                            // Signs
+                            if (blockEntity instanceof SignBlockEntity) {
+
+                                finderResult.addSign(blockEntity);
+                            }
+                            
+
+                            // New chunks
+                            if (
+                                this.isBlockType(pos, Blocks.COPPER_ORE)
+                                || this.isBlockType(pos, Blocks.ANCIENT_DEBRIS)
+                            ) {
+
+                                // finderResult.addChunkPosition(chunk.getPos());
+                            } 
+
+                            // Block Entities
                             if (
 
-                                this.isBlockType(blockPos, Blocks.BARREL)
+                                this.isBlockType(pos, Blocks.BARREL)
 
                                 ||
 
@@ -75,123 +153,86 @@ public class Finder {
                                     this.areAdjacentChunksLoaded(x, z)
                                     &&
                                     (
-                                        this.isDoubleChest(world, blockPos)
+                                        this.isDoubleChest(world, pos)
                                         && ( 
                                             // Not a Dungeon
-                                            !this.isBlockInHorizontalRadius(world, blockPos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                            && !this.isBlockInHorizontalRadius(world, blockPos, 5, Blocks.SPAWNER)
+                                            !this.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                            && !this.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)
                                         )
                                     )
                                 )
                             ) {
 
-                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, new Color(210, 105, 30)));
-                            } else if (this.isBlockType(blockPos, Blocks.SHULKER_BOX)) {
-
-                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.WHITE));
-                            } else if (
-                                this.isBlockType(blockPos, Blocks.HOPPER)
-                                || this.isBlockType(blockPos, Blocks.DROPPER)
-                                || this.isBlockType(blockPos, Blocks.DISPENSER)
-                                || this.isBlockType(blockPos, Blocks.BLAST_FURNACE)
-                                || this.isBlockType(blockPos, Blocks.FURNACE)
-                            ) {
-
-                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.BLACK));
-                            } else if (
-                                this.isBlockType(blockPos, Blocks.NETHER_PORTAL)
-                            ) {
-
-                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.MAGENTA));
-                            } else if (
-                                this.isBlockType(blockPos, Blocks.OAK_SIGN)
-                                || this.isBlockType(blockPos, Blocks.SPRUCE_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BIRCH_SIGN)
-                                || this.isBlockType(blockPos, Blocks.ACACIA_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CHERRY_SIGN)
-                                || this.isBlockType(blockPos, Blocks.JUNGLE_SIGN)
-                                || this.isBlockType(blockPos, Blocks.DARK_OAK_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CRIMSON_SIGN)
-                                || this.isBlockType(blockPos, Blocks.MANGROVE_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BAMBOO_SIGN)
-
-                                || this.isBlockType(blockPos, Blocks.OAK_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.SPRUCE_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BIRCH_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.ACACIA_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CHERRY_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.JUNGLE_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.DARK_OAK_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CRIMSON_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.MANGROVE_WALL_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BAMBOO_WALL_SIGN)
-
-                                || this.isBlockType(blockPos, Blocks.OAK_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.SPRUCE_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BIRCH_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.ACACIA_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CHERRY_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.JUNGLE_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.DARK_OAK_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.CRIMSON_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.MANGROVE_HANGING_SIGN)
-                                || this.isBlockType(blockPos, Blocks.BAMBOO_HANGING_SIGN)
-                            ) {
-
-                                foundBlockPositions.add(new Pair<BlockPos,Color>(blockPos, Color.CYAN));
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, new Color(210, 105, 30)));
                             }
 
+                            if (this.isBlockType(pos, Blocks.SHULKER_BOX)) {
+
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.WHITE));
+                            }
+                            
+                            if (
+                                this.isBlockType(pos, Blocks.HOPPER)
+                                || this.isBlockType(pos, Blocks.DROPPER)
+                                || this.isBlockType(pos, Blocks.DISPENSER)
+                                || this.isBlockType(pos, Blocks.BLAST_FURNACE)
+                                || this.isBlockType(pos, Blocks.FURNACE)
+                            ) {
+
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.BLACK));
+                            }
+                            
+                            if (
+                                this.isBlockType(pos, Blocks.OAK_SIGN)
+                                || this.isBlockType(pos, Blocks.SPRUCE_SIGN)
+                                || this.isBlockType(pos, Blocks.BIRCH_SIGN)
+                                || this.isBlockType(pos, Blocks.ACACIA_SIGN)
+                                || this.isBlockType(pos, Blocks.CHERRY_SIGN)
+                                || this.isBlockType(pos, Blocks.JUNGLE_SIGN)
+                                || this.isBlockType(pos, Blocks.DARK_OAK_SIGN)
+                                || this.isBlockType(pos, Blocks.CRIMSON_SIGN)
+                                || this.isBlockType(pos, Blocks.MANGROVE_SIGN)
+                                || this.isBlockType(pos, Blocks.BAMBOO_SIGN)
+
+                                || this.isBlockType(pos, Blocks.OAK_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.BIRCH_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.ACACIA_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.CHERRY_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.JUNGLE_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.DARK_OAK_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
+                                || this.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
+
+                                || this.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.BIRCH_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.ACACIA_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.CHERRY_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.JUNGLE_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.DARK_OAK_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
+                                || this.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
+                            ) {
+
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.CYAN));
+                            }
                         }
                     }
                 }
             }
         }
 
-        return foundBlockPositions;
+        return finderResult;
     }
 
-    public List<BlockEntity> findSigns (PlayerEntity player) {
-
-        List<BlockEntity> signs = new ArrayList<>();
-
-        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+    public List<Entity> findEntities () {
 
         int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-        int xStart = playerChunkPosX - playerRenderDistance;
-        int xEnd = playerChunkPosX + playerRenderDistance + 1;
-        int zStart = playerChunkPosZ - playerRenderDistance;
-        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
-
-        for (int x = xStart; x < xEnd; x++) {
-
-            for (int z = zStart; z < zEnd; z++) {
-
-                Chunk chunk = this.getChunkEarly(x, z);
-                Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                for (BlockPos blockPos : blockPositions) {
-
-                    BlockEntity blockEntity = chunk.getBlockEntity(blockPos);
-
-                    if (blockEntity instanceof SignBlockEntity) {
-
-                        signs.add(blockEntity);
-                    }
-                }
-            }
-        }
-
-        return signs;
-    }
-
-    public List<Entity> findEntities (PlayerEntity player) {
-
-        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in
-                                                                                                  // chunks
-        double searchRadius = renderDistanceChunks;
-
-        List<Entity> entities = player.getWorld().getEntitiesByClass(Entity.class,
-                player.getBoundingBox().expand(searchRadius), e -> {
+        List<Entity> entities = Constants.MC_CLIENT_INSTANCE.world.getEntitiesByClass(Entity.class,
+                Constants.MC_CLIENT_INSTANCE.player.getBoundingBox().expand(playerRenderDistance), e -> {
 
                     if (e instanceof ItemEntity) {
 
@@ -255,53 +296,15 @@ public class Finder {
                         return false;
                     }
                 });
-
-        entities.addAll(findOverlappingMinecartChests(player));
+        
+        entities.addAll(findOverlappingMinecartChests());
 
         return entities;
     }
 
-    public List<Chunk> findNewChunks (PlayerEntity player) {
+    private List<Entity> findOverlappingMinecartChests () {
 
-        List<Chunk> result = new ArrayList<>();
-        World world = player.getWorld();
-        int chunkRadius = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in chunks
-        int startX = player.getChunkPos().x - chunkRadius;
-        int endX = player.getChunkPos().x + chunkRadius;
-        int startZ = player.getChunkPos().z - chunkRadius;
-        int endZ = player.getChunkPos().z + chunkRadius;
-
-        // Iterate through the chunks around the player
-        for (int chunkX = startX; chunkX <= endX; chunkX++) {
-
-            for (int chunkZ = startZ; chunkZ <= endZ; chunkZ++) {
-
-                Chunk chunk = this.getChunkEarly(chunkX, chunkZ);
-                for (BlockPos pos : BlockPos.iterate(
-
-                        chunk.getPos().getStartX(), world.getBottomY(), chunk.getPos().getStartZ(),
-                        chunk.getPos().getEndX(), world.getTopY(), chunk.getPos().getEndZ())) {
-
-                    Block block = chunk.getBlockState(pos).getBlock();
-                    if (
-                        block == Blocks.COPPER_ORE 
-                        // || block == Blocks.DEEPSLATE_COPPER_ORE
-                        || block == Blocks.ANCIENT_DEBRIS
-                    ) {
-
-                        result.add(chunk);
-
-                        break;
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    private List<Entity> findOverlappingMinecartChests (PlayerEntity player) {
-
+        ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
         int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in
                                                                                                   // chunks
         double searchRadius = renderDistanceChunks * 512; // Convert chunks to blocks

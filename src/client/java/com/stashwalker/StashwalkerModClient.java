@@ -16,8 +16,7 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-
-import net.minecraft.world.chunk.Chunk;
+import net.minecraft.util.math.ChunkPos;
 import java.util.List;
 
 import net.minecraft.entity.Entity;
@@ -25,6 +24,7 @@ import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
@@ -35,27 +35,33 @@ import com.stashwalker.config.ConfigManager;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.SignTextExtractor;
 import com.stashwalker.finders.Finder;
+import com.stashwalker.finders.FinderResult;
 import com.stashwalker.utils.DoubleBuffer;
+import com.stashwalker.utils.DoubleListBuffer;
 import com.stashwalker.rendering.Renderer;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.MaxSizeSet;
 import com.stashwalker.utils.Pair;
 
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
     private long lastTime2 = 0;
+    private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
+    private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
+    private DoubleListBuffer<ChunkPos> chunkBuffer = new DoubleListBuffer<>();
+    private MaxSizeSet<Integer> signsCache = new MaxSizeSet<>(5000);
+    private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
 
-    private DoubleBuffer<Pair<BlockPos, Color>> blockPositionsBuffer = new DoubleBuffer<>();
-    private DoubleBuffer<Entity> entityBuffer = new DoubleBuffer<>();
-    private DoubleBuffer<Chunk> chunkBuffer = new DoubleBuffer<>();
-    private MaxSizeSet<Integer> signsSet = new MaxSizeSet<>(5000);
-    private ExecutorService threadPool = Executors.newFixedThreadPool(3, new DaemonThreadFactory());
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;
     private KeyBinding keyBindingNewChunks;
@@ -193,7 +199,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean signReader = !this.configData.get(Constants.SIGN_READER);
                 this.configData.put(Constants.SIGN_READER, signReader);
-                this.signsSet.clear();
+                this.signsCache.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
@@ -204,74 +210,61 @@ public class StashwalkerModClient implements ClientModInitializer {
             signReaderWasPressed = false;
         }
 
-
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 50) {
+        if (currentTime - lastTime >= 1000) {
 
-            if (this.configData.get(Constants.BLOCK_TRACERS)) {
+            this.blockThreadPool.submit(() -> {
 
-                threadPool.submit(() -> {
+                FinderResult finderResult = this.finder.findBlocks();
 
-                    this.blockPositionsBuffer.updateBuffer(this.finder.findBlockPositions(client.player));
-                });
-            }
+                for (BlockEntity sign : finderResult.getSigns()) {
 
-            if (this.configData.get(Constants.ENTITY_TRACERS)) {
+                    if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
 
-                threadPool.submit(() -> {
+                        String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
+                        if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
 
-                    this.entityBuffer.updateBuffer(this.finder.findEntities(client.player));
-                });
-            }
-
-            if (this.configData.get(Constants.SIGN_READER)) {
-
-                threadPool.submit(() -> {
-
-                    if (this.configData.get(Constants.SIGN_READER)) {
-
-                        List<BlockEntity> signs = this.finder.findSigns(client.player);
-                        for (BlockEntity sign : signs) {
-
-                            if (!this.signsSet.contains(sign.hashCode())) {
-
-                                String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                                if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
-
-                                    Text styledText = Text.empty()
-                                            .append(Text.literal("[")
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                            .append(Text.literal("Stashwalker, ")
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                            .append(Text.literal("signReader")
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                            .append(Text.literal("]:\n")
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                            .append(Text.literal(signText)
-                                                    .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                                    this.renderer.sendClientSideMessage(styledText);
-                                    this.signsSet.add(sign.hashCode());
-                                }
-                            }
+                            Text styledText = Text.empty()
+                                    .append(Text.literal("[")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal("Stashwalker, ")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                    .append(Text.literal("signReader")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                    .append(Text.literal("]:\n")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal(signText)
+                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                            this.renderer.sendClientSideMessage(styledText);
+                            this.signsCache.add(sign.getPos().toShortString().hashCode());
                         }
                     }
-                });
-            }
+                }
+
+                this.finderResultBuffer.updateBuffer(finderResult);
+            });
+
+            this.entityThreadPool.submit(() -> {
+
+                List<Entity> entities = this.finder.findEntities();
+
+                this.entityBuffer.updateBuffer(entities);
+            });
 
             lastTime = currentTime;
         }
 
-        if (currentTime - lastTime2 >= 50) {
+        long currentTime2 = System.currentTimeMillis();
+        if (currentTime2 - lastTime2 >= 100) {
 
-            if (this.configData.get(Constants.NEW_CHUNKS)) {
+            this.chunkThreadPool.submit(() -> {
+                
+                Set<ChunkPos> chunkPositions = this.finder.findChunkPositions();
 
-                threadPool.submit(() -> {
+                this.chunkBuffer.updateBuffer(new ArrayList<>(chunkPositions));
+            });
 
-                    this.chunkBuffer.updateBuffer(this.finder.findNewChunks(client.player));
-                });
-            }
-
-            lastTime2 = currentTime;
+            lastTime2 = currentTime2;
         }
     }
 
@@ -283,32 +276,35 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             return;
         }
+        
+        FinderResult finderResult = this.finderResultBuffer.readBuffer();
+        if (finderResult != null) {
 
-        if (this.configData.get(Constants.BLOCK_TRACERS)) {
+            if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-            List<Pair<BlockPos, Color>> blockPairs = this.blockPositionsBuffer.readBuffer();
-            if (!blockPairs.isEmpty()) {
+                List<Pair<BlockPos, Color>> blockPairs = finderResult.getBlockPositions();
+                if (!blockPairs.isEmpty()) {
 
-                // MatrixStack matrixStack = context.matrixStack(); // Use matrixStack() method
+                    for (Pair<BlockPos, Color> pair : blockPairs) {
 
-                for (Pair<BlockPos, Color> pair : blockPairs) {
+                        BlockPos blockPos = pair.getKey();
+                        Color color = pair.getValue();
+                        Vec3d newBlockPos = new Vec3d(
+                                blockPos.getX() + 0.5D,
+                                blockPos.getY() + 0.5D,
+                                blockPos.getZ() + 0.5D);
 
-                    BlockPos blockPos = pair.getKey();
-                    Color color = pair.getValue();
-                    Vec3d newBlockPos = new Vec3d(
-                            blockPos.getX() + 0.5D,
-                            blockPos.getY() + 0.5D,
-                            blockPos.getZ() + 0.5D
-                    );
-
-                    this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), false);
+                        this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+                                color.getAlpha(), false);
+                    }
                 }
             }
         }
 
+
         if (this.configData.get(Constants.ENTITY_TRACERS)) {
 
-            List<Entity> entities = this.entityBuffer.readBuffer();
+            List<Entity> entities = entityBuffer.readBuffer();
             if (!entities.isEmpty()) {
 
                 for (Entity entity : entities) {
@@ -317,18 +313,15 @@ public class StashwalkerModClient implements ClientModInitializer {
                     if (entity instanceof ItemFrameEntity) {
 
                         entityPos = new Vec3d(
-                            entity.getPos().getX(),
-                            entity.getPos().getY(),
-                            entity.getPos().getZ()
-                        );
+                                entity.getPos().getX(),
+                                entity.getPos().getY(),
+                                entity.getPos().getZ());
                     } else {
 
-
                         entityPos = new Vec3d(
-                            entity.getPos().getX(),
-                            entity.getPos().getY() + 0.5D,
-                            entity.getPos().getZ()
-                        );
+                                entity.getPos().getX(),
+                                entity.getPos().getY() + 0.5D,
+                                entity.getPos().getZ());
                     }
 
                     this.renderer.drawLine(context, entityPos, 255, 0, 0, 255, true);
@@ -338,17 +331,20 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (this.configData.get(Constants.NEW_CHUNKS)) {
 
-            this.renderer
-            .drawChunkSquare(
-                context, 
-                this.chunkBuffer.readBuffer(), 
-                63, 
-                32, 
-                255, 
-                0, 
-                0, 
-                255
-            );
+            List<ChunkPos> chunkPositions = this.chunkBuffer.readBuffer();
+            if (chunkPositions != null) {
+
+                this.renderer
+                        .drawChunkSquare(
+                                context,
+                                chunkPositions,
+                                63,
+                                32,
+                                255,
+                                0,
+                                0,
+                                255);
+            }
         }
     }
 
