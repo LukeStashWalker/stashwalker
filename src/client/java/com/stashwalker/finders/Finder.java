@@ -60,7 +60,7 @@ public class Finder {
                                 result.add(chunkPos);
                                 this.chunksCache.add(chunkPos.hashCode());
 
-                                break;
+                                continue;
                         }
 
                         for (
