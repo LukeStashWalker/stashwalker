@@ -53,14 +53,13 @@ import java.util.Set;
 public class StashwalkerModClient implements ClientModInitializer {
 
     private long lastTime = 0;
-    private long lastTime2 = 0;
     private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
     private DoubleListBuffer<ChunkPos> chunkBuffer = new DoubleListBuffer<>();
     private MaxSizeSet<Integer> signsCache = new MaxSizeSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
-    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
+    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;
@@ -74,6 +73,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private Finder finder = new Finder();
     private ConfigManager configManager = new ConfigManager();
     private Map<String, Boolean> configData = new HashMap<>();
+    private Future<?> newChunksFuture = null;
 
     @Override
     public void onInitializeClient () {
@@ -211,7 +211,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         }
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= 1000) {
+        if (currentTime - lastTime >= 200) {
 
             this.blockThreadPool.submit(() -> {
 
@@ -254,17 +254,13 @@ public class StashwalkerModClient implements ClientModInitializer {
             lastTime = currentTime;
         }
 
-        long currentTime2 = System.currentTimeMillis();
-        if (currentTime2 - lastTime2 >= 100) {
-
-            this.chunkThreadPool.submit(() -> {
+        if (this.newChunksFuture == null || this.newChunksFuture.isDone()) {
+            
+            this.newChunksFuture = this.chunkThreadPool.submit(() -> {
                 
                 Set<ChunkPos> chunkPositions = this.finder.findChunkPositions();
-
                 this.chunkBuffer.updateBuffer(new ArrayList<>(chunkPositions));
             });
-
-            lastTime2 = currentTime2;
         }
     }
 
