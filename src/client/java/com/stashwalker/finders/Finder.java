@@ -66,6 +66,7 @@ public class Finder {
                         for (
                             BlockPos pos : BlockPos.iterate(
 
+                                // 47 and 48 are the levels where copper ore most commonly found
                                 chunkPos.getStartX(), 0, chunkPos.getStartZ(),
                                 chunkPos.getEndX(), 50, chunkPos.getEndZ())
                             ) {
