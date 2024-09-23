@@ -217,26 +217,29 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 FinderResult finderResult = this.finder.findBlocks();
 
-                for (BlockEntity sign : finderResult.getSigns()) {
+                if (this.configData.get(Constants.SIGN_READER)) {
 
-                    if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
+                    for (BlockEntity sign : finderResult.getSigns()) {
 
-                        String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                        if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+                        if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
 
-                            Text styledText = Text.empty()
-                                    .append(Text.literal("[")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal("Stashwalker, ")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                    .append(Text.literal("signReader")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                    .append(Text.literal("]:\n")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal(signText)
-                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                            this.renderer.sendClientSideMessage(styledText);
-                            this.signsCache.add(sign.getPos().toShortString().hashCode());
+                            String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
+                            if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+
+                                Text styledText = Text.empty()
+                                        .append(Text.literal("[")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal("Stashwalker, ")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                        .append(Text.literal("signReader")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                        .append(Text.literal("]:\n")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal(signText)
+                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                                this.renderer.sendClientSideMessage(styledText);
+                                this.signsCache.add(sign.getPos().toShortString().hashCode());
+                            }
                         }
                     }
                 }
