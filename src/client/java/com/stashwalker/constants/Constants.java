@@ -17,36 +17,78 @@ public class Constants {
     public static String SIGN_READER = "signReader";
     public static final Set<RegistryKey<Biome>> NEW_BIOMES = Set.of(
 
-            // 1.13 biomes
-            BiomeKeys.WARM_OCEAN,
-            BiomeKeys.LUKEWARM_OCEAN,
-            BiomeKeys.COLD_OCEAN,
-            // BiomeKeys.DEEP_WARM_OCEAN,
-            BiomeKeys.DEEP_LUKEWARM_OCEAN,
-            BiomeKeys.DEEP_COLD_OCEAN,
-            BiomeKeys.DEEP_FROZEN_OCEAN,
-            // 1.14 biomes
-            BiomeKeys.BAMBOO_JUNGLE,
-            // BiomeKeys.BAMBOO_JUNGLE_HILLS,
-            // 1.16 biomes
-            BiomeKeys.CRIMSON_FOREST,
-            BiomeKeys.WARPED_FOREST,
-            BiomeKeys.BASALT_DELTAS,
-            BiomeKeys.SOUL_SAND_VALLEY,
-            // 1.17-1.18 biomes
-            BiomeKeys.LUSH_CAVES,
-            BiomeKeys.DRIPSTONE_CAVES,
-            BiomeKeys.MEADOW,
-            BiomeKeys.GROVE,
-            BiomeKeys.SNOWY_SLOPES,
-            BiomeKeys.JAGGED_PEAKS,
-            BiomeKeys.FROZEN_PEAKS,
-            BiomeKeys.STONY_PEAKS,
-            // 1.19 biomes
-            BiomeKeys.MANGROVE_SWAMP,
-            BiomeKeys.DEEP_DARK,
-            // 1.20 biomes
-            BiomeKeys.CHERRY_GROVE);
+            // Overworld Biomes
+
+            // Plains – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            // Ice Plains (Snowy Tundra) – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            // Ice Spike Plains – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Sunflower Plains – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            BiomeKeys.SNOWY_PLAINS, // Snowy Plains – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            // Mushroom Field (Mushroom Island) – Added in Beta 1.9 Prerelease 3 (October 2011)
+            // Savanna – Added in 1.7.2 (The Update that Changed the World, October 2013)
+
+            // Woodlands
+
+            // Forest – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            // Birch Forest – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Dark Forest – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Flower Forest – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Old Growth Birch Forest (Tall Birch Forest) – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Taiga – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            // Old Growth Spruce Taiga – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Old Growth Pine Taiga – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Snowy Taiga – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Jungle – Added in 1.2.1 (March 2012)
+            BiomeKeys.BAMBOO_JUNGLE, // Bamboo Jungle – Added in 1.14 (Village & Pillage, April 2019)
+            BiomeKeys.SPARSE_JUNGLE, // Sparse Jungle – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.GROVE, // Grove – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.CHERRY_GROVE, // Cherry Grove – Added in 1.20 (Trails & Tales, June 2023)
+
+            // Caves
+
+            BiomeKeys.DEEP_DARK, // Deep Dark – Added in 1.19 (The Wild Update, June 2022)
+            BiomeKeys.DRIPSTONE_CAVES, // Dripstone Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.LUSH_CAVES, // Lush Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+
+            // Mountains
+
+            BiomeKeys.JAGGED_PEAKS, // Jagged Peaks – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.FROZEN_PEAKS, // Frozen Peaks – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.STONY_PEAKS, // Stony Peaks – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.SNOWY_SLOPES, // Snowy Slopes – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            // Windswept Hills – Added in Beta 1.8 (Adventure Update, September 2011)
+            BiomeKeys.WINDSWEPT_FOREST, // Windswept Forest – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.WINDSWEPT_GRAVELLY_HILLS, // Windswept Gravelly Hills – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.MEADOW, // Meadow – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            BiomeKeys.STONY_SHORE, // Stony Shores – Added in 1.13 (Update Aquatic, July 2018)
+            // Savanna Plateau – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Windswept Savanna – Added in 1.7.2 (The Update that Changed the World, October 2013)
+
+            // Swamps
+
+            // Swamp – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            BiomeKeys.MANGROVE_SWAMP, // Mangrove Swamp – Added in 1.19 (The Wild Update, June 2022)
+
+            // Sandy Areas
+
+            // Badlands – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Wooded Badlands – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Eroded Badlands – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Beach – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            // Snowy Beach – Added in 1.9 (Combat Update, February 2016)
+            // Desert – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+
+            // Water Areas
+
+            // River – Added in Beta 1.8 (Adventure Update, September 2011)
+            BiomeKeys.FROZEN_RIVER, // Frozen River – Added in 1.13 (Update Aquatic, July 2018)
+            // Ocean – Added in Alpha v1.2.0 (Halloween Update, October 2010)
+            BiomeKeys.COLD_OCEAN, // Cold Ocean – Added in 1.13 (Update Aquatic, July 2018)
+            // Deep Ocean – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            // Frozen Ocean – Added in 1.7.2 (The Update that Changed the World, October 2013)
+            BiomeKeys.LUKEWARM_OCEAN, // Lukewarm Ocean – Added in 1.13 (Update Aquatic, July 2018)
+            BiomeKeys.WARM_OCEAN // Warm Ocean – Added in 1.13 (Update Aquatic, July 2018)
+    );
 
     static {
 
