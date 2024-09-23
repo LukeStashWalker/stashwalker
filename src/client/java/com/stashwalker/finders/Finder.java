@@ -55,7 +55,7 @@ public class Finder {
                     ChunkPos chunkPos = chunk.getPos();
                     if (!this.chunksCache.contains(chunkPos.hashCode())) {
 
-                        if (FinderUtil.hasNewChunkBiome(chunk)) {
+                        if (FinderUtil.hasNewBiome(chunk)) {
 
                                 result.add(chunkPos);
                                 this.chunksCache.add(chunkPos.hashCode());
@@ -66,8 +66,8 @@ public class Finder {
                         for (
                             BlockPos pos : BlockPos.iterate(
 
-                                chunkPos.getStartX(), 43, chunkPos.getStartZ(),
-                                chunkPos.getEndX(), 52, chunkPos.getEndZ())
+                                chunkPos.getStartX(), 40, chunkPos.getStartZ(),
+                                chunkPos.getEndX(), 55, chunkPos.getEndZ())
                             ) {
 
                             if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {

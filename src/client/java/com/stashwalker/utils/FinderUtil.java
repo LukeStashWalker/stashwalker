@@ -155,7 +155,7 @@ public class FinderUtil {
         return Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).getBlock() == block;
     }
 
-    public static boolean hasNewChunkBiome (Chunk chunk) {
+    public static boolean hasNewBiome (Chunk chunk) {
 
         BlockPos[] checkPositions = getCheckPositionsInChunk(chunk.getPos());
 
