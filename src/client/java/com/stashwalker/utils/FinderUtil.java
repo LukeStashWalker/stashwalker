@@ -3,7 +3,6 @@ package com.stashwalker.utils;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.registry.RegistryKey;
@@ -177,14 +176,35 @@ public class FinderUtil {
         int chunkZStart = chunkPos.getStartZ();
         int chunkXEnd = chunkPos.getEndX();
         int chunkZEnd = chunkPos.getEndZ();
-        int yLevel = 64; 
+        int yLevel0 = 128; 
+        int yLevel1 = 64; 
+        int yLevel2 = 0; 
+        int yLevel3 = -64; 
 
         return new BlockPos[]{
-            new BlockPos(chunkXStart, yLevel, chunkZStart),  // bottom-left corner
-            new BlockPos(chunkXEnd, yLevel, chunkZStart),    // bottom-right corner
-            new BlockPos(chunkXStart, yLevel, chunkZEnd),    // top-left corner
-            new BlockPos(chunkXEnd, yLevel, chunkZEnd),      // top-right corner
-            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel, (chunkZStart + chunkZEnd) / 2) // center
+            new BlockPos(chunkXStart, yLevel0, chunkZStart),  // bottom-left corner
+            new BlockPos(chunkXEnd, yLevel0, chunkZStart),    // bottom-right corner
+            new BlockPos(chunkXStart, yLevel0, chunkZEnd),    // top-left corner
+            new BlockPos(chunkXEnd, yLevel0, chunkZEnd),      // top-right corner
+            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel0, (chunkZStart + chunkZEnd) / 2), // center
+
+            new BlockPos(chunkXStart, yLevel1, chunkZStart),  // bottom-left corner
+            new BlockPos(chunkXEnd, yLevel1, chunkZStart),    // bottom-right corner
+            new BlockPos(chunkXStart, yLevel1, chunkZEnd),    // top-left corner
+            new BlockPos(chunkXEnd, yLevel1, chunkZEnd),      // top-right corner
+            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel1, (chunkZStart + chunkZEnd) / 2), // center
+
+            new BlockPos(chunkXStart, yLevel2, chunkZStart),  // bottom-left corner
+            new BlockPos(chunkXEnd, yLevel2, chunkZStart),    // bottom-right corner
+            new BlockPos(chunkXStart, yLevel2, chunkZEnd),    // top-left corner
+            new BlockPos(chunkXEnd, yLevel2, chunkZEnd),      // top-right corner
+            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel2, (chunkZStart + chunkZEnd) / 2), // center
+
+            new BlockPos(chunkXStart, yLevel3, chunkZStart),  // bottom-left corner
+            new BlockPos(chunkXEnd, yLevel3, chunkZStart),    // bottom-right corner
+            new BlockPos(chunkXStart, yLevel3, chunkZEnd),    // top-left corner
+            new BlockPos(chunkXEnd, yLevel3, chunkZEnd),      // top-right corner
+            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel3, (chunkZStart + chunkZEnd) / 2) // center
         };
     }
 }

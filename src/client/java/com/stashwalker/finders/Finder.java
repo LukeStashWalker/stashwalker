@@ -66,8 +66,8 @@ public class Finder {
                         for (
                             BlockPos pos : BlockPos.iterate(
 
-                                chunkPos.getStartX(), 40, chunkPos.getStartZ(),
-                                chunkPos.getEndX(), 55, chunkPos.getEndZ())
+                                chunkPos.getStartX(), 0, chunkPos.getStartZ(),
+                                chunkPos.getEndX(), 50, chunkPos.getEndZ())
                             ) {
 
                             if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
