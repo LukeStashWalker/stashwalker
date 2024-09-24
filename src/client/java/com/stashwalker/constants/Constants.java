@@ -46,9 +46,9 @@ public class Constants {
 
             // Caves
 
-            BiomeKeys.DEEP_DARK, // Deep Dark – Added in 1.19 (The Wild Update, June 2022)
-            BiomeKeys.DRIPSTONE_CAVES, // Dripstone Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
-            BiomeKeys.LUSH_CAVES, // Lush Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            // BiomeKeys.DEEP_DARK, // Deep Dark – Added in 1.19 (The Wild Update, June 2022)
+            // BiomeKeys.DRIPSTONE_CAVES, // Dripstone Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
+            // BiomeKeys.LUSH_CAVES, // Lush Caves – Added in 1.18 (Caves & Cliffs: Part II, November 2021)
 
             // Mountains
 

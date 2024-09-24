@@ -156,7 +156,7 @@ public class FinderUtil {
 
     public static boolean hasNewBiome (Chunk chunk) {
 
-        BlockPos[] checkPositions = getCheckPositionsInChunk(chunk.getPos());
+        List<BlockPos> checkPositions = getCheckPositionsInChunk(chunk.getPos());
 
         for (BlockPos pos : checkPositions) {
 
@@ -170,41 +170,27 @@ public class FinderUtil {
         return false;
     }
 
-    private static BlockPos[] getCheckPositionsInChunk (ChunkPos chunkPos) {
+    private static List<BlockPos> getCheckPositionsInChunk(ChunkPos chunkPos) {
 
         int chunkXStart = chunkPos.getStartX();
         int chunkZStart = chunkPos.getStartZ();
-        int chunkXEnd = chunkPos.getEndX();
-        int chunkZEnd = chunkPos.getEndZ();
-        int yLevel0 = 128; 
-        int yLevel1 = 64; 
-        int yLevel2 = 0; 
-        int yLevel3 = -64; 
+        // int[] yLevels = { 64, 0, -64 }; // Sample at multiple Y levels
+        int[] yLevels = { 64 }; // Sample at multiple Y levels
+        List<BlockPos> checkPositions = new ArrayList<>();
 
-        return new BlockPos[]{
-            new BlockPos(chunkXStart, yLevel0, chunkZStart),  // bottom-left corner
-            new BlockPos(chunkXEnd, yLevel0, chunkZStart),    // bottom-right corner
-            new BlockPos(chunkXStart, yLevel0, chunkZEnd),    // top-left corner
-            new BlockPos(chunkXEnd, yLevel0, chunkZEnd),      // top-right corner
-            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel0, (chunkZStart + chunkZEnd) / 2), // center
+        // Loop over all 4x4 grid points in the chunk (0, 4, 8, 12 in both X and Z
+        // directions)
+        for (int yLevel : yLevels) {
 
-            new BlockPos(chunkXStart, yLevel1, chunkZStart),  // bottom-left corner
-            new BlockPos(chunkXEnd, yLevel1, chunkZStart),    // bottom-right corner
-            new BlockPos(chunkXStart, yLevel1, chunkZEnd),    // top-left corner
-            new BlockPos(chunkXEnd, yLevel1, chunkZEnd),      // top-right corner
-            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel1, (chunkZStart + chunkZEnd) / 2), // center
+            for (int xOffset = 0; xOffset <= 12; xOffset += 4) {
 
-            new BlockPos(chunkXStart, yLevel2, chunkZStart),  // bottom-left corner
-            new BlockPos(chunkXEnd, yLevel2, chunkZStart),    // bottom-right corner
-            new BlockPos(chunkXStart, yLevel2, chunkZEnd),    // top-left corner
-            new BlockPos(chunkXEnd, yLevel2, chunkZEnd),      // top-right corner
-            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel2, (chunkZStart + chunkZEnd) / 2), // center
+                for (int zOffset = 0; zOffset <= 12; zOffset += 4) {
 
-            new BlockPos(chunkXStart, yLevel3, chunkZStart),  // bottom-left corner
-            new BlockPos(chunkXEnd, yLevel3, chunkZStart),    // bottom-right corner
-            new BlockPos(chunkXStart, yLevel3, chunkZEnd),    // top-left corner
-            new BlockPos(chunkXEnd, yLevel3, chunkZEnd),      // top-right corner
-            new BlockPos((chunkXStart + chunkXEnd) / 2, yLevel3, (chunkZStart + chunkZEnd) / 2) // center
-        };
+                    checkPositions.add(new BlockPos(chunkXStart + xOffset, yLevel, chunkZStart + zOffset));
+                }
+            }
+        }
+
+        return checkPositions;
     }
 }
