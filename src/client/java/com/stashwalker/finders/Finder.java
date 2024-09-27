@@ -24,37 +24,17 @@ import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.*;
 
-import java.util.HashSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.ChunkPos;
 
 public class Finder {
 
-    Set<Integer> chunksCache = new MaxSizeSet<>(4096);
 
-    public Set<ChunkPos> findChunkPositions () {
+    public boolean isNewChunk (Chunk chunk) {
 
-        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
-
-        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-        int xStart = playerChunkPosX - playerRenderDistance;
-        int xEnd = playerChunkPosX + playerRenderDistance + 1;
-        int zStart = playerChunkPosZ - playerRenderDistance;
-        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
-
-        Set<ChunkPos> result = new HashSet<>();
-
-        for (int x = xStart; x < xEnd; x++) {
-
-            for (int z = zStart; z < zEnd; z++) {
-
-                Chunk chunk = FinderUtil.getChunkEarly(x, z);
                 if (chunk != null) {
 
                     ChunkPos chunkPos = chunk.getPos();
-                    if (!this.chunksCache.contains(chunkPos.hashCode())) {
-
                         // if (FinderUtil.hasNewBiome(chunk)) {
 
                         //         result.add(chunkPos);
@@ -64,8 +44,11 @@ public class Finder {
                         // }
 
                         // Copper ore is found at y level -16 to 112 and most commonly at level 47 and 48
-                        int[] yLevels = new int[] { 48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 66, 31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84 };
-                        outerLoop: // Label for the outer loop
+                        int[] yLevels = 
+                        new int[] { 
+                            48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 66, 
+                            31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84 
+                        };
                         for (int yLevel : yLevels) {
 
                             for (BlockPos pos : BlockPos.iterate(
@@ -74,22 +57,16 @@ public class Finder {
                                     chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
                                 if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
 
-                                    result.add(chunkPos);
-                                    this.chunksCache.add(chunkPos.hashCode());
-
-                                    break outerLoop; // Exit both loops
+                                    return true;
                                 }
                             }
                         }
-                    } else {
 
-                        result.add(chunkPos);
-                    }
+                        return false;
+                } else {
+
+                    return false;
                 }
-            }
-        }
-
-        return result;
     }
 
     public FinderResult findBlocks () {

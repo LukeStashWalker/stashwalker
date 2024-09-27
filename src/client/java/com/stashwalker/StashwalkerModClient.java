@@ -18,18 +18,20 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import java.util.List;
-
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.client.world.ClientWorld;
+
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.config.ConfigManager;
 import com.stashwalker.constants.Constants;
@@ -39,15 +41,16 @@ import com.stashwalker.finders.FinderResult;
 import com.stashwalker.utils.DoubleBuffer;
 import com.stashwalker.utils.DoubleListBuffer;
 import com.stashwalker.rendering.Renderer;
+import com.stashwalker.utils.BoundedQueueSet;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.MaxSizeSet;
 import com.stashwalker.utils.Pair;
 
 import java.awt.Color;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.Collections;
 
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
@@ -55,11 +58,11 @@ public class StashwalkerModClient implements ClientModInitializer {
     private long lastTime = 0;
     private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
-    private DoubleListBuffer<ChunkPos> chunkBuffer = new DoubleListBuffer<>();
-    private MaxSizeSet<Integer> signsCache = new MaxSizeSet<>(5000);
+    Set<ChunkPos> threadSafeSet = Collections.synchronizedSet(new BoundedQueueSet<>(32 * 32));
+    private Set<Integer> signsCache = new BoundedQueueSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
-    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;
@@ -73,17 +76,17 @@ public class StashwalkerModClient implements ClientModInitializer {
     private Finder finder = new Finder();
     private ConfigManager configManager = new ConfigManager();
     private Map<String, Boolean> configData = new HashMap<>();
-    private Future<?> newChunksFuture = null;
 
     @Override
     public void onInitializeClient () {
 
         this.loadConfig(); // Load the saved state
-        Runtime.getRuntime().addShutdownHook(new Thread(this::saveConfig)); // Save config on shutdown
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> this.saveConfig())); // Save config on shutdown
 
         // Register a rendering event
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStart);
         WorldRenderEvents.LAST.register(this::onRenderWorld);
+        ClientChunkEvents.CHUNK_LOAD.register(this::onChunkLoadEvent);
 
         keyBindingEntityTracers = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.stashwalker.entity_tracers",
@@ -213,56 +216,40 @@ public class StashwalkerModClient implements ClientModInitializer {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTime >= 200) {
 
-            this.blockThreadPool.submit(() -> {
+            if (this.configData.get(Constants.SIGN_READER) || this.configData.get(Constants.BLOCK_TRACERS)) {
 
-                FinderResult finderResult = this.finder.findBlocks();
+                this.blockThreadPool.submit(() -> {
 
-                if (this.configData.get(Constants.SIGN_READER)) {
+                    FinderResult finderResult = this.finder.findBlocks();
 
-                    for (BlockEntity sign : finderResult.getSigns()) {
+                    this.finderResultBuffer.updateBuffer(finderResult);
+                });
+            }
 
-                        if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
+            if (this.configData.get(Constants.ENTITY_TRACERS)) {
 
-                            String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                            if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+                this.entityThreadPool.submit(() -> {
 
-                                Text styledText = Text.empty()
-                                        .append(Text.literal("[")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                        .append(Text.literal("Stashwalker, ")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                        .append(Text.literal("signReader")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                        .append(Text.literal("]:\n")
-                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                        .append(Text.literal(signText)
-                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                                this.renderer.sendClientSideMessage(styledText);
-                                this.signsCache.add(sign.getPos().toShortString().hashCode());
-                            }
-                        }
-                    }
-                }
+                    List<Entity> entities = this.finder.findEntities();
 
-                this.finderResultBuffer.updateBuffer(finderResult);
-            });
-
-            this.entityThreadPool.submit(() -> {
-
-                List<Entity> entities = this.finder.findEntities();
-
-                this.entityBuffer.updateBuffer(entities);
-            });
+                    this.entityBuffer.updateBuffer(entities);
+                });
+            }
 
             lastTime = currentTime;
         }
+    }
 
-        if (this.newChunksFuture == null || this.newChunksFuture.isDone()) {
-            
-            this.newChunksFuture = this.chunkThreadPool.submit(() -> {
-                
-                Set<ChunkPos> chunkPositions = this.finder.findChunkPositions();
-                this.chunkBuffer.updateBuffer(new ArrayList<>(chunkPositions));
+    private void onChunkLoadEvent (ClientWorld world, WorldChunk chunk) {
+
+        if (this.configData.get(Constants.NEW_CHUNKS)) {
+
+            this.chunkThreadPool.submit(() -> {
+
+                if (this.finder.isNewChunk(chunk)) {
+
+                    this.threadSafeSet.add(chunk.getPos());
+                }
             });
         }
     }
@@ -276,10 +263,10 @@ public class StashwalkerModClient implements ClientModInitializer {
             return;
         }
         
-        FinderResult finderResult = this.finderResultBuffer.readBuffer();
-        if (finderResult != null) {
+        if (this.configData.get(Constants.BLOCK_TRACERS)) {
 
-            if (this.configData.get(Constants.BLOCK_TRACERS)) {
+            FinderResult finderResult = this.finderResultBuffer.readBuffer();
+            if (finderResult != null) {
 
                 List<Pair<BlockPos, Color>> blockPairs = finderResult.getBlockPositions();
                 if (!blockPairs.isEmpty()) {
@@ -299,7 +286,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                 }
             }
         }
-
 
         if (this.configData.get(Constants.ENTITY_TRACERS)) {
 
@@ -328,22 +314,49 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
+        if (this.configData.get(Constants.SIGN_READER)) {
+
+            FinderResult finderResult = this.finderResultBuffer.readBuffer();
+            if (finderResult != null) {
+                for (BlockEntity sign : finderResult.getSigns()) {
+
+                    if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
+
+                        String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
+                        if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+
+                            Text styledText = Text.empty()
+                                    .append(Text.literal("[")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal("Stashwalker, ")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                    .append(Text.literal("signReader")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                    .append(Text.literal("]:\n")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal(signText)
+                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                            this.renderer.sendClientSideMessage(styledText);
+                            this.signsCache.add(sign.getPos().toShortString().hashCode());
+                        }
+                    }
+                }
+            }
+        }
+
         if (this.configData.get(Constants.NEW_CHUNKS)) {
 
-            List<ChunkPos> chunkPositions = this.chunkBuffer.readBuffer();
-            if (chunkPositions != null) {
-
-                this.renderer
-                        .drawChunkSquare(
-                                context,
-                                chunkPositions,
-                                63,
-                                32,
-                                255,
-                                0,
-                                0,
-                                255);
-            }
+            this.renderer
+                    .drawChunkSquare(
+                            context,
+                            // chunkPositions,
+                            this.threadSafeSet,
+                            63,
+                            32,
+                            255,
+                            0,
+                            0,
+                            255);
         }
     }
 
