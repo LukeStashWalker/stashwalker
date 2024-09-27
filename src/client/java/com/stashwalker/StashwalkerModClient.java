@@ -41,16 +41,13 @@ import com.stashwalker.finders.FinderResult;
 import com.stashwalker.utils.DoubleBuffer;
 import com.stashwalker.utils.DoubleListBuffer;
 import com.stashwalker.rendering.Renderer;
-import com.stashwalker.utils.BoundedQueueSet;
+import com.stashwalker.utils.ConcurrentBoundedSet;
 import com.stashwalker.utils.DaemonThreadFactory;
-import com.stashwalker.utils.MaxSizeSet;
 import com.stashwalker.utils.Pair;
 
 import java.awt.Color;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.Collections;
 
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
@@ -58,8 +55,8 @@ public class StashwalkerModClient implements ClientModInitializer {
     private long lastTime = 0;
     private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
-    Set<ChunkPos> threadSafeSet = Collections.synchronizedSet(new BoundedQueueSet<>(32 * 32));
-    private Set<Integer> signsCache = new BoundedQueueSet<>(5000);
+    private ConcurrentBoundedSet<ChunkPos> chunkSet = new ConcurrentBoundedSet<>(32 * 32);
+    private ConcurrentBoundedSet<Integer> signsCache = new ConcurrentBoundedSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
@@ -185,6 +182,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean newChunks = !this.configData.get(Constants.NEW_CHUNKS);
                 this.configData.put(Constants.NEW_CHUNKS, newChunks);
+                this.chunkSet.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
             }
@@ -248,7 +246,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 if (this.finder.isNewChunk(chunk)) {
 
-                    this.threadSafeSet.add(chunk.getPos());
+                    this.chunkSet.add(chunk.getPos());
                 }
             });
         }
@@ -350,7 +348,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                     .drawChunkSquare(
                             context,
                             // chunkPositions,
-                            this.threadSafeSet,
+                            this.chunkSet,
                             63,
                             32,
                             255,

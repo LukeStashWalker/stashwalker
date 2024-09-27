@@ -1,9 +1,9 @@
 package com.stashwalker.finders;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.ItemEntity;
@@ -16,6 +16,7 @@ import net.minecraft.entity.passive.LlamaEntity;
 
 import net.minecraft.world.chunk.Chunk;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -29,6 +30,10 @@ import net.minecraft.util.math.ChunkPos;
 
 public class Finder {
 
+
+    public Finder () {
+
+    }
 
     public boolean isNewChunk (Chunk chunk) {
 
@@ -69,6 +74,15 @@ public class Finder {
                 }
     }
 
+    public Set<Pair<BlockPos, Color>> findBlockPositions (Chunk chunk) {
+
+        Set<Pair<BlockPos, Color>> result = new HashSet<>();
+        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+        
+
+        return result;
+    }
+
     public FinderResult findBlocks () {
 
         World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
@@ -105,16 +119,6 @@ public class Finder {
                                 finderResult.addSign(blockEntity);
                             }
                             
-
-                            // New chunks
-                            if (
-                                FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)
-                                || FinderUtil.isBlockType(pos, Blocks.ANCIENT_DEBRIS)
-                            ) {
-
-                                // finderResult.addChunkPosition(chunk.getPos());
-                            } 
-
                             // Block Entities
                             if (
 
