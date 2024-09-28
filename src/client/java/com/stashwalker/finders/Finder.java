@@ -74,15 +74,6 @@ public class Finder {
                 }
     }
 
-    public Set<Pair<BlockPos, Color>> findBlockPositions (Chunk chunk) {
-
-        Set<Pair<BlockPos, Color>> result = new HashSet<>();
-        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-        
-
-        return result;
-    }
-
     public FinderResult findBlocks () {
 
         World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
