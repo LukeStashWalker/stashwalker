@@ -118,7 +118,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                         .ifPresent(m -> {
 
                             String version = m.getMetadata().getVersion().getFriendlyString();
-                            String modName = "Stashwalker v" + version;
+                            String shortVersion = version.split("-").length > 1 ? version.split("-")[0] : "Unknown";
+                            String modName = "Stashwalker v" + shortVersion;
                             // Get the window's width
                             int screenWidth = Constants.MC_CLIENT_INSTANCE.getWindow().getScaledWidth();
 
@@ -350,7 +351,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                             // chunkPositions,
                             this.chunkSet,
                             63,
-                            32,
+                            16,
                             255,
                             0,
                             0,
