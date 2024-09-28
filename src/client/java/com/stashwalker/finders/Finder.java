@@ -131,7 +131,25 @@ public class Finder {
                                 finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, new Color(210, 105, 30)));
                             }
 
-                            if (FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)) {
+                            if (
+                            FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.LIGHT_BLUE_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.YELLOW_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.LIME_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.PINK_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.GRAY_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.LIGHT_GRAY_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.CYAN_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.PURPLE_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.BLUE_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.BROWN_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
+                            ) {
 
                                 finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.WHITE));
                             }
