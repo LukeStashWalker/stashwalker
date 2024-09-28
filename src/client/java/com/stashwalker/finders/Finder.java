@@ -37,41 +37,38 @@ public class Finder {
 
     public boolean isNewChunk (Chunk chunk) {
 
-                if (chunk != null) {
+        if (chunk != null) {
 
-                    ChunkPos chunkPos = chunk.getPos();
-                        // if (FinderUtil.hasNewBiome(chunk)) {
+            ChunkPos chunkPos = chunk.getPos();
+            // if (FinderUtil.hasNewBiome(chunk)) {
 
-                        //         result.add(chunkPos);
-                        //         this.chunksCache.add(chunkPos.hashCode());
+            //     return true;
+            // }
 
-                        //         continue;
-                        // }
+            // Copper ore is found at y level -16 to 112 and most commonly at level 47 and
+            // 48
+            int[] yLevels = new int[] {
+                    48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 66,
+                    31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84
+            };
+            for (int yLevel : yLevels) {
 
-                        // Copper ore is found at y level -16 to 112 and most commonly at level 47 and 48
-                        int[] yLevels = 
-                        new int[] { 
-                            48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 66, 
-                            31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84 
-                        };
-                        for (int yLevel : yLevels) {
+                for (BlockPos pos : BlockPos.iterate(
 
-                            for (BlockPos pos : BlockPos.iterate(
+                        chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                        chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
+                    if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
 
-                                    chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
-                                    chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
-                                if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
-
-                                    return true;
-                                }
-                            }
-                        }
-
-                        return false;
-                } else {
-
-                    return false;
+                        return true;
+                    }
                 }
+            }
+
+            return false;
+        } else {
+
+            return false;
+        }
     }
 
     public FinderResult findBlocks () {

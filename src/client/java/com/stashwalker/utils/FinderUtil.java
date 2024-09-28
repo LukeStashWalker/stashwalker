@@ -170,12 +170,11 @@ public class FinderUtil {
         return false;
     }
 
-    private static List<BlockPos> getCheckPositionsInChunk(ChunkPos chunkPos) {
+    private static List<BlockPos> getCheckPositionsInChunk (ChunkPos chunkPos) {
 
         int chunkXStart = chunkPos.getStartX();
         int chunkZStart = chunkPos.getStartZ();
-        // int[] yLevels = { 64, 0, -64 }; // Sample at multiple Y levels
-        int[] yLevels = { 64 }; // Sample at multiple Y levels
+        int[] yLevels = {64, 0}; // Sample at multiple Y levels
         List<BlockPos> checkPositions = new ArrayList<>();
 
         // Loop over all 4x4 grid points in the chunk (0, 4, 8, 12 in both X and Z
