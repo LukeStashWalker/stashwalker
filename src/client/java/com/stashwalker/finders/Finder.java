@@ -251,6 +251,22 @@ public class Finder {
                                 || itemStack.getItem() == Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE
 
                                 || itemStack.getItem() == Items.SHULKER_BOX
+                                || itemStack.getItem() == Items.WHITE_SHULKER_BOX
+                                || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
+                                || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
+                                || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIME_SHULKER_BOX
+                                || itemStack.getItem() == Items.PINK_SHULKER_BOX
+                                || itemStack.getItem() == Items.GRAY_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
+                                || itemStack.getItem() == Items.CYAN_SHULKER_BOX
+                                || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
+                                || itemStack.getItem() == Items.BLUE_SHULKER_BOX
+                                || itemStack.getItem() == Items.BROWN_SHULKER_BOX
+                                || itemStack.getItem() == Items.GREEN_SHULKER_BOX
+                                || itemStack.getItem() == Items.RED_SHULKER_BOX
+                                || itemStack.getItem() == Items.BLACK_SHULKER_BOX
                         ) {
 
                             return true;
