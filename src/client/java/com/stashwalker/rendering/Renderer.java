@@ -101,36 +101,39 @@ public class Renderer {
 
         double topHeight = (rectangleLevel + rectableHeight) - cameraPos.y;
 
+        boolean shouldDraw = false;
         for (ChunkPos pos : chunkPositions) {
+
+            shouldDraw = true;
 
             double startX = pos.getStartX() - cameraPos.x;
             double endX = pos.getEndX() + 1 - cameraPos.x;
             double startZ = pos.getStartZ() - cameraPos.z;
             double endZ = pos.getEndZ() + 1 - cameraPos.z;
-            double y = rectangleLevel - cameraPos.y;
+            double bottomHeight = rectangleLevel - cameraPos.y;
 
             // Draw the base square around the chunk
             bufferBuilder
-                .vertex(matrix, (float) startX, (float) y, (float) startZ)
-                .vertex(matrix, (float) endX, (float) y, (float) startZ)
-                .vertex(matrix, (float) endX, (float) y, (float) startZ)
-                .vertex(matrix, (float) endX, (float) y, (float) endZ)
-                .vertex(matrix, (float) endX, (float) y, (float) endZ)
-                .vertex(matrix, (float) startX, (float) y, (float) endZ)
-                .vertex(matrix, (float) startX, (float) y, (float) endZ)
-                .vertex(matrix, (float) startX, (float) y, (float) startZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
 
                 // Draw vertical lines from each corner to the top height
-                .vertex(matrix, (float) startX, (float) y, (float) startZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
                 .vertex(matrix, (float) startX, (float) topHeight, (float) startZ)
 
-                .vertex(matrix, (float) endX, (float) y, (float) startZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
                 .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
 
-                .vertex(matrix, (float) endX, (float) y, (float) endZ)
+                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
                 .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
 
-                .vertex(matrix, (float) startX, (float) y, (float) endZ)
+                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
                 .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
 
                 // Draw the top square at height 100
@@ -148,7 +151,7 @@ public class Renderer {
         }
 
 
-        if (chunkPositions.size() > 0) {
+        if (shouldDraw) {
 
             BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
         } 
