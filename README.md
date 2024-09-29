@@ -70,6 +70,9 @@ This mod is open source, you can check the code yourself. This mod has been test
 	-	"minecraft": "1.21.1",
 	-	"java": "21",
 	-	"fabric-api": ">=0.103.0+1.21.1"
+- if you want to be able to configure the block tracer colors in the mod menu then also these:
+	- "modmenu": ">=11.0.2",
+	- "cloth-config": ">=15.0.130-fabric"
 
 ## Contact
 
