@@ -124,13 +124,8 @@ public class Finder {
                                         )
                                     )
                                 )
-                            ) {
 
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, new Color(210, 105, 30)));
-                            }
-
-                            if (
-                            FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
+                                || FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
                                 || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
                                 || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
                                 || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
@@ -147,24 +142,14 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
                                 || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
                                 || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
-                            ) {
 
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.WHITE));
-                            }
-                            
-                            if (
-                                FinderUtil.isBlockType(pos, Blocks.HOPPER)
+                                || FinderUtil.isBlockType(pos, Blocks.HOPPER)
                                 || FinderUtil.isBlockType(pos, Blocks.DROPPER)
                                 || FinderUtil.isBlockType(pos, Blocks.DISPENSER)
                                 || FinderUtil.isBlockType(pos, Blocks.BLAST_FURNACE)
                                 || FinderUtil.isBlockType(pos, Blocks.FURNACE)
-                            ) {
 
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.BLACK));
-                            }
-                            
-                            if (
-                                FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
+                                || FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
@@ -196,9 +181,11 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
-                            ) {
 
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Color.CYAN));
+                            ) {
+                                
+                                String key = Constants.BLOCK_KEY_START + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock().getName().getString();
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Constants.BLOCK_DEFAULT_COLOR_MAP.get(key)));
                             }
                         }
                     }
