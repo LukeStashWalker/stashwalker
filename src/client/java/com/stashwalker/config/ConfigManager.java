@@ -4,21 +4,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
+
+import com.stashwalker.constants.Constants;
 
 public class ConfigManager {
 
     private static final Path CONFIG_PATH = Paths.get("config/stashwalker.properties");
+    private Map<String, Object> configData = new ConcurrentHashMap<>();
 
     // Method to save configuration as key-value pairs
-    public void saveConfig (Map<String, Boolean> configData) {
+    public void saveConfig () {
 
         Properties props = new Properties();
 
         // Set all the properties from the map
-        configData.forEach((k, v) -> props.setProperty(k, v + ""));
+        this.configData.forEach((k, v) -> props.setProperty(k, v + ""));
 
         try {
 
@@ -31,9 +34,8 @@ public class ConfigManager {
     }
 
     // Method to load the configuration as key-value pairs
-    public Map<String, Boolean> loadConfig () {
+    public void loadConfig () {
 
-        Map<String, Boolean> configData = new HashMap<>();
         Properties props = new Properties();
 
         if (Files.exists(CONFIG_PATH)) {
@@ -44,7 +46,7 @@ public class ConfigManager {
                 // Copy all properties to the map
                 for (String name : props.stringPropertyNames()) {
 
-                    configData.put(name, Boolean.parseBoolean(props.getProperty(name)));
+                    this.configData.put(name, Boolean.parseBoolean(props.getProperty(name)));
                 }
             } catch (IOException e) {
 
@@ -52,6 +54,17 @@ public class ConfigManager {
             }
         }
 
-        return configData;
+        Constants.FEATURE_NAMES.forEach(n -> {
+            
+            if (!this.configData.containsKey(n)) {
+
+                this.configData.put(n, true);
+            }
+        });
+    }
+
+    public Map<String, Object> getConfig () {
+
+        return this.configData;
     }
 }

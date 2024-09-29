@@ -72,7 +72,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private Renderer renderer = new Renderer();
     private Finder finder = new Finder();
     private ConfigManager configManager = new ConfigManager();
-    private Map<String, Boolean> configData = new HashMap<>();
 
     @Override
     public void onInitializeClient () {
@@ -129,7 +128,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                             + Constants.FEATURE_NAMES.stream().collect(Collectors.joining(", ")) + "]");
 
                             String text = modName + " [" + Constants.FEATURE_NAMES.stream()
-                                    .filter(n -> this.configData.get(n)).collect(Collectors.joining(", ")) + "]";
+                                    .filter(n -> ((boolean) this.configManager.getConfig().get(n))).collect(Collectors.joining(", ")) + "]";
 
                             int x = (screenWidth / 2) - (textWidth / 2);
 
@@ -149,8 +148,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!entityTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean entityTracers = !this.configData.get(Constants.ENTITY_TRACERS);
-                this.configData.put(Constants.ENTITY_TRACERS, entityTracers);
+                boolean entityTracers = !(boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS);
+                this.configManager.getConfig().put(Constants.ENTITY_TRACERS, entityTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
             }
 
@@ -165,8 +164,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!blockTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean blockTracers = !this.configData.get(Constants.BLOCK_TRACERS);
-                this.configData.put(Constants.BLOCK_TRACERS, blockTracers);
+                boolean blockTracers = !(boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS);
+                this.configManager.getConfig().put(Constants.BLOCK_TRACERS, blockTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
             }
 
@@ -181,8 +180,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!newChunksWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean newChunks = !this.configData.get(Constants.NEW_CHUNKS);
-                this.configData.put(Constants.NEW_CHUNKS, newChunks);
+                boolean newChunks = !(boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS);
+                this.configManager.getConfig().put(Constants.NEW_CHUNKS, newChunks);
                 this.chunkSet.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
@@ -199,8 +198,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!signReaderWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean signReader = !this.configData.get(Constants.SIGN_READER);
-                this.configData.put(Constants.SIGN_READER, signReader);
+                boolean signReader = !(boolean) this.configManager.getConfig().get(Constants.SIGN_READER);
+                this.configManager.getConfig().put(Constants.SIGN_READER, signReader);
                 this.signsCache.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
@@ -215,7 +214,10 @@ public class StashwalkerModClient implements ClientModInitializer {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTime >= 200) {
 
-            if (this.configData.get(Constants.SIGN_READER) || this.configData.get(Constants.BLOCK_TRACERS)) {
+            if (
+                (boolean) this.configManager.getConfig().get(Constants.SIGN_READER) 
+                || (boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS)
+            ) {
 
                 this.blockThreadPool.submit(() -> {
 
@@ -225,7 +227,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 });
             }
 
-            if (this.configData.get(Constants.ENTITY_TRACERS)) {
+            if ((boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS)) {
 
                 this.entityThreadPool.submit(() -> {
 
@@ -241,7 +243,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void onChunkLoadEvent (ClientWorld world, WorldChunk chunk) {
 
-        if (this.configData.get(Constants.NEW_CHUNKS)) {
+        if ((boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS)) {
 
             this.chunkThreadPool.submit(() -> {
 
@@ -262,7 +264,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             return;
         }
         
-        if (this.configData.get(Constants.BLOCK_TRACERS)) {
+        if ((boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS)) {
 
             FinderResult finderResult = this.finderResultBuffer.readBuffer();
             if (finderResult != null) {
@@ -286,7 +288,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if (this.configData.get(Constants.ENTITY_TRACERS)) {
+        if ((boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS)) {
 
             List<Entity> entities = entityBuffer.readBuffer();
             if (!entities.isEmpty()) {
@@ -313,7 +315,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if (this.configData.get(Constants.SIGN_READER)) {
+        if ((boolean) this.configManager.getConfig().get(Constants.SIGN_READER)) {
 
             FinderResult finderResult = this.finderResultBuffer.readBuffer();
             if (finderResult != null) {
@@ -343,7 +345,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if (this.configData.get(Constants.NEW_CHUNKS)) {
+        if ((boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS)) {
 
             this.renderer
                     .drawChunkSquare(
@@ -361,19 +363,12 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void saveConfig () {
 
-        configManager.saveConfig(this.configData);
+        configManager.saveConfig();
     }
 
     private void loadConfig () {
 
-        this.configData = configManager.loadConfig();
-        Constants.FEATURE_NAMES.forEach(n -> {
-            
-            if (!this.configData.containsKey(n)) {
-
-                this.configData.put(n, true);
-            }
-        });
+        configManager.loadConfig();
     }
 
     private Text createStyledTextForFeature (String featureName, boolean featureToggle) {
@@ -391,5 +386,4 @@ public class StashwalkerModClient implements ClientModInitializer {
                         .append(Text.literal(featureToggle ? " enabled" : " disabled")
                                 .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
     }
-
 }
