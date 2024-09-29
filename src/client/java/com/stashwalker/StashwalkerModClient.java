@@ -144,7 +144,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!entityTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean entityTracers = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
+                boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
             }
@@ -160,7 +160,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!blockTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean blockTracers = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
+                boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
             }
@@ -176,7 +176,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!newChunksWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean newChunks = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
+                boolean newChunks = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
                 this.chunkSet.clear();
 
@@ -194,7 +194,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!signReaderWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean signReader = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER);
+                boolean signReader = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
                 this.signsCache.clear();
 

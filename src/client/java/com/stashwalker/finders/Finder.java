@@ -183,9 +183,10 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
 
                             ) {
-                                
+
                                 String key = Constants.BLOCK_KEY_START + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock().getName().getString();
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, Constants.BLOCK_DEFAULT_COLOR_MAP.get(key)));
+                                Color color = new Color(Constants.CONFIG_MANAGER.getConfig().getBlockColors().get(key), true);
+                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, color));
                             }
                         }
                     }
