@@ -33,7 +33,6 @@ import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
-import com.stashwalker.config.ConfigManager;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.SignTextExtractor;
 import com.stashwalker.finders.Finder;
@@ -46,8 +45,6 @@ import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.Pair;
 
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
 
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
@@ -71,7 +68,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean signReaderWasPressed;
     private Renderer renderer = new Renderer();
     private Finder finder = new Finder();
-    private ConfigManager configManager = new ConfigManager();
 
     @Override
     public void onInitializeClient () {
@@ -128,7 +124,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                             + Constants.FEATURE_NAMES.stream().collect(Collectors.joining(", ")) + "]");
 
                             String text = modName + " [" + Constants.FEATURE_NAMES.stream()
-                                    .filter(n -> ((boolean) this.configManager.getConfig().get(n))).collect(Collectors.joining(", ")) + "]";
+                                    .filter(n -> (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(n))).collect(Collectors.joining(", ")) + "]";
 
                             int x = (screenWidth / 2) - (textWidth / 2);
 
@@ -148,8 +144,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!entityTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean entityTracers = !(boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS);
-                this.configManager.getConfig().put(Constants.ENTITY_TRACERS, entityTracers);
+                boolean entityTracers = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
             }
 
@@ -164,8 +160,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!blockTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean blockTracers = !(boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS);
-                this.configManager.getConfig().put(Constants.BLOCK_TRACERS, blockTracers);
+                boolean blockTracers = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
             }
 
@@ -180,8 +176,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!newChunksWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean newChunks = !(boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS);
-                this.configManager.getConfig().put(Constants.NEW_CHUNKS, newChunks);
+                boolean newChunks = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
                 this.chunkSet.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
@@ -198,8 +194,8 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!signReaderWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean signReader = !(boolean) this.configManager.getConfig().get(Constants.SIGN_READER);
-                this.configManager.getConfig().put(Constants.SIGN_READER, signReader);
+                boolean signReader = Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
                 this.signsCache.clear();
 
                 this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
@@ -215,8 +211,8 @@ public class StashwalkerModClient implements ClientModInitializer {
         if (currentTime - lastTime >= 200) {
 
             if (
-                (boolean) this.configManager.getConfig().get(Constants.SIGN_READER) 
-                || (boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS)
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER) 
+                || Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)
             ) {
 
                 this.blockThreadPool.submit(() -> {
@@ -227,7 +223,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 });
             }
 
-            if ((boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS)) {
+            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
 
                 this.entityThreadPool.submit(() -> {
 
@@ -243,7 +239,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void onChunkLoadEvent (ClientWorld world, WorldChunk chunk) {
 
-        if ((boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
             this.chunkThreadPool.submit(() -> {
 
@@ -264,7 +260,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             return;
         }
         
-        if ((boolean) this.configManager.getConfig().get(Constants.BLOCK_TRACERS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
 
             FinderResult finderResult = this.finderResultBuffer.readBuffer();
             if (finderResult != null) {
@@ -288,7 +284,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if ((boolean) this.configManager.getConfig().get(Constants.ENTITY_TRACERS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
 
             List<Entity> entities = entityBuffer.readBuffer();
             if (!entities.isEmpty()) {
@@ -315,7 +311,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if ((boolean) this.configManager.getConfig().get(Constants.SIGN_READER)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER)) {
 
             FinderResult finderResult = this.finderResultBuffer.readBuffer();
             if (finderResult != null) {
@@ -345,7 +341,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if ((boolean) this.configManager.getConfig().get(Constants.NEW_CHUNKS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
             this.renderer
                     .drawChunkSquare(
@@ -363,12 +359,12 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void saveConfig () {
 
-        configManager.saveConfig();
+        Constants.CONFIG_MANAGER.saveConfig();
     }
 
     private void loadConfig () {
 
-        configManager.loadConfig();
+        Constants.CONFIG_MANAGER.loadConfig();
     }
 
     private Text createStyledTextForFeature (String featureName, boolean featureToggle) {
