@@ -1,6 +1,5 @@
 package com.stashwalker.finders;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
@@ -16,7 +15,6 @@ import net.minecraft.entity.passive.LlamaEntity;
 
 import net.minecraft.world.chunk.Chunk;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 

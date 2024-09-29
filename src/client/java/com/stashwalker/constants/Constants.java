@@ -1,9 +1,13 @@
 package com.stashwalker.constants;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
+import java.awt.Color;
+import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.*;
 
@@ -90,11 +94,73 @@ public class Constants {
             BiomeKeys.WARM_OCEAN // Warm Ocean – Added in 1.13 (Update Aquatic, July 2018)
     );
 
+    public static Map<Block, Color> BLOCK_COLOR_MAP = new ConcurrentHashMap<>();
+
     static {
 
         FEATURE_NAMES.add(ENTITY_TRACERS);
         FEATURE_NAMES.add(BLOCK_TRACERS);
         FEATURE_NAMES.add(NEW_CHUNKS);
         FEATURE_NAMES.add(SIGN_READER);
+
+        // Default render colors
+        BLOCK_COLOR_MAP.put(Blocks.SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.WHITE_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.ORANGE_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.MAGENTA_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.LIGHT_BLUE_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.YELLOW_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.LIME_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.PINK_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.GRAY_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.LIGHT_GRAY_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.CYAN_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.PURPLE_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.BLUE_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.BROWN_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.GREEN_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.RED_SHULKER_BOX, Color.WHITE);
+        BLOCK_COLOR_MAP.put(Blocks.BLACK_SHULKER_BOX, Color.WHITE);
+
+        BLOCK_COLOR_MAP.put(Blocks.BARREL, new Color(210, 105, 30));
+        
+        BLOCK_COLOR_MAP.put(Blocks.HOPPER, Color.BLACK);
+        BLOCK_COLOR_MAP.put(Blocks.DROPPER, Color.BLACK);
+        BLOCK_COLOR_MAP.put(Blocks.DISPENSER, Color.BLACK);
+        BLOCK_COLOR_MAP.put(Blocks.BLAST_FURNACE, Color.BLACK);
+        BLOCK_COLOR_MAP.put(Blocks.FURNACE, Color.BLACK);
+
+        BLOCK_COLOR_MAP.put(Blocks.OAK_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.SPRUCE_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BIRCH_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.ACACIA_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CHERRY_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.JUNGLE_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.DARK_OAK_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CRIMSON_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.MANGROVE_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BAMBOO_SIGN, Color.CYAN);
+
+        BLOCK_COLOR_MAP.put(Blocks.OAK_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.SPRUCE_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BIRCH_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.ACACIA_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CHERRY_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.JUNGLE_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.DARK_OAK_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CRIMSON_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.MANGROVE_WALL_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BAMBOO_WALL_SIGN, Color.CYAN);
+
+        BLOCK_COLOR_MAP.put(Blocks.OAK_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.SPRUCE_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BIRCH_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.ACACIA_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CHERRY_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.JUNGLE_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.DARK_OAK_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.CRIMSON_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.MANGROVE_HANGING_SIGN, Color.CYAN);
+        BLOCK_COLOR_MAP.put(Blocks.BAMBOO_HANGING_SIGN, Color.CYAN);
     }
 }
