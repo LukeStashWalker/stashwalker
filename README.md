@@ -33,7 +33,7 @@ This mod is open source, you can check the code yourself. This mod has been test
         - any type of sign
 - if solid blocks are found at build limit a warning message in posted in the chat HUD
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
-- new chunks: renders rectangles around new chunks (based on copper ore in the Otherworld and ancient debris in the Nether), enabling you to follow chunk trails
+- new chunks: renders rectangles around new chunks (based on copper ore in the Overworld and ancient debris in the Nether), enabling you to follow chunk trails
 - sign reader: posts text of signs you pass by in the chat HUD
 
 ![alt text](screenshots/1.png)
