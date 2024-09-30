@@ -28,11 +28,11 @@ public class Constants {
 
     public static final ConcurrentBoundedSet<ChunkPos> CHUNK_SET = new ConcurrentBoundedSet<>(64 * 64);
 
-    public static final List<ChunkStatus> CHUNK_STATUSES = new ArrayList<>();
+    public static final List<ChunkStatus> CHUNK_STATUSES = Collections.synchronizedList(new ArrayList<>());
 
     public static final String BLOCK_KEY_START = "BLOCK_";
 
-    public static final List<String> FEATURE_NAMES = new ArrayList<>();
+    public static final List<String> FEATURE_NAMES = Collections.synchronizedList(new ArrayList<>());
     public static final String ENTITY_TRACERS = "entityTracers";
     public static final String BLOCK_TRACERS = "blockTracers";
     public static final String NEW_CHUNKS = "newChunks";

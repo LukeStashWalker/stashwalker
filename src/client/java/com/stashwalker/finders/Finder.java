@@ -40,7 +40,7 @@ public class Finder {
 
     }
 
-    public boolean isNewChunk(Chunk chunk) {
+    public boolean isNewChunk (Chunk chunk) {
 
         if (chunk != null) {
 
