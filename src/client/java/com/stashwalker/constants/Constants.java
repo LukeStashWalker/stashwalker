@@ -119,7 +119,6 @@ public class Constants {
         FEATURE_NAMES.add(SIGN_READER);
 
         // Default render colors
-
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHEST.getName().getString(), Color.YELLOW);
 
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BARREL.getName().getString(), new Color(210, 105, 30));
