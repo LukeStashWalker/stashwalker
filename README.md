@@ -16,6 +16,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     - diamond/netherite tool item
     - xp bottle item
     - totem item
+    - item frame
     - smithing template item
 - different colored tracers to interesting blocks:
     - white

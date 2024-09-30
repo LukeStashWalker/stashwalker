@@ -297,7 +297,8 @@ public class Finder {
 
                         ItemEntity itemEntity = (ItemEntity) e;
                         ItemStack itemStack = itemEntity.getStack();
-                        if (itemStack.getItem() == Items.ELYTRA
+                        if (
+                                itemStack.getItem() == Items.ELYTRA
 
                                 || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
 
@@ -363,7 +364,7 @@ public class Finder {
                                     && !((ChestBoatEntity) e).hasPlayerRider())
                             || 
                             (e instanceof ItemFrameEntity)
-                            ) {
+                    ) {
 
                         return true;
                     } else {
