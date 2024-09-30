@@ -1,15 +1,20 @@
 package com.stashwalker.constants;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.text.Text;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import java.awt.Color;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.stashwalker.configs.ConfigManager;
 import com.stashwalker.rendering.Renderer;
+import com.stashwalker.utils.DoubleBuffer;
 
 public class Constants {
 
@@ -17,12 +22,17 @@ public class Constants {
     public static final MinecraftClient MC_CLIENT_INSTANCE = MinecraftClient.getInstance();
     public static final Renderer RENDERER = new Renderer();
     public static final ConfigManager CONFIG_MANAGER = new ConfigManager();
+
+    public static final DoubleBuffer<Text> MESSAGE_BUFFER  = new DoubleBuffer<>();
+
     public static final String BLOCK_KEY_START = "BLOCK_";
+
     public static final List<String> FEATURE_NAMES = new ArrayList<>();
     public static final String ENTITY_TRACERS = "entityTracers";
     public static final String BLOCK_TRACERS = "blockTracers";
     public static final String NEW_CHUNKS = "newChunks";
     public static final String SIGN_READER = "signReader";
+
     public static final Set<RegistryKey<Biome>> NEW_BIOMES = Set.of(
 
             // Overworld Biomes

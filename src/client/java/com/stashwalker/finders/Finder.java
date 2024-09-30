@@ -1,5 +1,6 @@
 package com.stashwalker.finders;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
@@ -69,14 +70,15 @@ public class Finder {
 
                         boolean blocksAtBuildLimit = false;
                         for (BlockPos pos : BlockPos.iterate(
+                            chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                            chunkPos.getEndX(), yLevel, chunkPos.getEndZ())
+                        ) {
 
-                                chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
-                                chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
-
-
+                            BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
                             if (
-                                yLevel > 318
-                                && !FinderUtil.isBlockType(pos, Blocks.AIR)
+                                blocksAtBuildLimit == false
+                                && yLevel > 318
+                                && blockState.isSolidBlock(world, pos)
                             ) {
                                 
                                 blocksAtBuildLimit = true;
@@ -99,9 +101,11 @@ public class Finder {
                                             .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
                                     .append(Text.literal("]:\n")
                                             .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal("Blocks found at build limit")
+                                    .append(Text.literal("Solid blocks found at build limit")
                                             .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                            Constants.RENDERER.sendClientSideMessage(styledText);
+                            Constants.MESSAGE_BUFFER.updateBuffer(styledText);
+
+                            blocksAtBuildLimit = false;
                         }
                     }
 
