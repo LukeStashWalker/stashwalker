@@ -20,8 +20,9 @@ This mod is open source, you can check the code yourself. This mod has been test
 - different colored tracers to interesting blocks:
     - white
         - shulkerbox
-    - brown
+    - yellow
         - any double chest that is not in a dungeon
+    - brown
         - barrel
     - black
         - hopper

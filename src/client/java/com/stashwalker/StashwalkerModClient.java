@@ -391,7 +391,6 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private Text createStyledTextForFeature (String featureName, boolean featureToggle) {
 
-
                 return Text.empty()
                         .append(Text.literal("[")
                                 .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
