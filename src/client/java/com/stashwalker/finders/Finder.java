@@ -14,14 +14,12 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 
 import net.minecraft.world.chunk.Chunk;
-import net.minecraft.world.dimension.DimensionType;
 
 import java.util.List;
 import java.util.Set;
@@ -220,6 +218,7 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.CRIMSON_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.MANGROVE_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_SIGN)
+                                || FinderUtil.isBlockType(pos, Blocks.WARPED_SIGN)
 
                                 || FinderUtil.isBlockType(pos, Blocks.OAK_WALL_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
@@ -231,6 +230,7 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
+                                || FinderUtil.isBlockType(pos, Blocks.WARPED_WALL_SIGN)
 
                                 || FinderUtil.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
@@ -242,6 +242,7 @@ public class Finder {
                                 || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
                                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
+                                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)
 
                             ) {
 

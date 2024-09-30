@@ -157,6 +157,7 @@ public class Constants {
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_SIGN.getName().getString(), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_SIGN.getName().getString(), Color.CYAN);
 
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_WALL_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_WALL_SIGN.getName().getString(), Color.CYAN);
@@ -168,6 +169,7 @@ public class Constants {
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_WALL_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_WALL_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_WALL_SIGN.getName().getString(), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_WALL_SIGN.getName().getString(), Color.CYAN);
 
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_HANGING_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_HANGING_SIGN.getName().getString(), Color.CYAN);
@@ -179,5 +181,6 @@ public class Constants {
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_HANGING_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_HANGING_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_HANGING_SIGN.getName().getString(), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_HANGING_SIGN.getName().getString(), Color.CYAN);
     }
 }
