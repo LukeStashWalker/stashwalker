@@ -186,13 +186,12 @@ public class Finder {
 
                             BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
-                            // Signs
+                            // Block Entities
                             if (blockEntity instanceof SignBlockEntity) {
 
                                 finderResult.addSign(blockEntity);
                             }
                             
-                            // Block Entities
                             if (
 
                                 FinderUtil.isBlockType(pos, Blocks.BARREL)

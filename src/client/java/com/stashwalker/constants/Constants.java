@@ -7,6 +7,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.chunk.ChunkStatus;
+
 import java.awt.Color;
 import java.util.*;
 
@@ -25,6 +27,8 @@ public class Constants {
     public static final DoubleBuffer<Text> MESSAGE_BUFFER  = new DoubleBuffer<>();
 
     public static final ConcurrentBoundedSet<ChunkPos> CHUNK_SET = new ConcurrentBoundedSet<>(64 * 64);
+
+    public static final List<ChunkStatus> CHUNK_STATUSES = new ArrayList<>();
 
     public static final String BLOCK_KEY_START = "BLOCK_";
 
@@ -182,5 +186,17 @@ public class Constants {
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_HANGING_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_HANGING_SIGN.getName().getString(), Color.CYAN);
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_HANGING_SIGN.getName().getString(), Color.CYAN);
+
+        CHUNK_STATUSES.add(ChunkStatus.BIOMES);
+        CHUNK_STATUSES.add(ChunkStatus.CARVERS);
+        CHUNK_STATUSES.add(ChunkStatus.FEATURES);
+        CHUNK_STATUSES.add(ChunkStatus.FULL);
+        CHUNK_STATUSES.add(ChunkStatus.INITIALIZE_LIGHT);
+        CHUNK_STATUSES.add(ChunkStatus.LIGHT);
+        CHUNK_STATUSES.add(ChunkStatus.NOISE);
+        // CHUNK_STATUSES.add(ChunkStatus.SPAWN);
+        CHUNK_STATUSES.add(ChunkStatus.STRUCTURE_REFERENCES);
+        CHUNK_STATUSES.add(ChunkStatus.STRUCTURE_STARTS);
+        CHUNK_STATUSES.add(ChunkStatus.SURFACE);
     }
 }

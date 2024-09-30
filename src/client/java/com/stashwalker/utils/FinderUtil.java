@@ -109,19 +109,7 @@ public class FinderUtil {
 
         Chunk chunk = null;
 
-        List<ChunkStatus> chunkStatuses = new ArrayList<>();
-        chunkStatuses.add(ChunkStatus.BIOMES);
-        chunkStatuses.add(ChunkStatus.CARVERS);
-        chunkStatuses.add(ChunkStatus.FEATURES);
-        chunkStatuses.add(ChunkStatus.FULL);
-        chunkStatuses.add(ChunkStatus.INITIALIZE_LIGHT);
-        chunkStatuses.add(ChunkStatus.LIGHT);
-        chunkStatuses.add(ChunkStatus.NOISE);
-        // chunkStatuses.add(ChunkStatus.SPAWN);
-        chunkStatuses.add(ChunkStatus.STRUCTURE_REFERENCES);
-        chunkStatuses.add(ChunkStatus.STRUCTURE_STARTS);
-        chunkStatuses.add(ChunkStatus.SURFACE);
-        for (ChunkStatus status : chunkStatuses) {
+        for (ChunkStatus status : Constants.CHUNK_STATUSES) {
 
             chunk = Constants.MC_CLIENT_INSTANCE.world.getChunk(x, z, status);
             if (chunk != null) {
@@ -135,9 +123,9 @@ public class FinderUtil {
 
     public static boolean areAdjacentChunksLoaded (int x, int z) {
 
-        for (int xI = x - 1; xI < x + 1; xI++) {
+        for (int xI = x - 1; xI < x + 2; xI++) {
 
-            for (int zI = z - 1; zI < z + 1; zI++) {
+            for (int zI = z - 1; zI < z + 2; zI++) {
 
                 if (Constants.MC_CLIENT_INSTANCE.world.getChunk(xI, zI, ChunkStatus.FULL, false) == null) {
 
