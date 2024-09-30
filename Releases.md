@@ -1,6 +1,14 @@
 Releases
 ===
 
+Version 1.1.4-fabric-0.103.0+-mc1.21.1
+---
+- new Chunks Nether support
+
+Version 1.1.3-fabric-0.103.0+-mc1.21.1
+---
+- solid blocks at build limit warning messages
+
 Version 1.1.2-fabric-0.103.0+-mc1.21.1
 ---
 - Support for Minecraft 1.21.1
