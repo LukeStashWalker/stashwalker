@@ -1,6 +1,10 @@
 Releases
 ===
 
+Version 1.1.5-fabric-0.103.0+-mc1.21.1
+---
+- small fix with build limit warnings
+
 Version 1.1.4-fabric-0.103.0+-mc1.21.1
 ---
 - new Chunks Nether support
