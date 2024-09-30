@@ -18,6 +18,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     - totem item
     - item frame
     - smithing template item
+    - end crystal
 - different colored tracers to interesting blocks:
     - white
         - shulkerbox

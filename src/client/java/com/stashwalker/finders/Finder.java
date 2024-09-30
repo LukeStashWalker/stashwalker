@@ -306,6 +306,8 @@ public class Finder {
 
                                 || itemStack.getItem() == Items.TOTEM_OF_UNDYING
 
+                                || itemStack.getItem() == Items.END_CRYSTAL
+
                                 || itemStack.getItem() == Items.NETHERITE_BOOTS
                                 || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
                                 || itemStack.getItem() == Items.NETHERITE_HELMET
