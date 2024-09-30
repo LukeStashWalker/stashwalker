@@ -31,10 +31,10 @@ This mod is open source, you can check the code yourself. This mod has been test
         - furnace
     - cyan
         - any type of sign
-- if solid blocks are found at build limit a warning message in posted the in chat HUD
+- if solid blocks are found at build limit a warning message in posted in the chat HUD
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders red rectangles in over world around new chunks (based on copper ore), enabling you to follow chunk trails
-- sign reader: posts text of signs you pass by the in chat HUD
+- sign reader: posts text of signs you pass by in the chat HUD
 
 ![alt text](screenshots/1.png)
 
