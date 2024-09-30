@@ -1,19 +1,18 @@
 package com.stashwalker.constants;
 
-import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Text;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.BiomeKeys;
 import java.awt.Color;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import com.stashwalker.configs.ConfigManager;
 import com.stashwalker.rendering.Renderer;
+import com.stashwalker.utils.ConcurrentBoundedSet;
 import com.stashwalker.utils.DoubleBuffer;
 
 public class Constants {
@@ -24,6 +23,8 @@ public class Constants {
     public static final ConfigManager CONFIG_MANAGER = new ConfigManager();
 
     public static final DoubleBuffer<Text> MESSAGE_BUFFER  = new DoubleBuffer<>();
+
+    public static final ConcurrentBoundedSet<ChunkPos> CHUNK_SET = new ConcurrentBoundedSet<>(64 * 64);
 
     public static final String BLOCK_KEY_START = "BLOCK_";
 
@@ -119,7 +120,7 @@ public class Constants {
 
         // Default render colors
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHEST.getName().getString(), new Color(210, 105, 30));
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHEST.getName().getString(), Color.YELLOW);
 
         BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BARREL.getName().getString(), new Color(210, 105, 30));
 

@@ -11,6 +11,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.Text;
 import net.minecraft.text.Style;
@@ -19,6 +20,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import java.util.List;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
@@ -39,7 +41,6 @@ import com.stashwalker.finders.Finder;
 import com.stashwalker.finders.FinderResult;
 import com.stashwalker.utils.DoubleBuffer;
 import com.stashwalker.utils.DoubleListBuffer;
-import com.stashwalker.rendering.Renderer;
 import com.stashwalker.utils.ConcurrentBoundedSet;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.Pair;
@@ -52,7 +53,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private long lastTime = 0;
     private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
-    private ConcurrentBoundedSet<ChunkPos> chunkSet = new ConcurrentBoundedSet<>(32 * 32);
     private ConcurrentBoundedSet<Integer> signsCache = new ConcurrentBoundedSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
@@ -177,7 +177,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean newChunks = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
-                this.chunkSet.clear();
+                Constants.CHUNK_SET.clear();
 
                 Constants.RENDERER.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
             }
@@ -244,7 +244,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 if (this.finder.isNewChunk(chunk)) {
 
-                    this.chunkSet.add(chunk.getPos());
+                    Constants.CHUNK_SET.add(chunk.getPos());
                 }
             });
         }
@@ -349,17 +349,34 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
-            Constants.RENDERER
+            RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+            if (World.OVERWORLD.equals(dimensionKey)) {
+
+                Constants.RENDERER
                     .drawChunkSquare(
-                            context,
-                            // chunkPositions,
-                            this.chunkSet,
-                            63,
-                            16,
-                            255,
-                            0,
-                            0,
-                            255);
+                        context,
+                        Constants.CHUNK_SET,
+                        63,
+                        16,
+                        255,
+                        0,
+                        0,
+                        255
+                    );
+            } else if (World.NETHER.equals(dimensionKey)) {
+
+                Constants.RENDERER
+                    .drawChunkSquare(
+                        context,
+                        Constants.CHUNK_SET,
+                        -64,
+                        16,
+                        255,
+                        255,
+                        255,
+                        255
+                    );
+            }
         }
     }
 
