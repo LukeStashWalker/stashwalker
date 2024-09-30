@@ -66,7 +66,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean blockTracersWasPressed;
     private boolean newChunksWasPressed;
     private boolean signReaderWasPressed;
-    private Renderer renderer = new Renderer();
     private Finder finder = new Finder();
 
     @Override
@@ -131,7 +130,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                             int y = 2;
 
                             // Render the text
-                            this.renderer.renderHUDText(drawContext, text, x, y, 0xFFFFFFFF);
+                            Constants.RENDERER.renderHUDText(drawContext, text, x, y, 0xFFFFFFFF);
                         });
             }
         }));
@@ -146,7 +145,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
-                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
+                Constants.RENDERER.sendClientSideMessage(this.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
             }
 
             entityTracersWasPressed = true;
@@ -162,7 +161,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
-                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
+                Constants.RENDERER.sendClientSideMessage(this.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
             }
 
             blockTracersWasPressed = true;
@@ -180,7 +179,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
                 this.chunkSet.clear();
 
-                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
+                Constants.RENDERER.sendClientSideMessage(this.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
             }
 
             newChunksWasPressed = true;
@@ -198,7 +197,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
                 this.signsCache.clear();
 
-                this.renderer.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
+                Constants.RENDERER.sendClientSideMessage(this.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
 
             signReaderWasPressed = true;
@@ -277,7 +276,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 blockPos.getY() + 0.5D,
                                 blockPos.getZ() + 0.5D);
 
-                        this.renderer.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+                        Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
                                 color.getAlpha(), false);
                     }
                 }
@@ -306,7 +305,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 entity.getPos().getZ());
                     }
 
-                    this.renderer.drawLine(context, entityPos, 255, 0, 0, 255, true);
+                    Constants.RENDERER.drawLine(context, entityPos, 255, 0, 0, 255, true);
                 }
             }
         }
@@ -333,7 +332,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                             .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                                     .append(Text.literal(signText)
                                             .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                            this.renderer.sendClientSideMessage(styledText);
+                            Constants.RENDERER.sendClientSideMessage(styledText);
                             this.signsCache.add(sign.getPos().toShortString().hashCode());
                         }
                     }
@@ -343,7 +342,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
-            this.renderer
+            Constants.RENDERER
                     .drawChunkSquare(
                             context,
                             // chunkPositions,

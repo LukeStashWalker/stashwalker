@@ -3,17 +3,24 @@ package com.stashwalker.finders;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.Items;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.dimension.DimensionType;
 
 import java.util.List;
 import java.util.Set;
@@ -33,36 +40,86 @@ public class Finder {
 
     }
 
-    public boolean isNewChunk (Chunk chunk) {
+    public boolean isNewChunk(Chunk chunk) {
 
         if (chunk != null) {
 
             ChunkPos chunkPos = chunk.getPos();
-            // if (FinderUtil.hasNewBiome(chunk)) {
 
-            //     return true;
-            // }
+            ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+            if (world != null) {
 
-            // Copper ore is found at y level -16 to 112 and most commonly at level 47 and
-            // 48
-            int[] yLevels = new int[] {
-                    48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 66,
-                    31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84
-            };
-            for (int yLevel : yLevels) {
+                RegistryKey<World> dimensionKey = world.getRegistryKey();
 
-                for (BlockPos pos : BlockPos.iterate(
+                if (World.OVERWORLD.equals(dimensionKey)) {
 
-                        chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
-                        chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
-                    if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
+                    // if (FinderUtil.hasNewBiome(chunk)) {
 
-                        return true;
+                    // return true;
+                    // }
+
+                    // Copper ore is found at y level -16 to 112 and most commonly at level 47 and
+                    // 48
+                    int[] yLevels = new int[] {
+                            320, 319, 
+                            48, 47, 46, 49, 50, 45, 52, 43, 54, 41, 56, 39, 58, 37, 60, 35, 62, 35, 64, 33, 
+                            66, 31, 68, 29, 70, 27, 72, 25, 74, 23, 76, 21, 78, 19, 80, 17, 82, 15, 84
+                    };
+                    for (int yLevel : yLevels) {
+
+                        boolean blocksAtBuildLimit = false;
+                        for (BlockPos pos : BlockPos.iterate(
+
+                                chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                                chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
+
+
+                            if (
+                                yLevel > 318
+                                && !FinderUtil.isBlockType(pos, Blocks.AIR)
+                            ) {
+                                
+                                blocksAtBuildLimit = true;
+                            }
+
+                            if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
+
+                                return true;
+                            }
+                        }
+
+                        if (blocksAtBuildLimit) {
+
+                            Text styledText = Text.empty()
+                                    .append(Text.literal("[")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal("Stashwalker, ")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                    .append(Text.literal("blockEntities")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                    .append(Text.literal("]:\n")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                    .append(Text.literal("Blocks found at build limit")
+                                            .setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                            Constants.RENDERER.sendClientSideMessage(styledText);
+                        }
                     }
-                }
-            }
 
-            return false;
+                    return false;
+                } else if (World.NETHER.equals(dimensionKey)) {
+
+                    return false;
+                } else if (World.END.equals(dimensionKey)) {
+
+                    return false;
+                } else {
+
+                    return false;
+                }
+            } else {
+
+                return false;
+            }
         } else {
 
             return false;

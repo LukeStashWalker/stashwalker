@@ -9,12 +9,15 @@ import java.awt.Color;
 import java.util.*;
 
 import com.stashwalker.configs.ConfigManager;
+import com.stashwalker.rendering.Renderer;
 
 public class Constants {
 
+
+    public static final MinecraftClient MC_CLIENT_INSTANCE = MinecraftClient.getInstance();
+    public static final Renderer RENDERER = new Renderer();
     public static final ConfigManager CONFIG_MANAGER = new ConfigManager();
     public static final String BLOCK_KEY_START = "BLOCK_";
-    public static final MinecraftClient MC_CLIENT_INSTANCE = MinecraftClient.getInstance();
     public static final List<String> FEATURE_NAMES = new ArrayList<>();
     public static final String ENTITY_TRACERS = "entityTracers";
     public static final String BLOCK_TRACERS = "blockTracers";
