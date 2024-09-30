@@ -280,13 +280,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                     }
                 }
             }
-            
-            Text styledText = Constants.MESSAGE_BUFFER.readBuffer();
-            if (styledText != null) {
-
-                Constants.RENDERER.sendClientSideMessage(styledText);
-                Constants.MESSAGE_BUFFER.updateBuffer(null);
-            }
         }
 
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
@@ -375,6 +368,13 @@ public class StashwalkerModClient implements ClientModInitializer {
                         255,
                         255
                     );
+            }
+
+            Text styledText = Constants.MESSAGE_BUFFER.readBuffer();
+            if (styledText != null) {
+
+                Constants.RENDERER.sendClientSideMessage(styledText);
+                Constants.MESSAGE_BUFFER.updateBuffer(null);
             }
         }
     }
