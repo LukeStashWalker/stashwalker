@@ -9,6 +9,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
@@ -30,15 +31,24 @@ public class FinderUtil {
     public static List<Entity> findOverlappingMinecartChests () {
 
         ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
-        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance(); // Render distance in
-                                                                                                  // chunks
-        double searchRadius = renderDistanceChunks * 512; // Convert chunks to blocks
+        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+        double renderDistanceInBlocks = renderDistanceChunks * 16;
 
         Set<ChestMinecartEntity> minecartChests = new HashSet<>();
 
+        Vec3d playerPos = Constants.MC_CLIENT_INSTANCE.player.getPos();
+        Box boundingBox = new Box(
+                playerPos.x - renderDistanceInBlocks,
+                -64,
+                playerPos.z - renderDistanceInBlocks,
+                playerPos.x + renderDistanceInBlocks,
+                320,
+                playerPos.z + renderDistanceInBlocks
+        );
+
         // Get all MinecartChests within the calculated radius
         List<ChestMinecartEntity> entities = player.getWorld().getEntitiesByClass(ChestMinecartEntity.class,
-                player.getBoundingBox().expand(searchRadius), e -> true);
+                boundingBox, e -> true);
 
         Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
 
