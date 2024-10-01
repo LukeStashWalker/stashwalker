@@ -10,6 +10,9 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.hud.BossBarHud;
+import net.minecraft.client.gui.hud.ClientBossBar;
+import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.Vec3d;
@@ -17,7 +20,12 @@ import net.minecraft.text.Text;
 import net.minecraft.text.Style;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.WorldChunk;
@@ -38,6 +46,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.SignTextExtractor;
 import com.stashwalker.finders.Finder;
 import com.stashwalker.finders.FinderResult;
+import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DoubleBuffer;
 import com.stashwalker.utils.DoubleListBuffer;
 import com.stashwalker.utils.ConcurrentBoundedSet;
@@ -49,7 +58,6 @@ import java.awt.Color;
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
 
-    private long lastTime = 0;
     private DoubleBuffer<FinderResult> finderResultBuffer = new DoubleBuffer<>();
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
     private ConcurrentBoundedSet<Integer> signsCache = new ConcurrentBoundedSet<>(5000);
@@ -66,6 +74,9 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean newChunksWasPressed;
     private boolean signReaderWasPressed;
     private Finder finder = new Finder();
+    private boolean wasInGame = false;
+    private long lastTime = 0;
+
 
     @Override
     public void onInitializeClient () {
@@ -117,22 +128,55 @@ public class StashwalkerModClient implements ClientModInitializer {
                             int screenWidth = Constants.MC_CLIENT_INSTANCE.getWindow().getScaledWidth();
 
                             // Calculate the x-position to center the text
-                            int textWidth = Constants.MC_CLIENT_INSTANCE.textRenderer
-                                    .getWidth(modName + " ["
+                            int modNameWidth = Constants.MC_CLIENT_INSTANCE.textRenderer
+                                    .getWidth(modName);
+                            int featuresWidth = Constants.MC_CLIENT_INSTANCE.textRenderer
+                                    .getWidth(" ["
                                             + Constants.FEATURE_NAMES.stream().collect(Collectors.joining(", ")) + "]");
 
-                            String text = modName + " [" + Constants.FEATURE_NAMES.stream()
+                            String featuresText = " [" + Constants.FEATURE_NAMES.stream()
                                     .filter(n -> (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(n))).collect(Collectors.joining(", ")) + "]";
 
-                            int x = (screenWidth / 2) - (textWidth / 2);
 
                             int y = 2;
+                            BossBarHud bossBarHud = Constants.MC_CLIENT_INSTANCE.inGameHud.getBossBarHud();
+                            if (bossBarHud instanceof IBossBarHudMixin) {
 
-                            // Render the text
-                            Constants.RENDERER.renderHUDText(drawContext, text, x, y, 0xFFFFFFFF);
+                                IBossBarHudMixin bossBarHudMixin = (IBossBarHudMixin) bossBarHud;
+                                Map<UUID, ClientBossBar> bossBars = bossBarHudMixin.getBossBars();
+                                if (bossBarHudMixin != null && bossBars != null && bossBars.size() > 0) {
+
+                                    Constants.RENDERER.renderHUDText(drawContext, modName, (screenWidth / 4) - (modNameWidth / 2), y, 0xFFFFFFFF);
+                                    Constants.RENDERER.renderHUDText(drawContext, featuresText, ((screenWidth / 4) * 3) - (featuresWidth / 2), y, 0xFFFFFFFF);
+                                } else {
+
+                                    int x = (screenWidth / 2) - ((modNameWidth + featuresWidth) / 2);
+                                    Constants.RENDERER.renderHUDText(drawContext, modName + featuresText, x, y, 0xFFFFFFFF);
+                                }
+
+                            }
                         });
             }
         }));
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+
+            // Check if the player was in the game and is now in the title screen
+            if (wasInGame && client.currentScreen instanceof TitleScreen) {
+
+                Constants.CHUNK_SET.clear();
+                this.signsCache.clear();
+                this.entityBuffer.updateBuffer(Collections.emptyList());
+                this.finderResultBuffer.updateBuffer(null);
+
+                wasInGame = false;
+            }
+
+            // Check if the player is in a world
+            if (client.world != null) {
+                wasInGame = true;
+            }
+        });
     }
 
     private void onClientTickStart (MinecraftClient client) {

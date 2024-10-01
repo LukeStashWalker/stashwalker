@@ -5,8 +5,8 @@ import java.util.concurrent.atomic.AtomicReference;
 // DoubleBuffer class that uses a generic type T
 public class DoubleBuffer<T> {
 
-    private T buffer1; // Initialize to null implicitly
-    private T buffer2; // Initialize to null implicitly
+    private T buffer1 = null;     
+    private T buffer2 = null; 
     private final AtomicReference<T> currentBufferRef = new AtomicReference<>();
     private final Object lock = new Object(); // Lock object to manage buffer switching
 
