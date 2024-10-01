@@ -1,6 +1,13 @@
 Releases
 ===
 
+Version 1.1.6-fabric-0.103.0+-mc1.21.1
+---
+- show mod name and features HUD correctly when Boss bar HUD is visible
+- improve bounding box for entity finder
+- fix issue with adjacent chunks
+- clear all buffers etc. when the player leaves the world
+
 Version 1.1.5-fabric-0.103.0+-mc1.21.1
 ---
 - small fix with build limit warnings
