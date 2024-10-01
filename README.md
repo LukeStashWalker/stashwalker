@@ -66,6 +66,9 @@ This mod is open source, you can check the code yourself. This mod has been test
 - build: ./gradlew build 
 - the jar will be in the build/libs/ directory
 
+<!-- ## How to run -->
+<!-- - ./gradlew runClient --debug-jvm -->
+
 ## Pre-built releases
 
 - can be found in the 'releases' folder
@@ -83,3 +86,4 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 - feedback or feature requests can be sent to original_plan_c@hotmail.com
 - patreon.com/LukeStashWalker
+
