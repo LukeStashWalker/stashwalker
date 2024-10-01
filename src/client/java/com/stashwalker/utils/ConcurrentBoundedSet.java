@@ -61,14 +61,14 @@ public class ConcurrentBoundedSet<E> implements Iterable<E> {
     }
 
     // Size method to get the number of elements in the set
-    public int size() {
+    public int size () {
 
         return atomicSet.get().size(); // Return the size of the current set
     }
 
     // Make the set iterable by implementing Iterable<E>
     @Override
-    public Iterator<E> iterator() {
+    public Iterator<E> iterator () {
 
         return new LinkedHashSet<>(atomicSet.get()).iterator(); // Return an iterator based on the current set
     }

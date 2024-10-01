@@ -209,7 +209,6 @@ public class Renderer {
             endY = vec3d.y + 0.5D;
         }
 
-        // Draw the base square around the chunk
         bufferBuilder
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) startY, (float) startZ)
