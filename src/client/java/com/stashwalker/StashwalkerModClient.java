@@ -63,7 +63,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private ConcurrentBoundedSet<Integer> signsCache = new ConcurrentBoundedSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
-    private ExecutorService chunkThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
+    private ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;
@@ -281,16 +281,36 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void onChunkLoadEvent (ClientWorld world, WorldChunk chunk) {
 
-        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
-            this.chunkThreadPool.submit(() -> {
+            this.chunkLoadThreadPool.submit(() -> {
 
-                if (this.finder.isNewChunk(chunk)) {
+                if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
-                    Constants.CHUNK_SET.add(chunk.getPos());
+                    if (this.finder.isNewChunk(chunk)) {
+
+                        Constants.CHUNK_SET.add(chunk.getPos());
+                    }
+                }
+
+                if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
+
+                    if (this.finder.solidBlocksNearBuildLimit(chunk)) {
+
+                        Text styledText = Text.empty()
+                                .append(Text.literal("[")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                .append(Text.literal("Stashwalker, ")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                .append(Text.literal("blockEntities")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                .append(Text.literal("]:\n")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                .append(Text.literal("Solid blocks found near (old) build limit")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                        Constants.MESSAGE_BUFFER.updateBuffer(styledText);
+                    }
                 }
             });
-        }
     }
 
     // Event callback method to render lines in the world
@@ -323,6 +343,13 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 color.getAlpha(), false);
                     }
                 }
+            }
+
+            Text styledText = Constants.MESSAGE_BUFFER.readBuffer();
+            if (styledText != null) {
+
+                Constants.RENDERER.sendClientSideMessage(styledText);
+                Constants.MESSAGE_BUFFER.updateBuffer(null);
             }
         }
 
@@ -412,13 +439,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                         255,
                         255
                     );
-            }
-
-            Text styledText = Constants.MESSAGE_BUFFER.readBuffer();
-            if (styledText != null) {
-
-                Constants.RENDERER.sendClientSideMessage(styledText);
-                Constants.MESSAGE_BUFFER.updateBuffer(null);
             }
         }
     }

@@ -42,6 +42,53 @@ public class Finder {
 
     }
 
+    public boolean solidBlocksNearBuildLimit (Chunk chunk) {
+
+        if (chunk != null) {
+
+            ChunkPos chunkPos = chunk.getPos();
+
+            ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+            if (world != null) {
+
+                RegistryKey<World> dimensionKey = world.getRegistryKey();
+
+                if (World.OVERWORLD.equals(dimensionKey)) {
+
+                    int[] yLevels = new int[] {
+                            319, 318, 255, 254
+                    };
+                    for (int yLevel : yLevels) {
+
+                        for (BlockPos pos : BlockPos.iterate(
+                            chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                            chunkPos.getEndX(), yLevel, chunkPos.getEndZ())
+                        ) {
+
+                            BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
+                            if (blockState.isSolidBlock(world, pos)) {
+                                
+                                return true;
+                            }
+                        }
+                    }
+
+                    return false;
+                } else {
+
+                    return false;
+                }         
+            } else {
+
+                return false;
+            }
+
+        } else {
+
+            return false;
+        }
+    }
+
     public boolean isNewChunk (Chunk chunk) {
 
         if (chunk != null) {
