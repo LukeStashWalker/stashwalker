@@ -49,8 +49,6 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.ConcurrentBoundedSet;
-import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.utils.SignTextExtractor;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
@@ -130,7 +128,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                     int zStart = playerChunkPosZ - playerRenderDistance;
                     int zEnd = playerChunkPosZ + playerRenderDistance + 1;
 
-                    List<BlockEntity> signsTemp = new ArrayList<>();
                     List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
                     for (int x = xStart; x < xEnd; x++) {
 
@@ -150,8 +147,16 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         // Check for signs
                                         if (blockEntity instanceof SignBlockEntity) {
 
+                                            // Get the player's current position
+                                            BlockPos playerPos = Constants.MC_CLIENT_INSTANCE.player.getBlockPos();
+
+                                            // Calculate the distance between the player's position and the sign's
+                                            // position
+                                            double squaredDistance = blockEntity.getPos().getSquaredDistance(playerPos);
+
                                             String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
                                             if (!signText.isEmpty()
+                                                    && squaredDistance > 5 * 5
                                                     && !signText.equals("<----\n---->")
                                                     && !Constants.DISPLAYED_SIGNS_CACHE
                                                             .contains(blockEntity.getPos().toShortString().hashCode())) {
