@@ -1,4 +1,4 @@
-package com.stashwalker.configs;
+package com.stashwalker.models;
 
 import java.util.Collections;
 import java.util.HashMap;

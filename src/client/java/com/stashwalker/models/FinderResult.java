@@ -1,10 +1,10 @@
-package com.stashwalker.finders;
+package com.stashwalker.models;
 
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.stashwalker.utils.Pair;
+import com.stashwalker.containers.Pair;
 
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.util.math.BlockPos;

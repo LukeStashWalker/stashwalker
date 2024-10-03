@@ -7,6 +7,9 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -189,5 +192,20 @@ public class FinderUtil {
         }
 
         return checkPositions;
+    }
+
+    public static Text createStyledTextForFeature (String featureName, boolean featureToggle) {
+
+                return Text.empty()
+                        .append(Text.literal("[")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal("Stashwalker, ")
+                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                        .append(Text.literal(featureName)
+                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                        .append(Text.literal("]:")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal(featureToggle ? " enabled" : " disabled")
+                                .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
     }
 }

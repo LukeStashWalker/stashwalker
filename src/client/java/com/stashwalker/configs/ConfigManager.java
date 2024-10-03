@@ -3,6 +3,7 @@ package com.stashwalker.configs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.stashwalker.constants.Constants;
+import com.stashwalker.models.StashwalkerConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,6 +39,8 @@ public class ConfigManager {
 
                 String json = Files.readString(CONFIG_PATH);
                 this.configData = GSON.fromJson(json, StashwalkerConfig.class);
+                this.configData.getBlockColors().entrySet()
+                    .removeIf(entry -> entry.getKey().contains(" "));
             } catch (IOException e) {
 
                 e.printStackTrace();

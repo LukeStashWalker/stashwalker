@@ -11,11 +11,12 @@ import net.minecraft.world.chunk.ChunkStatus;
 
 import java.awt.Color;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.stashwalker.configs.ConfigManager;
+import com.stashwalker.containers.ConcurrentBoundedSet;
+import com.stashwalker.containers.DoubleBuffer;
 import com.stashwalker.rendering.Renderer;
-import com.stashwalker.utils.ConcurrentBoundedSet;
-import com.stashwalker.utils.DoubleBuffer;
 
 public class Constants {
 
@@ -28,9 +29,14 @@ public class Constants {
 
     public static final ConcurrentBoundedSet<ChunkPos> CHUNK_SET = new ConcurrentBoundedSet<>(64 * 64);
 
-    public static final List<ChunkStatus> CHUNK_STATUSES = Collections.synchronizedList(new ArrayList<>());
+    public static final List<ChunkStatus> CHUNK_STATUSES = 
+        Collections.synchronizedList(
+            ChunkStatus.createOrderedList().stream()
+                .filter(cs -> !cs.equals(ChunkStatus.EMPTY) && !cs.equals(ChunkStatus.SPAWN))
+                .collect(Collectors.toList())
+        );
 
-    public static final String BLOCK_KEY_START = "BLOCK_";
+    public static final String BLOCK_KEY_START = "Block_";
 
     public static final List<String> FEATURE_NAMES = Collections.synchronizedList(new ArrayList<>());
     public static final String ENTITY_TRACERS = "entityTracers";
@@ -123,80 +129,68 @@ public class Constants {
         FEATURE_NAMES.add(SIGN_READER);
 
         // Default render colors
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHEST.getName().getString(), Color.YELLOW);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHEST.getName().getString().replace(" ", "_"), Color.YELLOW);
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BARREL.getName().getString(), new Color(210, 105, 30));
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BARREL.getName().getString().replace(" ", "_"), new Color(210, 105, 30));
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WHITE_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ORANGE_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MAGENTA_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIGHT_BLUE_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.YELLOW_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIME_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.PINK_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.GRAY_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIGHT_GRAY_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CYAN_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.PURPLE_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLUE_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BROWN_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.GREEN_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.RED_SHULKER_BOX.getName().getString(), Color.WHITE);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLACK_SHULKER_BOX.getName().getString(), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WHITE_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ORANGE_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MAGENTA_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIGHT_BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.YELLOW_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIME_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.PINK_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.LIGHT_GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CYAN_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.PURPLE_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BROWN_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.GREEN_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.RED_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLACK_SHULKER_BOX.getName().getString().replace(" ", "_"), Color.WHITE);
         
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.HOPPER.getName().getString(), Color.BLACK);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DROPPER.getName().getString(), Color.BLACK);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DISPENSER.getName().getString(), Color.BLACK);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLAST_FURNACE.getName().getString(), Color.BLACK);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.FURNACE.getName().getString(), Color.BLACK);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.HOPPER.getName().getString().replace(" ", "_"), Color.BLACK);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DROPPER.getName().getString().replace(" ", "_"), Color.BLACK);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DISPENSER.getName().getString().replace(" ", "_"), Color.BLACK);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BLAST_FURNACE.getName().getString().replace(" ", "_"), Color.BLACK);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.FURNACE.getName().getString().replace(" ", "_"), Color.BLACK);
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_SIGN.getName().getString(), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_WALL_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_WALL_SIGN.getName().getString(), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_WALL_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
 
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_HANGING_SIGN.getName().getString(), Color.CYAN);
-        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_HANGING_SIGN.getName().getString(), Color.CYAN);
-
-        CHUNK_STATUSES.add(ChunkStatus.BIOMES);
-        CHUNK_STATUSES.add(ChunkStatus.CARVERS);
-        CHUNK_STATUSES.add(ChunkStatus.FEATURES);
-        CHUNK_STATUSES.add(ChunkStatus.FULL);
-        CHUNK_STATUSES.add(ChunkStatus.INITIALIZE_LIGHT);
-        CHUNK_STATUSES.add(ChunkStatus.LIGHT);
-        CHUNK_STATUSES.add(ChunkStatus.NOISE);
-        // CHUNK_STATUSES.add(ChunkStatus.SPAWN);
-        CHUNK_STATUSES.add(ChunkStatus.STRUCTURE_REFERENCES);
-        CHUNK_STATUSES.add(ChunkStatus.STRUCTURE_STARTS);
-        CHUNK_STATUSES.add(ChunkStatus.SURFACE);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.SPRUCE_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BIRCH_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.ACACIA_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CHERRY_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.JUNGLE_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.DARK_OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.CRIMSON_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.MANGROVE_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.BAMBOO_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
+        BLOCK_DEFAULT_COLOR_MAP.put(BLOCK_KEY_START + Blocks.WARPED_HANGING_SIGN.getName().getString().replace(" ", "_"), Color.CYAN);
     }
 }

@@ -28,6 +28,8 @@ import java.util.Set;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
+import com.stashwalker.containers.Pair;
+import com.stashwalker.models.FinderResult;
 import com.stashwalker.utils.*;
 
 import net.minecraft.entity.Entity;
@@ -204,137 +206,94 @@ public class Finder {
         }
     }
 
-    public FinderResult findBlocks () {
+    public boolean isInterestingBlockPosition (BlockPos pos, Chunk chunk, int x, int z) {
 
-        World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
+        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
 
-        int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-        int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+        if (
 
-        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-        int xStart = playerChunkPosX - playerRenderDistance;
-        int xEnd = playerChunkPosX + playerRenderDistance + 1;
-        int zStart = playerChunkPosZ - playerRenderDistance;
-        int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+                FinderUtil.isBlockType(pos, Blocks.BARREL)
 
-        FinderResult finderResult = new FinderResult();
+                ||
 
-        for (int x = xStart; x < xEnd; x++) {
+                (FinderUtil.areAdjacentChunksLoaded(x, z)
+                        &&
+                        (FinderUtil.isDoubleChest(world, pos)
+                                && (
+                                // Not a Dungeon
+                                !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                        && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER))))
 
-            for (int z = zStart; z < zEnd; z++) {
+                || FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.LIGHT_BLUE_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.YELLOW_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.LIME_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.PINK_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.GRAY_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.LIGHT_GRAY_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.CYAN_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.PURPLE_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.BLUE_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.BROWN_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
 
-                Chunk chunk = FinderUtil.getChunkEarly(x, z);
+                || FinderUtil.isBlockType(pos, Blocks.HOPPER)
+                || FinderUtil.isBlockType(pos, Blocks.DROPPER)
+                || FinderUtil.isBlockType(pos, Blocks.DISPENSER)
+                || FinderUtil.isBlockType(pos, Blocks.BLAST_FURNACE)
+                || FinderUtil.isBlockType(pos, Blocks.FURNACE)
 
-                if (chunk != null) {
+                || FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CHERRY_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.WARPED_SIGN)
 
-                    Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                    if (blockPositions != null) {
+                || FinderUtil.isBlockType(pos, Blocks.OAK_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BIRCH_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.ACACIA_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CHERRY_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.WARPED_WALL_SIGN)
 
-                        for (BlockPos pos: blockPositions) {
+                || FinderUtil.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BIRCH_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.ACACIA_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CHERRY_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)
 
-                            BlockEntity blockEntity = chunk.getBlockEntity(pos);
+        ) {
 
-                            // Block Entities
-                            if (blockEntity instanceof SignBlockEntity) {
+            return true;
+        } else {
 
-                                finderResult.addSign(blockEntity);
-                            }
-                            
-                            if (
-
-                                FinderUtil.isBlockType(pos, Blocks.BARREL)
-
-                                ||
-
-                                (
-                                    FinderUtil.areAdjacentChunksLoaded(x, z)
-                                    &&
-                                    (
-                                        FinderUtil.isDoubleChest(world, pos)
-                                        && ( 
-                                            // Not a Dungeon
-                                            !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                            && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)
-                                        )
-                                    )
-                                )
-
-                                || FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.LIGHT_BLUE_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.YELLOW_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.LIME_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.PINK_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.GRAY_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.LIGHT_GRAY_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.CYAN_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.PURPLE_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.BLUE_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.BROWN_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
-                                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
-
-                                || FinderUtil.isBlockType(pos, Blocks.HOPPER)
-                                || FinderUtil.isBlockType(pos, Blocks.DROPPER)
-                                || FinderUtil.isBlockType(pos, Blocks.DISPENSER)
-                                || FinderUtil.isBlockType(pos, Blocks.BLAST_FURNACE)
-                                || FinderUtil.isBlockType(pos, Blocks.FURNACE)
-
-                                || FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CHERRY_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.WARPED_SIGN)
-
-                                || FinderUtil.isBlockType(pos, Blocks.OAK_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BIRCH_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.ACACIA_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CHERRY_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.WARPED_WALL_SIGN)
-
-                                || FinderUtil.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BIRCH_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.ACACIA_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CHERRY_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
-                                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)
-
-                            ) {
-
-                                String key = Constants.BLOCK_KEY_START + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock().getName().getString();
-                                Color color = new Color(Constants.CONFIG_MANAGER.getConfig().getBlockColors().get(key), true);
-                                finderResult.addBlockPosition(new Pair<BlockPos,Color>(pos, color));
-                            }
-                        }
-                    }
-                }
-            }
+            return false;
         }
-
-        return finderResult;
     }
 
-    public List<Entity> findEntities() {
+    public List<Entity> findEntities () {
 
         int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
         double renderDistanceInBlocks = playerRenderDistance * 16; // Convert render distance to blocks

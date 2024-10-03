@@ -1,4 +1,4 @@
-package com.stashwalker.utils;
+package com.stashwalker.containers;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package com.stashwalker.utils;
+package com.stashwalker.containers;
 
 public class Pair<K, V> {
     private K key;
