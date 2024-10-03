@@ -24,6 +24,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -149,7 +150,29 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         // Check for signs
                                         if (blockEntity instanceof SignBlockEntity) {
 
-                                            signsTemp.add(blockEntity);
+                                            String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
+                                            if (!signText.isEmpty()
+                                                    && !signText.equals("<----\n---->")
+                                                    && !Constants.DISPLAYED_SIGNS_CACHE
+                                                            .contains(blockEntity.getPos().toShortString().hashCode())) {
+
+                                                Text styledText = Text.empty()
+                                                        .append(Text.literal("[")
+                                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                                        .append(Text.literal("Stashwalker, ")
+                                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                                        .append(Text.literal("signReader")
+                                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                                        .append(Text.literal("]:\n")
+                                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                                        .append(Text.literal(signText)
+                                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+
+                                                Constants.MESSAGES_BUFFER.add(styledText);
+
+                                                Constants.DISPLAYED_SIGNS_CACHE
+                                                        .add(blockEntity.getPos().toShortString().hashCode());
+                                            }
                                         }
 
                                         // Check for interesting Blocks
@@ -168,9 +191,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                             }
                         }
                     }
-
-                    // Update the buffers when all the chunks have been searched
-                    Constants.SIGNS_BUFFER.updateBuffer(signsTemp);
+                    
                     Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(positionsTemp);
                 });
             }
@@ -216,7 +237,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                     .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                             .append(Text.literal("Solid blocks found near (old) build limit")
                                     .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                    Constants.MESSAGE_BUFFER.updateBuffer(styledText);
+                    Constants.MESSAGES_BUFFER.add(styledText);
                 }
             }
         });
@@ -229,6 +250,13 @@ public class StashwalkerModClient implements ClientModInitializer {
         if (player == null) {
 
             return;
+        }
+
+        ListIterator<Text> iterator = Constants.MESSAGES_BUFFER.listIterator();
+        while (iterator.hasNext()) {
+
+            Constants.RENDERER.sendClientSideMessage(iterator.next());
+            iterator.remove();
         }
         
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
@@ -248,13 +276,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                     Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
                             color.getAlpha(), false);
                 }
-            }
-
-            Text styledText = Constants.MESSAGE_BUFFER.readBuffer();
-            if (styledText != null) {
-
-                Constants.RENDERER.sendClientSideMessage(styledText);
-                Constants.MESSAGE_BUFFER.updateBuffer(null);
             }
         }
 
@@ -281,39 +302,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                     }
 
                     Constants.RENDERER.drawLine(context, entityPos, 255, 0, 0, 255, true);
-                }
-            }
-        }
-
-        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER)) {
-
-            List<BlockEntity> signs = Constants.SIGNS_BUFFER.readBuffer();
-            if (signs != null) {
-
-                for (BlockEntity sign : signs) {
-
-                    String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                    if (
-                        !signText.isEmpty() 
-                        && !signText.equals("<----\n---->") 
-                        && !Constants.DISPLAYED_SIGNS_CACHE.contains(sign.getPos().toShortString().hashCode())
-                    ) {
-
-                        Text styledText = Text.empty()
-                                .append(Text.literal("[")
-                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                .append(Text.literal("Stashwalker, ")
-                                        .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                .append(Text.literal("signReader")
-                                        .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                .append(Text.literal("]:\n")
-                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                .append(Text.literal(signText)
-                                        .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                        Constants.RENDERER.sendClientSideMessage(styledText);
-
-                        Constants.DISPLAYED_SIGNS_CACHE.add(sign.getPos().toShortString().hashCode());
-                    }
                 }
             }
         }
@@ -428,7 +416,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
-                Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
                 Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
             }
 
@@ -445,7 +433,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
-                Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
                 Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(Collections.emptyList());
             }
 
@@ -463,8 +451,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 boolean newChunks = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
                 Constants.CHUNK_SET.clear();
-
-                Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
             }
 
             newChunksWasPressed = true;
@@ -482,8 +469,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
                 Constants.DISPLAYED_SIGNS_CACHE.clear();
                 Constants.SIGNS_BUFFER.updateBuffer(Collections.emptyList());
-
-                Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.SIGN_READER, signReader));
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
 
             signReaderWasPressed = true;
@@ -523,7 +509,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private void clearAll () {
 
-        Constants.MESSAGE_BUFFER.updateBuffer(null);
+        Constants.MESSAGES_BUFFER.clear();;
         Constants.CHUNK_SET.clear();
         Constants.SIGNS_BUFFER.updateBuffer(Collections.emptyList());
         Constants.DISPLAYED_SIGNS_CACHE.clear();

@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 import com.stashwalker.configs.ConfigManager;
 import com.stashwalker.containers.ConcurrentBoundedSet;
-import com.stashwalker.containers.DoubleBuffer;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.rendering.Renderer;
@@ -31,7 +30,7 @@ public class Constants {
     public static final Renderer RENDERER = new Renderer();
     public static final ConfigManager CONFIG_MANAGER = new ConfigManager();
 
-    public static final DoubleBuffer<Text> MESSAGE_BUFFER  = new DoubleBuffer<>();
+    public static final List<Text> MESSAGES_BUFFER = Collections.synchronizedList(new LinkedList<>());
     public static final ConcurrentBoundedSet<ChunkPos> CHUNK_SET = new ConcurrentBoundedSet<>(64 * 64);
     public static final ConcurrentBoundedSet<Integer> DISPLAYED_SIGNS_CACHE = new ConcurrentBoundedSet<>(5000);
     public static final DoubleListBuffer<BlockEntity> SIGNS_BUFFER = new DoubleListBuffer<>();

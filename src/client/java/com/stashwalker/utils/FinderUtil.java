@@ -109,44 +109,15 @@ public class FinderUtil {
                     };
                     for (int yLevel : yLevels) {
 
-                        boolean blocksAtBuildLimit = false;
                         for (BlockPos pos : BlockPos.iterate(
                             chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
                             chunkPos.getEndX(), yLevel, chunkPos.getEndZ())
                         ) {
 
-                            BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
-                            if (
-                                blocksAtBuildLimit == false
-                                && yLevel > 318
-                                && blockState.isSolidBlock(world, pos)
-                            ) {
-                                
-                                blocksAtBuildLimit = true;
-                            }
-
                             if (FinderUtil.isBlockType(pos, Blocks.COPPER_ORE)) {
 
                                 return true;
                             }
-                        }
-
-                        if (blocksAtBuildLimit) {
-
-                            Text styledText = Text.empty()
-                                    .append(Text.literal("[")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal("Stashwalker, ")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                    .append(Text.literal("blockEntities")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                    .append(Text.literal("]:\n")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal("Solid blocks found at build limit")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                            Constants.MESSAGE_BUFFER.updateBuffer(styledText);
-
-                            blocksAtBuildLimit = false;
                         }
                     }
 

@@ -28,6 +28,18 @@ public class DoubleListBuffer<T> {
         switchBuffer();
     }
 
+    // Method for the reader to get data from the current buffer
+    public List<T> readBuffer () {
+
+        List<T> currentBuffer = currentBufferRef.get();
+
+        // Return a copy of the current buffer to avoid modification issues
+        synchronized (currentBuffer) {
+
+            return new ArrayList<>(currentBuffer);
+        }
+    }
+
     // Method to get the inactive buffer
     private List<T> getInactiveBuffer () {
 
@@ -45,18 +57,6 @@ public class DoubleListBuffer<T> {
 
             List<T> inactiveBuffer = getInactiveBuffer();
             currentBufferRef.set(inactiveBuffer);
-        }
-    }
-
-    // Method for the reader to get data from the current buffer
-    public List<T> readBuffer () {
-
-        List<T> currentBuffer = currentBufferRef.get();
-
-        // Return a copy of the current buffer to avoid modification issues
-        synchronized (currentBuffer) {
-
-            return new ArrayList<>(currentBuffer);
         }
     }
 }
