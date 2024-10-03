@@ -23,7 +23,6 @@ import net.minecraft.util.math.BlockPos;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -50,13 +49,10 @@ import net.minecraft.client.world.ClientWorld;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
-import com.stashwalker.containers.DoubleBuffer;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.utils.SignTextExtractor;
-import com.stashwalker.finders.Finder;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
-import com.stashwalker.models.FinderResult;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.FinderUtil;
 
@@ -81,7 +77,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean blockTracersWasPressed;
     private boolean newChunksWasPressed;
     private boolean signReaderWasPressed;
-    private Finder finder = new Finder();
     private boolean wasInGame = false;
     private long lastTime = 0;
 
@@ -116,8 +111,6 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 this.blockThreadPool.submit(() -> {
 
-                    World world = Constants.MC_CLIENT_INSTANCE.player.getWorld();
-
                     int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
                     int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
@@ -127,7 +120,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                     int zStart = playerChunkPosZ - playerRenderDistance;
                     int zEnd = playerChunkPosZ + playerRenderDistance + 1;
 
-                    FinderResult finderResult = new FinderResult();
                     List<BlockEntity> signsTemp = new ArrayList<>();
                     List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
 
@@ -153,7 +145,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         }
 
                                         // Check for interesting Blocks
-                                        if (this.finder.isInterestingBlockPosition(pos, chunk, x, z)) {
+                                        if (FinderUtil.isInterestingBlockPosition(pos, chunk, x, z)) {
 
                                             String key = Constants.BLOCK_KEY_START
                                                     + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
@@ -169,7 +161,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                         }
                     }
 
-                    // Update the buffer when all the chunks have been searched
+                    // Update the buffers when all the chunks have been searched
                     this.signsBuffer.updateBuffer(signsTemp);
                     this.blockPositionsBuffer.updateBuffer(positionsTemp);
                 });
@@ -179,7 +171,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 this.entityThreadPool.submit(() -> {
 
-                    List<Entity> entities = this.finder.findEntities();
+                    List<Entity> entities = FinderUtil.findEntities();
 
                     this.entityBuffer.updateBuffer(entities);
                 });
@@ -195,7 +187,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
 
-                if (this.finder.isNewChunk(chunk)) {
+                if (FinderUtil.isNewChunk(chunk)) {
 
                     Constants.CHUNK_SET.add(chunk.getPos());
                 }
@@ -203,7 +195,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
 
-                if (this.finder.solidBlocksNearBuildLimit(chunk)) {
+                if (FinderUtil.hasSolidBlocksNearBuildLimit(chunk)) {
 
                     Text styledText = Text.empty()
                             .append(Text.literal("[")
@@ -350,6 +342,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     }
 
     private HudRenderCallback onHubRenderEvent() {
+
         return (drawContext, tickCounter) -> {
 
             if (!Constants.MC_CLIENT_INSTANCE.inGameHud.getDebugHud().shouldShowDebugHud()) {
@@ -380,6 +373,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                                 IBossBarHudMixin bossBarHudMixin = (IBossBarHudMixin) bossBarHud;
                                 Map<UUID, ClientBossBar> bossBars = bossBarHudMixin.getBossBars();
+                                // Split the HUD text so it doesn't overlap with the Boss bar HUD
                                 if (bossBarHudMixin != null && bossBars != null && bossBars.size() > 0) {
 
                                     Constants.RENDERER.renderHUDText(drawContext, modName, (screenWidth / 4) - (modNameWidth / 2), y, 0xFFFFFFFF);
