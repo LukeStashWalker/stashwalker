@@ -70,7 +70,7 @@ public class Renderer {
 
         end();
 
-        this.drawBlockSquare(context, end, g, b, r, g, b, alpha, withSmallBox);
+        this.drawBlockSquare(context, end, r, g, b, alpha, withSmallBox);
     }
 
     public void drawChunkSquare (
@@ -162,8 +162,6 @@ public class Renderer {
     public void drawBlockSquare (
             WorldRenderContext context,
             Vec3d vec3d,
-            int rectangleLevel,
-            int rectableHeight,
             int r,
             int g,
             int b,

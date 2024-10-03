@@ -164,7 +164,7 @@ public class FinderUtil {
         }
     }
 
-    public static boolean isInterestingBlockPosition (BlockPos pos, Chunk chunk, int x, int z) {
+    public static boolean isInterestingBlockPosition (BlockPos pos, int chunkX, int chunkZ) {
 
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
         if (
@@ -173,7 +173,7 @@ public class FinderUtil {
 
                 ||
 
-                (FinderUtil.areAdjacentChunksLoaded(x, z)
+                (FinderUtil.areAdjacentChunksLoaded(chunkX, chunkZ)
                         &&
                         (FinderUtil.isDoubleChest(world, pos)
                                 && (
@@ -362,7 +362,70 @@ public class FinderUtil {
         return entities;
     }
 
-    public static List<Entity> findOverlappingMinecartChests () {
+    public static boolean isAlteredDungeon (BlockPos pos, int chunkX, int chunkY) {
+
+        final int radius = 15;
+        if (
+            isBlockType(pos, Blocks.SPAWNER)
+            && areAdjacentChunksLoaded(chunkX, chunkY)
+        ) {
+
+            for (int x = pos.getX() - radius; x < pos.getX() + radius; x++) {
+
+                for (int z = pos.getZ() - radius; z < pos.getZ() + radius; z++) {
+                    
+                    if (isVerticalPillar(pos)) {
+
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        } else {
+
+            return false;
+        }
+    }
+
+    private static boolean isVerticalPillar (BlockPos pos) {
+
+        final int checkHeight = 50;
+        final int minimumPillarHeight = 5;
+        int foundPillarHeight = 0;
+        for (int y = pos.getY(); (y < 320) && y < (pos.getY() + checkHeight); y++) {
+
+            BlockPos pillarPos = new BlockPos(pos.getX(), y, pos.getZ());
+
+            if (isDifferentFromSurroundingBlocks(pillarPos)) {
+
+                foundPillarHeight++;
+            } else {
+                foundPillarHeight = 0;
+            }
+        }
+
+        return foundPillarHeight >= minimumPillarHeight;
+    }
+
+    private static boolean isDifferentFromSurroundingBlocks (BlockPos pos) {
+
+        BlockPos[] surroundingPositions = {
+                pos.north(), pos.south(), pos.east(), pos.west()
+        };
+
+        for (BlockPos adjacentPos : surroundingPositions) {
+
+            if (isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())) {
+
+                return false;            
+            }
+        }
+
+        return true;    
+    }
+
+    private static List<Entity> findOverlappingMinecartChests () {
 
         ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
         int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
@@ -465,11 +528,11 @@ public class FinderUtil {
         return chunk;
     }
 
-    public static boolean areAdjacentChunksLoaded (int x, int z) {
+    public static boolean areAdjacentChunksLoaded (int chunkX, int chunkZ) {
 
-        for (int xI = x - 1; xI < x + 2; xI++) {
+        for (int xI = chunkX - 1; xI < chunkX + 2; xI++) {
 
-            for (int zI = z - 1; zI < z + 2; zI++) {
+            for (int zI = chunkZ - 1; zI < chunkZ + 2; zI++) {
 
                 if (Constants.MC_CLIENT_INSTANCE.world.getChunk(xI, zI, ChunkStatus.FULL, false) == null) {
 
@@ -483,7 +546,7 @@ public class FinderUtil {
 
     public static boolean isBlockType (BlockPos blockPos, Block block) {
 
-        return Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).getBlock() == block;
+        return Constants.MC_CLIENT_INSTANCE.world.getBlockState(blockPos).isOf(block);
     }
 
     public static boolean hasNewBiome (Chunk chunk) {

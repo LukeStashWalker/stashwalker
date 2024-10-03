@@ -68,10 +68,12 @@ public class StashwalkerModClient implements ClientModInitializer {
     private KeyBinding keyBindingBlockTracers;
     private KeyBinding keyBindingNewChunks;
     private KeyBinding keyBindingSignReader;
+    private KeyBinding keyBindingAlteredDungeons;
     private boolean entityTracersWasPressed;
     private boolean blockTracersWasPressed;
     private boolean newChunksWasPressed;
     private boolean signReaderWasPressed;
+    private boolean alteredDungeonsWasPressed;
     private boolean wasInGame = false;
     private long lastTime = 0;
     private RegistryKey<World> previousWorld = null;
@@ -112,96 +114,108 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
             previousWorld = dimensionKey;
 
-            if (
-                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER) 
-                || Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)
-            ) {
+            this.blockThreadPool.submit(() -> {
 
-                this.blockThreadPool.submit(() -> {
+                int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+                int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
-                    int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-                    int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+                int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+                int xStart = playerChunkPosX - playerRenderDistance;
+                int xEnd = playerChunkPosX + playerRenderDistance + 1;
+                int zStart = playerChunkPosZ - playerRenderDistance;
+                int zEnd = playerChunkPosZ + playerRenderDistance + 1;
 
-                    int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-                    int xStart = playerChunkPosX - playerRenderDistance;
-                    int xEnd = playerChunkPosX + playerRenderDistance + 1;
-                    int zStart = playerChunkPosZ - playerRenderDistance;
-                    int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+                List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
+                List<Pair<BlockPos, Color>> dungeonsTemp = new ArrayList<>();
+                for (int x = xStart; x < xEnd; x++) {
 
-                    List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
-                    for (int x = xStart; x < xEnd; x++) {
+                    for (int z = zStart; z < zEnd; z++) {
 
-                        for (int z = zStart; z < zEnd; z++) {
+                        Chunk chunk = FinderUtil.getChunkEarly(x, z);
 
-                            Chunk chunk = FinderUtil.getChunkEarly(x, z);
+                        if (chunk != null) {
 
-                            if (chunk != null) {
+                            Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                            if (blockPositions != null) {
 
-                                Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                                if (blockPositions != null) {
+                                for (BlockPos pos : blockPositions) {
 
-                                    for (BlockPos pos : blockPositions) {
+                                    BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
-                                        BlockEntity blockEntity = chunk.getBlockEntity(pos);
+                                    // Check for signs
+                                    if (
+                                        Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER)
+                                        && blockEntity instanceof SignBlockEntity
+                                    ) {
 
-                                        // Check for signs
-                                        if (blockEntity instanceof SignBlockEntity) {
+                                        // Get the player's current position
+                                        BlockPos playerPos = Constants.MC_CLIENT_INSTANCE.player.getBlockPos();
 
-                                            // Get the player's current position
-                                            BlockPos playerPos = Constants.MC_CLIENT_INSTANCE.player.getBlockPos();
+                                        // Calculate the distance between the player's position and the sign's
+                                        // position
+                                        double squaredDistance = blockEntity.getPos().getSquaredDistance(playerPos);
 
-                                            // Calculate the distance between the player's position and the sign's
-                                            // position
-                                            double squaredDistance = blockEntity.getPos().getSquaredDistance(playerPos);
+                                        String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
+                                        if (
+                                            !Constants.DISPLAYED_SIGNS_CACHE.contains(blockEntity.getPos().toShortString().hashCode())
+                                            && !signText.isEmpty()
+                                            && squaredDistance > 5 * 5
+                                            && !signText.equals("<----\n---->")
+                                        ) {
 
-                                            String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
-                                            if (!signText.isEmpty()
-                                                    && squaredDistance > 5 * 5
-                                                    && !signText.equals("<----\n---->")
-                                                    && !Constants.DISPLAYED_SIGNS_CACHE
-                                                            .contains(blockEntity.getPos().toShortString().hashCode())) {
+                                            Text styledText = Text.empty()
+                                                    .append(Text.literal("[")
+                                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                                    .append(Text.literal("Stashwalker, ")
+                                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                                    .append(Text.literal("signReader")
+                                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                                    .append(Text.literal("]:\n")
+                                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                                    .append(Text.literal(signText)
+                                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
 
-                                                Text styledText = Text.empty()
-                                                        .append(Text.literal("[")
-                                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                                        .append(Text.literal("Stashwalker, ")
-                                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                                        .append(Text.literal("signReader")
-                                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                                        .append(Text.literal("]:\n")
-                                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                                        .append(Text.literal(signText)
-                                                                .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                                            Constants.MESSAGES_BUFFER.add(styledText);
 
-                                                Constants.MESSAGES_BUFFER.add(styledText);
-
-                                                Constants.DISPLAYED_SIGNS_CACHE
-                                                        .add(blockEntity.getPos().toShortString().hashCode());
-                                            }
+                                            Constants.DISPLAYED_SIGNS_CACHE
+                                                    .add(blockEntity.getPos().toShortString().hashCode());
                                         }
+                                    }
 
-                                        // Check for interesting Blocks
-                                        if (FinderUtil.isInterestingBlockPosition(pos, chunk, x, z)) {
+                                    // Check for interesting Blocks
+                                    if (
+                                        Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_BLOCK_TRACERS)
+                                        && FinderUtil.isInterestingBlockPosition(pos, x, z)
+                                    ) {
 
-                                            String key = Constants.BLOCK_KEY_START
-                                                    + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
-                                                            .getName().getString().replace(" ", "_");
-                                            Color color = new Color(
-                                                    Constants.CONFIG_MANAGER.getConfig().getBlockColors().get(key),
-                                                    true);
-                                            positionsTemp.add(new Pair<BlockPos, Color>(pos, color));
-                                        }
+                                        String key = Constants.BLOCK_KEY_START
+                                                + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
+                                                        .getName().getString().replace(" ", "_");
+                                        Color color = new Color(
+                                                Constants.CONFIG_MANAGER.getConfig().getBlockColors().get(key),
+                                                true);
+                                        positionsTemp.add(new Pair<BlockPos, Color>(pos, color));
+                                    }
+
+                                    if (
+                                        Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)
+                                        && FinderUtil.areAdjacentChunksLoaded(x, z)
+                                        && FinderUtil.isAlteredDungeon(pos, x, z)
+                                    ) {
+
+                                        dungeonsTemp.add(new Pair<BlockPos,Color>(pos, Color.BLUE));
                                     }
                                 }
                             }
                         }
                     }
-                    
-                    Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(positionsTemp);
-                });
-            }
+                }
 
-            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
+                Constants.INTERESTING_BLOCKS_BUFFER.updateBuffer(positionsTemp);
+                Constants.ALTERED_DUNGEONS_BUFFER.updateBuffer(dungeonsTemp);
+            });
+
+            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ENTITY_TRACERS)) {
 
                 this.entityThreadPool.submit(() -> {
 
@@ -219,7 +233,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         this.chunkLoadThreadPool.submit(() -> {
 
-            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
+            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_NEW_CHUNKS)) {
 
                 if (FinderUtil.isNewChunk(chunk)) {
 
@@ -227,7 +241,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 }
             }
 
-            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
+            if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_BLOCK_TRACERS)) {
 
                 if (FinderUtil.hasSolidBlocksNearBuildLimit(chunk)) {
 
@@ -264,9 +278,9 @@ public class StashwalkerModClient implements ClientModInitializer {
             iterator.remove();
         }
         
-        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_BLOCK_TRACERS)) {
 
-            List<Pair<BlockPos, Color>> blockpositions = Constants.BLOCK_POSITIONS_BUFFER.readBuffer();
+            List<Pair<BlockPos, Color>> blockpositions = Constants.INTERESTING_BLOCKS_BUFFER.readBuffer();
             if (blockpositions != null) {
 
                 for (Pair<BlockPos, Color> pair : blockpositions) {
@@ -284,7 +298,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
         }
 
-        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ENTITY_TRACERS)) {
 
             List<Entity> entities = Constants.ENTITY_BUFFER.readBuffer();
             if (!entities.isEmpty()) {
@@ -306,45 +320,51 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 entity.getPos().getZ());
                     }
 
-                    Constants.RENDERER.drawLine(context, entityPos, 255, 0, 0, 255, true);
+                    Color color = Color.RED;
+                    Constants.RENDERER.drawLine(context, entityPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), true);
                 }
             }
         }
 
-        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS)) {
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_NEW_CHUNKS)) {
 
-            RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
-            if (World.OVERWORLD.equals(dimensionKey)) {
+            Color color = Color.RED;
 
-                Constants.RENDERER
+            Constants.RENDERER
                     .drawChunkSquare(
-                        context,
-                        Constants.CHUNK_SET,
-                        63,
-                        16,
-                        255,
-                        0,
-                        0,
-                        255
+                            context,
+                            Constants.CHUNK_SET,
+                            63,
+                            16,
+                            color.getRed(),
+                            color.getGreen(),
+                            color.getBlue(),
+                            color.getAlpha()
                     );
-            } else if (World.NETHER.equals(dimensionKey)) {
+        }
 
-                Constants.RENDERER
-                    .drawChunkSquare(
-                        context,
-                        Constants.CHUNK_SET,
-                        -64,
-                        16,
-                        255,
-                        255,
-                        255,
-                        255
-                    );
+        if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)) {
+
+            List<Pair<BlockPos, Color>> blockpositions = Constants.ALTERED_DUNGEONS_BUFFER.readBuffer();
+            if (blockpositions != null) {
+
+                for (Pair<BlockPos, Color> pair : blockpositions) {
+
+                    BlockPos blockPos = pair.getKey();
+                    Color color = pair.getValue();
+                    Vec3d newBlockPos = new Vec3d(
+                            blockPos.getX() + 0.5D,
+                            blockPos.getY() + 0.5D,
+                            blockPos.getZ() + 0.5D);
+
+                    Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+                            color.getAlpha(), false);
+                }
             }
         }
     }
 
-    private HudRenderCallback onHubRenderEvent() {
+    private HudRenderCallback onHubRenderEvent () {
 
         return (drawContext, tickCounter) -> {
 
@@ -419,9 +439,9 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!entityTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
-                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
-                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
+                boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ENTITY_TRACERS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.FEATURE_ENTITY_TRACERS, entityTracers);
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.FEATURE_ENTITY_TRACERS, entityTracers));
                 Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
             }
 
@@ -436,10 +456,10 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!blockTracersWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
-                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
-                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
-                Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(Collections.emptyList());
+                boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_BLOCK_TRACERS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.FEATURE_BLOCK_TRACERS, blockTracers);
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.FEATURE_BLOCK_TRACERS, blockTracers));
+                Constants.INTERESTING_BLOCKS_BUFFER.updateBuffer(Collections.emptyList());
             }
 
             blockTracersWasPressed = true;
@@ -453,10 +473,10 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (!newChunksWasPressed) {
 
                 // Toggle the boolean when the key is pressed
-                boolean newChunks = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.NEW_CHUNKS);
-                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.NEW_CHUNKS, newChunks);
+                boolean newChunks = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_NEW_CHUNKS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.FEATURE_NEW_CHUNKS, newChunks);
                 Constants.CHUNK_SET.clear();
-                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.NEW_CHUNKS, newChunks));
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.FEATURE_NEW_CHUNKS, newChunks));
             }
 
             newChunksWasPressed = true;
@@ -481,6 +501,22 @@ public class StashwalkerModClient implements ClientModInitializer {
         } else {
 
             signReaderWasPressed = false;
+        }
+
+        if (keyBindingAlteredDungeons.isPressed()) {
+
+            if (!alteredDungeonsWasPressed) {
+
+                // Toggle the boolean when the key is pressed
+                boolean alteredDungeons = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS);
+                Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.FEATURE_ALTERED_DUNGEONS, alteredDungeons);
+                Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.FEATURE_ALTERED_DUNGEONS, alteredDungeons));
+            }
+
+            alteredDungeonsWasPressed = true;
+        } else {
+
+            alteredDungeonsWasPressed = false;
         }
     }
 
@@ -510,6 +546,12 @@ public class StashwalkerModClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_9,
                 "category.stashwalker.keys"
         ));
+        this.keyBindingSignReader = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+                "key.stashwalker.altered_dungeons",
+                InputUtil.Type.KEYSYM,
+                GLFW.GLFW_KEY_0,
+                "category.stashwalker.keys"
+        ));
     }
 
     private void clearAll () {
@@ -518,7 +560,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         Constants.CHUNK_SET.clear();
         Constants.SIGNS_BUFFER.updateBuffer(Collections.emptyList());
         Constants.DISPLAYED_SIGNS_CACHE.clear();
-        Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(Collections.emptyList());
+        Constants.INTERESTING_BLOCKS_BUFFER.updateBuffer(Collections.emptyList());
         Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
     }
 }

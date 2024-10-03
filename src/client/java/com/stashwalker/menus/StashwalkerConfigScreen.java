@@ -32,7 +32,7 @@ public class StashwalkerConfigScreen {
         .forEach(e -> {
                     String key = e.getKey();
 
-                    int defaultColor = Constants.BLOCK_DEFAULT_COLOR_MAP.get(key).getRGB();
+                    int defaultColor = Constants.DEFAULT_BLOCK_COLOR_MAP.get(key).getRGB();
                     general.addEntry(
                             entryBuilder
                                     .startAlphaColorField(Text.translatable(key), e.getValue())

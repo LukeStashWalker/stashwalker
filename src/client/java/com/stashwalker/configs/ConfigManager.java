@@ -53,7 +53,7 @@ public class ConfigManager {
             configData.getFeatureSettings().putIfAbsent(featureName, true); // Default value for features
         });
 
-        Constants.BLOCK_DEFAULT_COLOR_MAP.forEach((blockName, color) -> {
+        Constants.DEFAULT_BLOCK_COLOR_MAP.forEach((blockName, color) -> {
 
             configData.getBlockColors().putIfAbsent(blockName, color.getRGB()); // Default color
         });
