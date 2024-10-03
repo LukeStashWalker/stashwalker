@@ -39,9 +39,6 @@ import net.minecraft.util.math.ChunkPos;
 
 public class FinderUtil {
 
-
-    private static RegistryKey<World> previousWorld = null;
-
     public static boolean hasSolidBlocksNearBuildLimit (Chunk chunk) {
 
         if (chunk != null) {
@@ -52,7 +49,6 @@ public class FinderUtil {
             if (world != null) {
 
                 RegistryKey<World> dimensionKey = world.getRegistryKey();
-
                 if (World.OVERWORLD.equals(dimensionKey)) {
 
                     int[] yLevels = new int[] {
@@ -99,13 +95,6 @@ public class FinderUtil {
             if (world != null) {
 
                 RegistryKey<World> dimensionKey = world.getRegistryKey();
-
-                if (previousWorld != null && !dimensionKey.equals(previousWorld)) {
-
-                    Constants.CHUNK_SET.clear();
-                }
-                previousWorld = dimensionKey;
-
                 if (World.OVERWORLD.equals(dimensionKey)) {
 
                     // if (hasNewBiome(chunk)) {
@@ -207,7 +196,6 @@ public class FinderUtil {
     public static boolean isInterestingBlockPosition (BlockPos pos, Chunk chunk, int x, int z) {
 
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
-
         if (
 
                 FinderUtil.isBlockType(pos, Blocks.BARREL)

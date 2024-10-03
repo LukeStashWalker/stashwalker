@@ -61,10 +61,6 @@ import java.awt.Color;
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
 
-    private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
-    private DoubleListBuffer<Pair<BlockPos, Color>> blockPositionsBuffer = new DoubleListBuffer<>();
-    private DoubleListBuffer<BlockEntity> signsBuffer = new DoubleListBuffer<>();
-    private ConcurrentBoundedSet<Integer> displayedSignsCache = new ConcurrentBoundedSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
@@ -79,6 +75,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean signReaderWasPressed;
     private boolean wasInGame = false;
     private long lastTime = 0;
+    private RegistryKey<World> previousWorld = null;
 
     @Override
     public void onInitializeClient () {
@@ -100,6 +97,14 @@ public class StashwalkerModClient implements ClientModInitializer {
     private void onClientTickStartEvent (MinecraftClient client) {
 
         handleKeyInputs();
+
+        // Clear all when switching between worlds
+        RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+        if (previousWorld != null && !dimensionKey.equals(previousWorld)) {
+
+            this.clearAll();
+        }
+        previousWorld = dimensionKey;
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTime >= 200) {
@@ -138,8 +143,8 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                                         BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
-                                        // Check for signs that haven't been displayed
-                                        if (blockEntity instanceof SignBlockEntity && !this.displayedSignsCache.contains(pos.toShortString().hashCode())) {
+                                        // Check for signs
+                                        if (blockEntity instanceof SignBlockEntity && !Constants.DISPLAYED_SIGNS_CACHE.contains(pos.toShortString().hashCode())) {
 
                                             signsTemp.add(blockEntity);
                                         }
@@ -162,8 +167,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                     }
 
                     // Update the buffers when all the chunks have been searched
-                    this.signsBuffer.updateBuffer(signsTemp);
-                    this.blockPositionsBuffer.updateBuffer(positionsTemp);
+                    Constants.SIGNS_BUFFER.updateBuffer(signsTemp);
+                    Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(positionsTemp);
                 });
             }
 
@@ -173,7 +178,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                     List<Entity> entities = FinderUtil.findEntities();
 
-                    this.entityBuffer.updateBuffer(entities);
+                    Constants.ENTITY_BUFFER.updateBuffer(entities);
                 });
             }
 
@@ -225,7 +230,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS)) {
 
-            List<Pair<BlockPos, Color>> blockpositions = this.blockPositionsBuffer.readBuffer();
+            List<Pair<BlockPos, Color>> blockpositions = Constants.BLOCK_POSITIONS_BUFFER.readBuffer();
             if (blockpositions != null) {
 
                 for (Pair<BlockPos, Color> pair : blockpositions) {
@@ -252,7 +257,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS)) {
 
-            List<Entity> entities = entityBuffer.readBuffer();
+            List<Entity> entities = Constants.ENTITY_BUFFER.readBuffer();
             if (!entities.isEmpty()) {
 
                 for (Entity entity : entities) {
@@ -279,7 +284,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER)) {
 
-            List<BlockEntity> signs = this.signsBuffer.readBuffer();
+            List<BlockEntity> signs = Constants.SIGNS_BUFFER.readBuffer();
             if (signs != null) {
 
                 for (BlockEntity sign : signs) {
@@ -300,7 +305,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
                         Constants.RENDERER.sendClientSideMessage(styledText);
 
-                        this.displayedSignsCache.add(sign.getPos().toShortString().hashCode());
+                        Constants.DISPLAYED_SIGNS_CACHE.add(sign.getPos().toShortString().hashCode());
                     }
                 }
             }
@@ -395,11 +400,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             // Check if the player was in the game and is now in the title screen
             if (wasInGame && client.currentScreen instanceof TitleScreen) {
 
-                Constants.CHUNK_SET.clear();
-                this.displayedSignsCache.clear();
-                this.entityBuffer.updateBuffer(Collections.emptyList());
-                this.signsBuffer.updateBuffer(Collections.emptyList());
-                this.blockPositionsBuffer.updateBuffer(Collections.emptyList());
+                clearAll();
 
                 wasInGame = false;
             }
@@ -421,6 +422,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 boolean entityTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.ENTITY_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.ENTITY_TRACERS, entityTracers);
                 Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.ENTITY_TRACERS, entityTracers));
+                Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
             }
 
             entityTracersWasPressed = true;
@@ -437,6 +439,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 boolean blockTracers = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.BLOCK_TRACERS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.BLOCK_TRACERS, blockTracers);
                 Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.BLOCK_TRACERS, blockTracers));
+                Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(Collections.emptyList());
             }
 
             blockTracersWasPressed = true;
@@ -470,7 +473,8 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean signReader = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
-                this.displayedSignsCache.clear();
+                Constants.DISPLAYED_SIGNS_CACHE.clear();
+                Constants.SIGNS_BUFFER.updateBuffer(Collections.emptyList());
 
                 Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
@@ -508,5 +512,15 @@ public class StashwalkerModClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_9,
                 "category.stashwalker.keys"
         ));
+    }
+
+    private void clearAll () {
+
+        Constants.MESSAGE_BUFFER.updateBuffer(null);
+        Constants.CHUNK_SET.clear();
+        Constants.SIGNS_BUFFER.updateBuffer(Collections.emptyList());
+        Constants.DISPLAYED_SIGNS_CACHE.clear();
+        Constants.BLOCK_POSITIONS_BUFFER.updateBuffer(Collections.emptyList());
+        Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
     }
 }
