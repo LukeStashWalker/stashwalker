@@ -64,7 +64,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private DoubleListBuffer<Entity> entityBuffer = new DoubleListBuffer<>();
     private DoubleListBuffer<Pair<BlockPos, Color>> blockPositionsBuffer = new DoubleListBuffer<>();
     private DoubleListBuffer<BlockEntity> signsBuffer = new DoubleListBuffer<>();
-    private ConcurrentBoundedSet<Integer> signsCache = new ConcurrentBoundedSet<>(5000);
+    private ConcurrentBoundedSet<Integer> displayedSignsCache = new ConcurrentBoundedSet<>(5000);
     private ExecutorService blockThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService entityThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
@@ -138,8 +138,8 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                                         BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
-                                        // Check for signs
-                                        if (blockEntity instanceof SignBlockEntity) {
+                                        // Check for signs that haven't been displayed
+                                        if (blockEntity instanceof SignBlockEntity && !this.displayedSignsCache.contains(pos.toShortString().hashCode())) {
 
                                             signsTemp.add(blockEntity);
                                         }
@@ -284,25 +284,23 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 for (BlockEntity sign : signs) {
 
-                    if (!this.signsCache.contains(sign.getPos().toShortString().hashCode())) {
+                    String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
+                    if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
 
-                        String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                        if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+                        Text styledText = Text.empty()
+                                .append(Text.literal("[")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                .append(Text.literal("Stashwalker, ")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                .append(Text.literal("signReader")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                .append(Text.literal("]:\n")
+                                        .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                .append(Text.literal(signText)
+                                        .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                        Constants.RENDERER.sendClientSideMessage(styledText);
 
-                            Text styledText = Text.empty()
-                                    .append(Text.literal("[")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal("Stashwalker, ")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                                    .append(Text.literal("signReader")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                                    .append(Text.literal("]:\n")
-                                            .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                                    .append(Text.literal(signText)
-                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
-                            Constants.RENDERER.sendClientSideMessage(styledText);
-                            this.signsCache.add(sign.getPos().toShortString().hashCode());
-                        }
+                        this.displayedSignsCache.add(sign.getPos().toShortString().hashCode());
                     }
                 }
             }
@@ -398,7 +396,7 @@ public class StashwalkerModClient implements ClientModInitializer {
             if (wasInGame && client.currentScreen instanceof TitleScreen) {
 
                 Constants.CHUNK_SET.clear();
-                this.signsCache.clear();
+                this.displayedSignsCache.clear();
                 this.entityBuffer.updateBuffer(Collections.emptyList());
                 this.signsBuffer.updateBuffer(Collections.emptyList());
                 this.blockPositionsBuffer.updateBuffer(Collections.emptyList());
@@ -472,7 +470,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 // Toggle the boolean when the key is pressed
                 boolean signReader = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.SIGN_READER, signReader);
-                this.signsCache.clear();
+                this.displayedSignsCache.clear();
 
                 Constants.RENDERER.sendClientSideMessage(FinderUtil.createStyledTextForFeature(Constants.SIGN_READER, signReader));
             }
