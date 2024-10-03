@@ -88,26 +88,30 @@ public class StashwalkerModClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStartEvent);
         WorldRenderEvents.LAST.register(this::onWorldRenderEventLast);
         ClientChunkEvents.CHUNK_LOAD.register(this::onClientChunkLoadEvent);
-
         HudRenderCallback.EVENT.register(onHubRenderEvent());
-
         ClientTickEvents.END_CLIENT_TICK.register(onClientTickEndEvent());
     }
 
     private void onClientTickStartEvent (MinecraftClient client) {
 
-        handleKeyInputs();
+        PlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
+        if (player == null) {
 
-        // Clear all when switching between worlds
-        RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
-        if (previousWorld != null && !dimensionKey.equals(previousWorld)) {
-
-            this.clearAll();
+            return;
         }
-        previousWorld = dimensionKey;
+
+        handleKeyInputs();
 
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastTime >= 200) {
+
+            // Clear all when switching between worlds
+            RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+            if (previousWorld != null && !dimensionKey.equals(previousWorld)) {
+
+                this.clearAll();
+            }
+            previousWorld = dimensionKey;
 
             if (
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.SIGN_READER) 
@@ -127,7 +131,6 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                     List<BlockEntity> signsTemp = new ArrayList<>();
                     List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
-
                     for (int x = xStart; x < xEnd; x++) {
 
                         for (int z = zStart; z < zEnd; z++) {
@@ -144,7 +147,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         BlockEntity blockEntity = chunk.getBlockEntity(pos);
 
                                         // Check for signs
-                                        if (blockEntity instanceof SignBlockEntity && !Constants.DISPLAYED_SIGNS_CACHE.contains(pos.toShortString().hashCode())) {
+                                        if (blockEntity instanceof SignBlockEntity) {
 
                                             signsTemp.add(blockEntity);
                                         }
@@ -290,7 +293,11 @@ public class StashwalkerModClient implements ClientModInitializer {
                 for (BlockEntity sign : signs) {
 
                     String signText = SignTextExtractor.getSignText((SignBlockEntity) sign);
-                    if (!signText.isEmpty() && !signText.equals("<----\n---->")) {
+                    if (
+                        !signText.isEmpty() 
+                        && !signText.equals("<----\n---->") 
+                        && !Constants.DISPLAYED_SIGNS_CACHE.contains(sign.getPos().toShortString().hashCode())
+                    ) {
 
                         Text styledText = Text.empty()
                                 .append(Text.literal("[")
