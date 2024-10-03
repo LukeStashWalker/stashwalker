@@ -197,13 +197,14 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         positionsTemp.add(new Pair<BlockPos, Color>(pos, color));
                                     }
 
-                                    if (
-                                        Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)
-                                        && FinderUtil.areAdjacentChunksLoaded(x, z)
-                                        && FinderUtil.isAlteredDungeon(pos, x, z)
-                                    ) {
+                                    if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)) {
 
-                                        dungeonsTemp.add(new Pair<BlockPos,Color>(pos, Color.BLUE));
+                                        Pair<BlockPos, List<BlockPos>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, x, z);
+                                        if (result.getValue().size() > 0) {
+
+                                            result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos,Color>(r, Color.DARK_GRAY)));
+                                            dungeonsTemp.add(new Pair<BlockPos, Color>(result.getKey(), Color.BLUE));
+                                        }
                                     }
                                 }
                             }
@@ -356,9 +357,18 @@ public class StashwalkerModClient implements ClientModInitializer {
                             blockPos.getX() + 0.5D,
                             blockPos.getY() + 0.5D,
                             blockPos.getZ() + 0.5D);
+                    
+                    if (color.equals(Color.BLUE)) {
 
-                    Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+                        Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
                             color.getAlpha(), false);
+                    } else if (color.equals(Color.DARK_GRAY)) {
+
+                        Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
+                        newBlockPos = newBlockPos.subtract(cameraPos);
+                        Constants.RENDERER.drawBlockSquare(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+                            color.getAlpha(), false);
+                    }
                 }
             }
         }
@@ -546,7 +556,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_9,
                 "category.stashwalker.keys"
         ));
-        this.keyBindingSignReader = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+        this.keyBindingAlteredDungeons = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.stashwalker.altered_dungeons",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_0,

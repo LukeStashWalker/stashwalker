@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.stashwalker.constants.Constants;
+import com.stashwalker.containers.Pair;
 
 import java.util.HashSet;
 import net.minecraft.entity.Entity;
@@ -362,61 +363,79 @@ public class FinderUtil {
         return entities;
     }
 
-    public static boolean isAlteredDungeon (BlockPos pos, int chunkX, int chunkY) {
+    public static Pair<BlockPos, List<BlockPos>> getAlteredDungeonsBlocksWithPillars (BlockPos spawner, int chunkX, int chunkY) {
 
-        final int radius = 15;
+        final int checkHeight = 50;
+        final int horizontalRadius = 15;
+        final int minimumPillarHeight = 5;
+        final List<BlockPos> finalResult = new ArrayList<>();
         if (
-            isBlockType(pos, Blocks.SPAWNER)
+            isBlockType(spawner, Blocks.SPAWNER)
             && areAdjacentChunksLoaded(chunkX, chunkY)
         ) {
 
-            for (int x = pos.getX() - radius; x < pos.getX() + radius; x++) {
+            for (int x = spawner.getX() - horizontalRadius; x < spawner.getX() + horizontalRadius; x++) {
 
-                for (int z = pos.getZ() - radius; z < pos.getZ() + radius; z++) {
-                    
-                    if (isVerticalPillar(pos)) {
+                for (int z = spawner.getZ() - horizontalRadius; z < spawner.getZ() + horizontalRadius; z++) {
 
-                        return true;
+                    BlockPos startPos = new BlockPos(x, spawner.getY(), z);
+                    BlockPos endPos = new BlockPos(x, spawner.getY() + checkHeight, z);
+                    List<BlockPos> result = new ArrayList<>();
+                    for (BlockPos pos : BlockPos.iterate(startPos, endPos)) {
+
+                        if (isDifferentFromSurroundingBlocks(pos)) {
+
+                            result.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+                        } else {
+
+                            if (result.size() >= minimumPillarHeight) {
+
+                                finalResult.addAll(result);
+                            }
+
+                            result.clear();
+                        }
                     }
                 }
             }
+        }     
 
-            return false;
-        } else {
+        if (finalResult.size() > 0) {
 
-            return false;
-        }
-    }
+            int dungeonSearchRadius = 6;
+            BlockPos startPos = new BlockPos(spawner.getX() - dungeonSearchRadius, spawner.getY() - 1, spawner.getZ() - dungeonSearchRadius);
+            BlockPos endPos = new BlockPos(spawner.getX() + dungeonSearchRadius, spawner.getY() + dungeonSearchRadius, spawner.getZ() + dungeonSearchRadius);
+            for (BlockPos pos : BlockPos.iterate(startPos, endPos)) {
 
-    private static boolean isVerticalPillar (BlockPos pos) {
+                if (isBlockType(pos, Blocks.COBBLESTONE) || isBlockType(pos, Blocks.MOSSY_COBBLESTONE)) {
 
-        final int checkHeight = 50;
-        final int minimumPillarHeight = 5;
-        int foundPillarHeight = 0;
-        for (int y = pos.getY(); (y < 320) && y < (pos.getY() + checkHeight); y++) {
-
-            BlockPos pillarPos = new BlockPos(pos.getX(), y, pos.getZ());
-
-            if (isDifferentFromSurroundingBlocks(pillarPos)) {
-
-                foundPillarHeight++;
-            } else {
-                foundPillarHeight = 0;
+                    finalResult.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+                }
             }
         }
 
-        return foundPillarHeight >= minimumPillarHeight;
+        return new Pair<>(spawner, finalResult);
     }
 
     private static boolean isDifferentFromSurroundingBlocks (BlockPos pos) {
 
         BlockPos[] surroundingPositions = {
-                pos.north(), pos.south(), pos.east(), pos.west()
-        };
+            pos.north(), 
+            pos.south(), 
+            pos.east(), 
+            pos.west(),
+            pos.north().east(),  // North-East
+            pos.north().west(),  // North-West
+            pos.south().east(),  // South-East
+            pos.south().west(),  // South-West
+    };
 
         for (BlockPos adjacentPos : surroundingPositions) {
 
-            if (isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())) {
+            if (
+                !Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isSolidBlock(Constants.MC_CLIENT_INSTANCE.world, adjacentPos)
+                || isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())
+            ) {
 
                 return false;            
             }
