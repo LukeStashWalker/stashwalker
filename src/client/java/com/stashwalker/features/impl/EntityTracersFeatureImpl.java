@@ -24,17 +24,17 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     {
 
-        enabled = false;
-        featureName = FEATURE_NAME_ENTITY_TRACER;
-        featureColorsKeyStart = "Entity_Tracers";
+        this.enabled = false;
+        this.featureName = FEATURE_NAME_ENTITY_TRACER;
+        this.featureColorsKeyStart = "Entity_Tracers";
 
-        featureColors.put(featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
+        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
     }
 
     @Override
     public void process () {
 
-        if (enabled) {
+        if (this.enabled) {
 
             this.buffer.updateBuffer(FinderUtil.findEntities());
         }
@@ -43,7 +43,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     @Override
     public void render (WorldRenderContext context) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             List<Entity> entities = this.buffer.readBuffer();
             if (!entities.isEmpty()) {

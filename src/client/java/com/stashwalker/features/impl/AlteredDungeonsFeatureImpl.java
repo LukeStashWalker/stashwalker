@@ -28,18 +28,18 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     {
 
-        enabled = false;
-        featureName = FEATURE_NAME_ALTERED_DUNGEONS;
-        featureColorsKeyStart = "Altered_Dungeons_";
+        this.enabled = false;
+        this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
+        this.featureColorsKeyStart = "Altered_Dungeons_";
 
-        featureColors.put(featureColorsKeyStart + "Spawner", new Pair<>(Color.BLUE, Color.BLUE));
-        featureColors.put(featureColorsKeyStart + "Dungeon", new Pair<>(Color.GRAY, Color.GRAY));
+        this.featureColors.put(this.featureColorsKeyStart + "Spawner", new Pair<>(Color.BLUE, Color.BLUE));
+        this.featureColors.put(this.featureColorsKeyStart + "Dungeon", new Pair<>(Color.GRAY, Color.GRAY));
     }
 
     @Override
     public void processPosition (BlockPos pos, int chunkX, int chunkZ) {
 
-        if (enabled) {
+        if (this.enabled) {
 
                 RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
                 if (World.OVERWORLD.equals(dimensionKey)) {
@@ -58,7 +58,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     @Override
     public void update () {
 
-        if (enabled) {
+        if (this.enabled) {
 
             this.buffer.updateBuffer(this.dungeonsTemp);
             this.dungeonsTemp.clear();
@@ -69,7 +69,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     @Override
     public void render (WorldRenderContext context) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             List<Pair<BlockPos, Color>> blockpositions = buffer.readBuffer();
             if (blockpositions != null) {

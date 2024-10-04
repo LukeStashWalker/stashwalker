@@ -25,11 +25,11 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
 
     {
 
-        enabled = false;
-        featureName = FEATURE_NAME_SIGN_READER;
-        featureColorsKeyStart = "Sign_Reader";
+        this.enabled = false;
+        this.featureName = FEATURE_NAME_SIGN_READER;
+        this.featureColorsKeyStart = "Sign_Reader";
 
-        featureColors.put(featureColorsKeyStart, new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.CYAN, Color.CYAN));
     }
 
     @Override
@@ -70,7 +70,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
                                     .append(Text.literal("]:\n")
                                             .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                                     .append(Text.literal(signText)
-                                            .setStyle(Style.EMPTY.withColor(Formatting.AQUA)));
+                                            .setStyle(Style.EMPTY.withColor(this.featureColors.get(featureColorsKeyStart).getKey().getRGB())));
 
                             Constants.MESSAGES_BUFFER.add(styledText);
 

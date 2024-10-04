@@ -32,80 +32,80 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
 
     {
 
-        enabled = false;
-        featureName = FEATURE_NAME_BLOCK_TRACER;
-        featureColorsKeyStart = "Block_Tracers_Block_";
+        this.enabled = false;
+        this.featureName = FEATURE_NAME_BLOCK_TRACER;
+        this.featureColorsKeyStart = "Block_Tracers_Block_";
 
         // Default render colors
-        featureColors.put(featureColorsKeyStart + Blocks.CHEST.getName().getString().replace(" ", "_"), new Pair<>(Color.YELLOW, Color.YELLOW));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CHEST.getName().getString().replace(" ", "_"), new Pair<>(Color.YELLOW, Color.YELLOW));
 
-        featureColors.put(featureColorsKeyStart + Blocks.BARREL.getName().getString().replace(" ", "_"), new Pair<>(new Color(210, 105, 30), new Color(210, 105, 30)));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BARREL.getName().getString().replace(" ", "_"), new Pair<>(new Color(210, 105, 30), new Color(210, 105, 30)));
 
-        featureColors.put(featureColorsKeyStart + Blocks.SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.WHITE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.ORANGE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.MAGENTA_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.LIGHT_BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.YELLOW_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.LIME_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.PINK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.LIGHT_GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.CYAN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.PURPLE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.BROWN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.GREEN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.RED_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        featureColors.put(featureColorsKeyStart + Blocks.BLACK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.WHITE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.ORANGE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.MAGENTA_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.LIGHT_BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.YELLOW_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.LIME_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.PINK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.LIGHT_GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CYAN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.PURPLE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BROWN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.GREEN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.RED_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BLACK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
         
-        featureColors.put(featureColorsKeyStart + Blocks.HOPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK,  Color.BLACK));
-        featureColors.put(featureColorsKeyStart + Blocks.DROPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        featureColors.put(featureColorsKeyStart + Blocks.DISPENSER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        featureColors.put(featureColorsKeyStart + Blocks.BLAST_FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        featureColors.put(featureColorsKeyStart + Blocks.FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.HOPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK,  Color.BLACK));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.DROPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.DISPENSER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BLAST_FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
 
-        featureColors.put(featureColorsKeyStart + Blocks.OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.SPRUCE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BIRCH_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.ACACIA_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CHERRY_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.JUNGLE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.DARK_OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CRIMSON_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.MANGROVE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BAMBOO_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.WARPED_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.SPRUCE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BIRCH_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.ACACIA_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CHERRY_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.JUNGLE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.DARK_OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CRIMSON_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.MANGROVE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BAMBOO_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.WARPED_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
 
-        featureColors.put(featureColorsKeyStart + Blocks.OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.SPRUCE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BIRCH_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.ACACIA_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CHERRY_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.JUNGLE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.DARK_OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CRIMSON_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.MANGROVE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BAMBOO_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.WARPED_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.SPRUCE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BIRCH_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.ACACIA_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CHERRY_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.JUNGLE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.DARK_OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CRIMSON_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.MANGROVE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BAMBOO_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.WARPED_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
 
-        featureColors.put(featureColorsKeyStart + Blocks.OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.SPRUCE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BIRCH_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.ACACIA_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CHERRY_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.JUNGLE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.DARK_OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.CRIMSON_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.MANGROVE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.BAMBOO_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        featureColors.put(featureColorsKeyStart + Blocks.WARPED_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.SPRUCE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BIRCH_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.ACACIA_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CHERRY_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.JUNGLE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.DARK_OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.CRIMSON_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.MANGROVE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.BAMBOO_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureColors.put(this.featureColorsKeyStart + Blocks.WARPED_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
     }
 
     @Override
     public void processPosition (BlockPos pos, int chunkX, int chunkZ) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             if (FinderUtil.isInterestingBlockPosition(pos, chunkX, chunkZ)) {
 
@@ -120,7 +120,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
     @Override
     public void processChunk (Chunk chunk) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             if (FinderUtil.hasSolidBlocksNearBuildLimit(chunk)) {
 
@@ -143,7 +143,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
     @Override
     public void update () {
 
-        if (enabled) {
+        if (this.enabled) {
 
             this.buffer.updateBuffer(positionsTemp);
             this.positionsTemp.clear();
@@ -154,7 +154,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
     @Override
     public void render (WorldRenderContext context) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             List<Pair<BlockPos, Color>> blockpositions = this.buffer.readBuffer();
             if (blockpositions != null) {

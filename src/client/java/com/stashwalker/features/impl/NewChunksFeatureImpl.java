@@ -21,17 +21,17 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
     {
 
-        enabled = false;
-        featureName = FEATURE_NAME_NEW_CHUNKS;
-        featureColorsKeyStart = "New_Chunks";
+        this.enabled = false;
+        this.featureName = FEATURE_NAME_NEW_CHUNKS;
+        this.featureColorsKeyStart = "New_Chunks";
 
-        featureColors.put(featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
+        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
     }
 
     @Override
     public void processChunk (Chunk chunk) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             if (FinderUtil.isNewChunk(chunk)) {
 
@@ -43,9 +43,9 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
     @Override
     public void render (WorldRenderContext context) {
 
-        if (enabled) {
+        if (this.enabled) {
 
-            Color color = Color.RED;
+            Color color = featureColors.get(featureColorsKeyStart).getKey();
 
             RenderUtil
                     .drawChunkSquare(
