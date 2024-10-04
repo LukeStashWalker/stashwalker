@@ -525,6 +525,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 boolean alteredDungeons = !Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS);
                 Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().put(Constants.FEATURE_ALTERED_DUNGEONS, alteredDungeons);
                 Constants.MESSAGES_BUFFER.add(FinderUtil.createStyledTextForFeature(Constants.FEATURE_ALTERED_DUNGEONS, alteredDungeons));
+                Constants.ALTERED_DUNGEONS_BUFFER.updateBuffer(Collections.emptyList());
             }
 
             alteredDungeonsWasPressed = true;
@@ -576,5 +577,6 @@ public class StashwalkerModClient implements ClientModInitializer {
         Constants.DISPLAYED_SIGNS_CACHE.clear();
         Constants.INTERESTING_BLOCKS_BUFFER.updateBuffer(Collections.emptyList());
         Constants.ENTITY_BUFFER.updateBuffer(Collections.emptyList());
+        Constants.ALTERED_DUNGEONS_BUFFER.updateBuffer(Collections.emptyList());
     }
 }
