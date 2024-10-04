@@ -12,8 +12,10 @@ import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.World;
 
 import java.util.Collections;
 import java.util.List;
@@ -39,12 +41,17 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         if (enabled) {
 
-            Pair<BlockPos, List<BlockPos>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, chunkX, chunkZ);
-            if (result.getValue().size() > 0) {
+                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+                if (World.OVERWORLD.equals(dimensionKey)) {
 
-                result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos, Color>(r, Color.GRAY)));
-                dungeonsTemp.add(new Pair<BlockPos, Color>(result.getKey(), Color.BLUE));
-            }
+                    Pair<BlockPos, List<BlockPos>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, chunkX,
+                            chunkZ);
+                    if (result.getValue().size() > 0) {
+
+                        result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos, Color>(r, Color.GRAY)));
+                        dungeonsTemp.add(new Pair<BlockPos, Color>(result.getKey(), Color.BLUE));
+                    }
+                }
         }
     }
 
