@@ -366,7 +366,7 @@ public class FinderUtil {
     public static Pair<BlockPos, List<BlockPos>> getAlteredDungeonsBlocksWithPillars (BlockPos spawner, int chunkX, int chunkY) {
 
         final int checkHeight = 50;
-        final int horizontalRadius = 15;
+        final int horizontalRadius = 10;
         final int minimumPillarHeight = 5;
         final List<BlockPos> finalResult = new ArrayList<>();
         if (
