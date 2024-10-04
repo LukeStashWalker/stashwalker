@@ -17,7 +17,7 @@ import com.stashwalker.containers.Pair;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_new.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v117.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private StashwalkerConfig configData = new StashwalkerConfig();
 
