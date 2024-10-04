@@ -21,7 +21,6 @@ public class StashwalkerConfigScreen {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Text.translatable("Stashwalker config"));
-        builder.getOrCreateCategory(Text.translatable(""));
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable("Block tracer colors"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
