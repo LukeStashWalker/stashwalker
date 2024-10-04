@@ -8,7 +8,7 @@ import java.util.SortedMap;
 public class StashwalkerConfig {
 
     private Map<String, Boolean> featureSettings = Collections.synchronizedMap(new HashMap<>());
-    private Map<String, Integer> blockColors = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, Integer> featureColors = Collections.synchronizedMap(new HashMap<>());
 
     public Map<String, Boolean> getFeatureSettings () {
 
@@ -20,14 +20,14 @@ public class StashwalkerConfig {
         this.featureSettings = featureSettings;
     }
 
-    public Map<String, Integer> getBlockColors () {
+    public Map<String, Integer> getFeatureColors () {
 
-        return blockColors;
+        return featureColors;
     }
 
     public void setBlockColors (SortedMap<String, Integer> blockColors) {
 
-        this.blockColors = blockColors;
+        this.featureColors = blockColors;
     }
 }
 

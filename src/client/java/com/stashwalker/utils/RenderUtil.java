@@ -1,4 +1,4 @@
-package com.stashwalker.rendering;
+package com.stashwalker.utils;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.render.BufferBuilder;
@@ -27,9 +27,9 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
 
-public class Renderer {
+public class RenderUtil {
 
-    public void drawLine (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
+    public static void drawLine (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
@@ -70,10 +70,10 @@ public class Renderer {
 
         end();
 
-        this.drawBlockSquare(context, end, r, g, b, alpha, withSmallBox);
+        drawBlockSquare(context, end, r, g, b, alpha, withSmallBox);
     }
 
-    public void drawChunkSquare (
+    public static void drawChunkSquare (
         WorldRenderContext context, 
         ConcurrentBoundedSet<ChunkPos> chunkPositions, 
         int rectangleLevel,
@@ -159,7 +159,7 @@ public class Renderer {
         end();
     }
 
-    public void drawBlockSquare (
+    public static void drawBlockSquare (
             WorldRenderContext context,
             Vec3d vec3d,
             int r,
@@ -268,7 +268,7 @@ public class Renderer {
         }
     }
 
-    public void sendClientSideMessage(Text text) {
+    public static void sendClientSideMessage (Text text) {
 
         Constants.MC_CLIENT_INSTANCE.player.playSound(
             SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
@@ -279,12 +279,12 @@ public class Renderer {
         Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
     }
 
-    public void renderHUDText (DrawContext drawContext, String text, int x, int y, int color) {
+    public static void renderHUDText (DrawContext drawContext, String text, int x, int y, int color) {
 
         drawContext.drawText(Constants.MC_CLIENT_INSTANCE.textRenderer, text, x, y, color, false);
     }
 
-    private void end () {
+    private static void end () {
 
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);

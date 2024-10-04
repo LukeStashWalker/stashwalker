@@ -6,8 +6,9 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-import java.util.Collections;
 import java.util.Map;
+import java.util.Collections;
+import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
 
@@ -21,25 +22,32 @@ public class StashwalkerConfigScreen {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Text.translatable("Stashwalker config"));
+                // Category text is only visible if there are multiple categories
         ConfigCategory general = builder.getOrCreateCategory(Text.translatable("Block tracer colors"));
         ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-        Constants.CONFIG_MANAGER.getConfig().getBlockColors()
-        .entrySet()
-        .stream()
-        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
-        .forEach(e -> {
-                    String key = e.getKey();
+        Constants.FEATURES.forEach(f -> {
 
-                    int defaultColor = Constants.DEFAULT_BLOCK_COLOR_MAP.get(key).getRGB();
-                    general.addEntry(
-                            entryBuilder
-                                    .startAlphaColorField(Text.translatable(key), e.getValue())
-                                    .setDefaultValue(defaultColor)
-                                    .setSaveConsumer(newColor -> {
-                                        Constants.CONFIG_MANAGER.getConfig().getBlockColors().put(key, newColor);
-                                    })
-                                    .build());
+            f.getFeatureColors()
+                    .entrySet()
+                    .stream()
+                    .sorted(Collections.reverseOrder(Map.Entry.comparingByKey()))
+                    .forEach(e -> {
+
+                        Color color = e.getValue().getKey() != null
+                                ? e.getValue().getKey()
+                                : e.getValue().getValue();
+                        general.addEntry(
+                                entryBuilder
+                                        .startAlphaColorField(Text.translatable(e.getKey()),
+                                                color.getRGB())
+                                        .setDefaultValue(e.getValue().getValue().getRGB())
+                                        .setSaveConsumer(newColor -> {
+                                            e.getValue().setKey(new Color(newColor));
+                                        })
+                                        .build()
+                        );
+                    });
         });
 
         builder.setSavingRunnable(Constants.CONFIG_MANAGER::saveConfig);

@@ -10,9 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import java.awt.Color;
+import java.util.Map;
+
+import com.stashwalker.containers.Pair;
+
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_new.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private StashwalkerConfig configData = new StashwalkerConfig();
 
@@ -20,6 +25,24 @@ public class ConfigManager {
     public void saveConfig () {
 
         try {
+
+            Constants.FEATURES.forEach(f -> {
+
+                this.configData.getFeatureSettings().put(f.getFeatureName(), f.isEnabled());
+
+                f.getFeatureColors().entrySet()
+                .forEach(e -> {
+
+                    if (e.getValue().getKey() != null) {
+
+                        this.configData.getFeatureColors().put(e.getKey(), e.getValue().getKey().getRGB());
+                    } else {
+
+                        // Save the default if not found
+                        this.configData.getFeatureColors().put(e.getKey(), e.getValue().getValue().getRGB());
+                    }
+                });
+            });
 
             Files.createDirectories(CONFIG_PATH.getParent()); // Ensure the directory exists
             String json = GSON.toJson(this.configData);
@@ -39,28 +62,34 @@ public class ConfigManager {
 
                 String json = Files.readString(CONFIG_PATH);
                 this.configData = GSON.fromJson(json, StashwalkerConfig.class);
-                this.configData.getBlockColors().entrySet()
-                    .removeIf(entry -> entry.getKey().contains(" "));
+
+                Constants.FEATURES.forEach(f -> {
+
+                    Boolean state = configData.getFeatureSettings().get(f.getFeatureName());
+                    f.setEnabled(state != null ? state : false);
+
+                    f.getFeatureColors().entrySet()
+                            .forEach(e -> {
+
+                                Map<String, Integer> configDataFeatureColors = configData.getFeatureColors();
+                                if (configDataFeatureColors.containsKey(e.getKey())) {
+
+                                    Pair<Color, Color> featureColorsEntryValue = e.getValue();
+                                    featureColorsEntryValue
+                                            .setKey(new Color(
+                                                    configDataFeatureColors.get(e.getKey())));
+                                } else {
+
+                                    // Take the default of not found
+                                    e.getValue().setKey(e.getValue().getValue());
+                                }
+                            });
+
+                });
             } catch (IOException e) {
 
                 e.printStackTrace();
             }
         }
-
-        // Set default values for missing entries
-        Constants.FEATURE_NAMES.forEach(featureName -> {
-
-            configData.getFeatureSettings().putIfAbsent(featureName, true); // Default value for features
-        });
-
-        Constants.DEFAULT_BLOCK_COLOR_MAP.forEach((blockName, color) -> {
-
-            configData.getBlockColors().putIfAbsent(blockName, color.getRGB()); // Default color
-        });
-    }
-
-    public StashwalkerConfig getConfig () {
-
-        return this.configData;
     }
 }

@@ -10,6 +10,7 @@ public class StashwalkerModMenu implements ModMenuApi {
     @Override
     public ConfigScreenFactory<?> getModConfigScreenFactory () {
         return parent -> {
+            
             Constants.CONFIG_MANAGER.loadConfig(); // Load the configuration before showing the screen
             StashwalkerConfigScreen configScreen = new StashwalkerConfigScreen();
             return configScreen.buildMenu(parent); // Return the config screen
