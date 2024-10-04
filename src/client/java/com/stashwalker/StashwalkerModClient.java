@@ -197,12 +197,16 @@ public class StashwalkerModClient implements ClientModInitializer {
                                         positionsTemp.add(new Pair<BlockPos, Color>(pos, color));
                                     }
 
-                                    if (Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)) {
+                                    if (
+                                        Constants.CONFIG_MANAGER.getConfig().getFeatureSettings().get(Constants.FEATURE_ALTERED_DUNGEONS)
+                                        && World.OVERWORLD.equals(dimensionKey)  
+                                    ) {
+
 
                                         Pair<BlockPos, List<BlockPos>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, x, z);
                                         if (result.getValue().size() > 0) {
 
-                                            result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos,Color>(r, Color.DARK_GRAY)));
+                                            result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos,Color>(r, Color.GRAY)));
                                             dungeonsTemp.add(new Pair<BlockPos, Color>(result.getKey(), Color.BLUE));
                                         }
                                     }
@@ -362,7 +366,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                         Constants.RENDERER.drawLine(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
                             color.getAlpha(), false);
-                    } else if (color.equals(Color.DARK_GRAY)) {
+                    } else if (color.equals(Color.GRAY)) {
 
                         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
                         newBlockPos = newBlockPos.subtract(cameraPos);
