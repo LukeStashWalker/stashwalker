@@ -49,19 +49,14 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
                         // Get the player's current position
                         BlockPos playerPos = Constants.MC_CLIENT_INSTANCE.player.getBlockPos();
 
-                        // Calculate the distance between the player's position and the sign's position
-                        // If the sign is detected while it is close to the player the sign was probably placed by the player
-                        // So add it to the displayed cache
+                        // Calculate the distance between the player's position and the sign's
+                        // position
                         double squaredDistance = blockEntity.getPos().getSquaredDistance(playerPos);
-                        if (squaredDistance <= 5 * 5) {
-
-                            this.displayedSignsCache
-                                    .add(blockEntity.getPos().toShortString().hashCode());
-                        }
 
                         String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
                         if (!this.displayedSignsCache.contains(blockEntity.getPos().toShortString().hashCode())
                                 && !signText.isEmpty()
+                                && squaredDistance > 5 * 5
                                 && !signText.equals("<----\n---->")) {
 
                             Text styledText = Text.empty()
