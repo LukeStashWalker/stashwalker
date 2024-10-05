@@ -27,6 +27,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
 
+import java.awt.Color;
+
 public class RenderUtil {
 
     public static void drawLine (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
@@ -159,7 +161,16 @@ public class RenderUtil {
         end();
     }
 
-    public static void drawBlockSquare (
+
+    public static void drawBlockSquare (WorldRenderContext context, Vec3d newBlockPos, Color color) {
+
+        Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
+        newBlockPos = newBlockPos.subtract(cameraPos);
+        RenderUtil.drawBlockSquare(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
+            color.getAlpha(), false);
+    }
+
+    private static void drawBlockSquare (
             WorldRenderContext context,
             Vec3d vec3d,
             int r,

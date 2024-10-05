@@ -363,34 +363,53 @@ public class FinderUtil {
         return entities;
     }
 
-    public static Pair<BlockPos, List<BlockPos>> getAlteredDungeonsBlocksWithPillars (BlockPos spawner, int chunkX, int chunkY) {
+    private static boolean isDungeon (BlockPos pos) {
+
+        if (isBlockType(pos, Blocks.SPAWNER)) {
+
+            int dungeonSearchRadius = 6;
+            BlockPos startPos = new BlockPos(pos.getX() - dungeonSearchRadius, pos.getY() - 1, pos.getZ() - dungeonSearchRadius);
+            BlockPos endPos = new BlockPos(pos.getX() + dungeonSearchRadius, pos.getY(), pos.getZ() + dungeonSearchRadius);
+            for (BlockPos p : BlockPos.iterate(startPos, endPos)) {
+
+                if (isBlockType(p, Blocks.MOSSY_COBBLESTONE)) {
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static List<Pair<BlockPos, Block>> getAlteredDungeonsBlocksWithPillars (BlockPos pos, int chunkX, int chunkY) {
 
         final int checkHeight = 50;
-        final int horizontalRadius = 10;
+        final int horizontalSearchRadius = 10;
         final int minimumPillarHeight = 5;
-        final List<BlockPos> finalResult = new ArrayList<>();
+        final List<Pair<BlockPos, Block>> finalResult = new ArrayList<>();
         if (
-            isBlockType(spawner, Blocks.SPAWNER)
-            && areAdjacentChunksLoaded(chunkX, chunkY)
+            areAdjacentChunksLoaded(chunkX, chunkY)
+            && isDungeon(pos)
         ) {
 
-            for (int x = spawner.getX() - horizontalRadius; x < spawner.getX() + horizontalRadius; x++) {
+            for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
 
-                for (int z = spawner.getZ() - horizontalRadius; z < spawner.getZ() + horizontalRadius; z++) {
+                for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
 
-                    BlockPos startPos = new BlockPos(x, spawner.getY(), z);
-                    BlockPos endPos = new BlockPos(x, spawner.getY() + checkHeight, z);
+                    BlockPos startPos = new BlockPos(x, pos.getY(), z);
+                    BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
                     List<BlockPos> result = new ArrayList<>();
-                    for (BlockPos pos : BlockPos.iterate(startPos, endPos)) {
+                    for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
-                        if (isDifferentFromSurroundingBlocks(pos)) {
+                        if (isDifferentFromSurroundingBlocks(pillarPos)) {
 
-                            result.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+                            result.add(new BlockPos(pillarPos));
                         } else {
 
                             if (result.size() >= minimumPillarHeight) {
 
-                                finalResult.addAll(result);
+                                result.forEach(p -> finalResult.add(new Pair<>(p, Constants.MC_CLIENT_INSTANCE.world.getBlockState(p).getBlock())));
                             }
 
                             result.clear();
@@ -402,19 +421,21 @@ public class FinderUtil {
 
         if (finalResult.size() > 0) {
 
-            int dungeonSearchRadius = 6;
-            BlockPos startPos = new BlockPos(spawner.getX() - dungeonSearchRadius, spawner.getY() - 1, spawner.getZ() - dungeonSearchRadius);
-            BlockPos endPos = new BlockPos(spawner.getX() + dungeonSearchRadius, spawner.getY() + dungeonSearchRadius, spawner.getZ() + dungeonSearchRadius);
-            for (BlockPos pos : BlockPos.iterate(startPos, endPos)) {
+            int horizontalRadius = 4;
+            int height = 5;
+            BlockPos startPos = new BlockPos(pos.getX() - horizontalRadius, pos.getY() - 1, pos.getZ() - horizontalRadius);
+            BlockPos endPos = new BlockPos(pos.getX() + horizontalRadius, pos.getY() + (height - 1), pos.getZ() + horizontalRadius);
+            for (BlockPos boxPos : BlockPos.iterate(startPos, endPos)) {
 
-                if (isBlockType(pos, Blocks.COBBLESTONE) || isBlockType(pos, Blocks.MOSSY_COBBLESTONE)) {
+                if (isBlockType(boxPos, Blocks.COBBLESTONE) || isBlockType(boxPos, Blocks.MOSSY_COBBLESTONE) || isBlockType(boxPos, Blocks.CHEST)) {
 
-                    finalResult.add(new BlockPos(pos.getX(), pos.getY(), pos.getZ()));
+                    finalResult.add(new Pair<>(new BlockPos(boxPos), Constants.MC_CLIENT_INSTANCE.world.getBlockState(boxPos).getBlock()));
                 }
             }
+            finalResult.add(new Pair<>(new BlockPos(pos), Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()));
         }
 
-        return new Pair<>(spawner, finalResult);
+        return finalResult;
     }
 
     private static boolean isDifferentFromSurroundingBlocks (BlockPos pos) {

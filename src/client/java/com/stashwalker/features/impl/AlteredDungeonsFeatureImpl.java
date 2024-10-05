@@ -12,6 +12,8 @@ import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -23,8 +25,11 @@ import java.util.ArrayList;
 
 public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements ProcessPositionFeature, RenderableFeature  {
 
-    private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
-    private final List<Pair<BlockPos, Color>> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
+    private final DoubleListBuffer<Pair<BlockPos, Block>> buffer = new DoubleListBuffer<>();
+    private final List<Pair<BlockPos, Block>> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
+    private String spawnerColorKey = this.featureColorsKeyStart + "_Spawner";
+    private String dungeonColorKey = this.featureColorsKeyStart + "_Dungeon";
+    private String chestColorKey = this.featureColorsKeyStart + "_Chest";
 
     {
 
@@ -32,8 +37,9 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
         this.featureColorsKeyStart = "Altered_Dungeons";
 
-        this.featureColors.put(this.featureColorsKeyStart + "_Spawner", new Pair<>(Color.BLUE, Color.BLUE));
-        this.featureColors.put(this.featureColorsKeyStart + "_Dungeon", new Pair<>(Color.GRAY, Color.GRAY));
+        this.featureColors.put(spawnerColorKey, new Pair<>(Color.BLUE, Color.BLUE));
+        this.featureColors.put(dungeonColorKey, new Pair<>(Color.GRAY, Color.GRAY));
+        this.featureColors.put(chestColorKey, new Pair<>(new Color(210, 105, 30), new Color(210, 105, 30)));
     }
 
     @Override
@@ -44,12 +50,10 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
                 if (World.OVERWORLD.equals(dimensionKey)) {
 
-                    Pair<BlockPos, List<BlockPos>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, chunkX,
-                            chunkZ);
-                    if (result.getValue().size() > 0) {
+                    List<Pair<BlockPos, Block>> result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos, chunkX, chunkZ);
+                    if (result.size() > 0) {
 
-                        result.getValue().forEach(r -> dungeonsTemp.add(new Pair<BlockPos, Color>(r, Color.GRAY)));
-                        dungeonsTemp.add(new Pair<BlockPos, Color>(result.getKey(), Color.BLUE));
+                        dungeonsTemp.addAll(result);
                     }
                 }
         }
@@ -71,30 +75,29 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         if (this.enabled) {
 
-            List<Pair<BlockPos, Color>> blockpositions = buffer.readBuffer();
+            List<Pair<BlockPos, Block>> blockpositions = buffer.readBuffer();
             if (blockpositions != null) {
 
-                for (Pair<BlockPos, Color> pair : blockpositions) {
+                for (Pair<BlockPos, Block> p: blockpositions) {
 
-                    BlockPos blockPos = pair.getKey();
-                    Color color = pair.getValue();
                     Vec3d newBlockPos = new Vec3d(
-                            blockPos.getX() + 0.5D,
-                            blockPos.getY() + 0.5D,
-                            blockPos.getZ() + 0.5D);
+                            p.getKey().getX() + 0.5D,
+                            p.getKey().getY() + 0.5D,
+                            p.getKey().getZ() + 0.5D);
                     
-                    if (color.equals(Color.BLUE)) {
+                    if (p.getValue() == Blocks.SPAWNER) {
 
-                        Color configuredColor = featureColors.get(featureColorsKeyStart + "_Spawner").getKey();
+                        Color configuredColor = featureColors.get(spawnerColorKey).getKey();
                         RenderUtil.drawLine(context, newBlockPos, configuredColor.getRed(), configuredColor.getGreen(), configuredColor.getBlue(),
-                            color.getAlpha(), false);
-                    } else if (color.equals(Color.GRAY)) {
+                            configuredColor.getAlpha(), false);
+                    } else if (p.getValue() ==  Blocks.CHEST) {
 
-                        Color configuredColor = featureColors.get(featureColorsKeyStart + "_Dungeon").getKey();
-                        Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
-                        newBlockPos = newBlockPos.subtract(cameraPos);
-                        RenderUtil.drawBlockSquare(context, newBlockPos, configuredColor.getRed(), configuredColor.getGreen(), configuredColor.getBlue(),
-                            color.getAlpha(), false);
+                        Color configuredColor = featureColors.get(chestColorKey).getKey();
+                        RenderUtil.drawBlockSquare(context, newBlockPos, configuredColor);
+                    } else {
+
+                        Color configuredColor = featureColors.get(dungeonColorKey).getKey();
+                        RenderUtil.drawBlockSquare(context, newBlockPos, configuredColor);
                     }
                 }
             }
