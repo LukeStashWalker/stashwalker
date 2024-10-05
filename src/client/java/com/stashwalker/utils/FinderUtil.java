@@ -363,8 +363,10 @@ public class FinderUtil {
         return entities;
     }
 
-    private static boolean isDungeon (BlockPos pos) {
+    private static boolean isDungeonWithChest (BlockPos pos) {
 
+        boolean chestFound = false;
+        boolean mossyCobbleFound = false;
         if (isBlockType(pos, Blocks.SPAWNER)) {
 
             int dungeonSearchRadius = 6;
@@ -373,6 +375,14 @@ public class FinderUtil {
             for (BlockPos p : BlockPos.iterate(startPos, endPos)) {
 
                 if (isBlockType(p, Blocks.MOSSY_COBBLESTONE)) {
+
+                    mossyCobbleFound = true;
+                } else if (isBlockType(p, Blocks.CHEST)) {
+
+                    chestFound = true;
+                }
+
+                if (chestFound && mossyCobbleFound) {
 
                     return true;
                 }
@@ -390,7 +400,7 @@ public class FinderUtil {
         final List<Pair<BlockPos, Block>> finalResult = new ArrayList<>();
         if (
             areAdjacentChunksLoaded(chunkX, chunkY)
-            && isDungeon(pos)
+            && isDungeonWithChest(pos)
         ) {
 
             for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {

@@ -10,7 +10,7 @@ import java.util.LinkedHashMap;
 
 public abstract class AbstractBaseFeature implements Feature {
 
-    protected boolean enabled;
+    protected boolean enabled = true;
     protected String featureName;
     protected Map<String, Pair<Color, Color>> featureColors = Collections.synchronizedMap(new LinkedHashMap<>());
 
