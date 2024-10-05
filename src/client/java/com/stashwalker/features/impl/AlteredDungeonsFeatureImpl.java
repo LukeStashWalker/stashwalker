@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements ProcessPositionFeature, RenderableFeature  {
 
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
-    private final List<Pair<BlockPos, Color>> dungeonsTemp = new ArrayList<>();
+    private final List<Pair<BlockPos, Color>> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
 
     {
 
@@ -60,7 +60,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         if (this.enabled) {
 
-            this.buffer.updateBuffer(this.dungeonsTemp);
+            this.buffer.updateBuffer(Collections.synchronizedList(this.dungeonsTemp));
             this.dungeonsTemp.clear();
         }
     }

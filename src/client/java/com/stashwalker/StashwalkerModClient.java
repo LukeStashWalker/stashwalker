@@ -54,7 +54,7 @@ import com.stashwalker.utils.RenderUtil;
 public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 200;
-    private final ExecutorService processPositionsAndChunkScanThreadPool = Executors.newFixedThreadPool(3, new DaemonThreadFactory());
+    private final ExecutorService processPositionsAndChunkScanThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 

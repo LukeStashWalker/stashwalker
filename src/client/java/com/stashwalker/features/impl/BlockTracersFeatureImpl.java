@@ -28,7 +28,7 @@ import java.util.ArrayList;
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements ProcessPositionFeature, ChunkLoadProcessFeature, RenderableFeature  {
 
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
-    private final List<Pair<BlockPos, Color>> positionsTemp = new ArrayList<>();
+    private final List<Pair<BlockPos, Color>> positionsTemp = Collections.synchronizedList(new ArrayList<>());
 
     {
 
@@ -145,7 +145,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
 
         if (this.enabled) {
 
-            this.buffer.updateBuffer(positionsTemp);
+            this.buffer.updateBuffer(Collections.synchronizedList(positionsTemp));
             this.positionsTemp.clear();
         }
     }
