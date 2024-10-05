@@ -27,19 +27,22 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     private final DoubleListBuffer<Pair<BlockPos, Block>> buffer = new DoubleListBuffer<>();
     private final List<Pair<BlockPos, Block>> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
-    private String spawnerColorKey = this.featureColorsKeyStart + "_Spawner";
-    private String dungeonColorKey = this.featureColorsKeyStart + "_Dungeon";
-    private String chestColorKey = this.featureColorsKeyStart + "_Chest";
+    private String spawnerColorKey;
+    private String dungeonColorKey;
+    private String chestColorKey;
 
     {
 
         this.enabled = false;
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
         this.featureColorsKeyStart = "Altered_Dungeons";
+        this.spawnerColorKey = this.featureColorsKeyStart + "_Spawner";
+        this.dungeonColorKey = this.featureColorsKeyStart + "_Dungeon";
+        this.chestColorKey = this.featureColorsKeyStart + "_Chest";
 
         this.featureColors.put(spawnerColorKey, new Pair<>(Color.BLUE, Color.BLUE));
         this.featureColors.put(dungeonColorKey, new Pair<>(Color.GRAY, Color.GRAY));
-        this.featureColors.put(chestColorKey, new Pair<>(new Color(210, 105, 30), new Color(210, 105, 30)));
+        this.featureColors.put(chestColorKey, new Pair<>(Color.YELLOW, Color.YELLOW));
     }
 
     @Override
