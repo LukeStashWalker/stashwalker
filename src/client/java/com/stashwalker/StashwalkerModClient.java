@@ -254,8 +254,10 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 // Split the HUD text so it doesn't overlap with the Boss bar HUD
                                 if (bossBarHudMixin != null && bossBars != null && bossBars.size() > 0) {
 
-                                    RenderUtil.renderHUDText(drawContext, modName, (screenWidth / 4) - (modNameWidth / 2), y, 0xFFFFFFFF);
-                                    RenderUtil.renderHUDText(drawContext, featuresText, ((screenWidth / 4) * 3) - (featuresWidth / 2), y, 0xFFFFFFFF);
+                                    int bossBarHudWidth = bossBarHudMixin.getWidth();
+
+                                    RenderUtil.renderHUDText(drawContext, modName, (screenWidth / 2) - (modNameWidth + (bossBarHudWidth / 2) + 2), y, 0xFFFFFFFF);
+                                    RenderUtil.renderHUDText(drawContext, featuresText, (screenWidth / 2) + (bossBarHudWidth / 2) + 2, y, 0xFFFFFFFF);
                                 } else {
 
                                     int x = (screenWidth / 2) - ((modNameWidth + featuresWidth) / 2);

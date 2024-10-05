@@ -9,4 +9,5 @@ import net.minecraft.client.gui.hud.ClientBossBar;
 public interface IBossBarHudMixin {
 
     Map<UUID, ClientBossBar> getBossBars ();
+    int getWidth ();
 }
