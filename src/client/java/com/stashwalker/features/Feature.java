@@ -7,11 +7,11 @@ import com.stashwalker.containers.Pair;
 
 public interface Feature {
 
-    public static final String FEATURE_NAME_BLOCK_TRACER = "blockTracers";
-    public static final String FEATURE_NAME_ENTITY_TRACER = "entityTracers";
-    public static final String FEATURE_NAME_NEW_CHUNKS = "newChunks";
-    public static final String FEATURE_NAME_SIGN_READER = "signReader";
-    public static final String FEATURE_NAME_ALTERED_DUNGEONS = "alteredDungeons";
+    public static final String FEATURE_NAME_BLOCK_TRACER = "Block Tracers";
+    public static final String FEATURE_NAME_ENTITY_TRACER = "Entity Tracers";
+    public static final String FEATURE_NAME_NEW_CHUNKS = "New Chunks";
+    public static final String FEATURE_NAME_SIGN_READER = "Sign Reader";
+    public static final String FEATURE_NAME_ALTERED_DUNGEONS = "Altered Dungeons";
 
     boolean isEnabled ();
     void setEnabled (boolean enabled);
