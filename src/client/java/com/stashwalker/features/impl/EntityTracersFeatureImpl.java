@@ -24,7 +24,6 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     {
 
-        this.enabled = false;
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
         this.featureColorsKeyStart = "Entity_Tracers";
 

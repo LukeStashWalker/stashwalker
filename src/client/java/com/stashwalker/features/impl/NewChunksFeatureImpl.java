@@ -21,7 +21,6 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
     {
 
-        this.enabled = false;
         this.featureName = FEATURE_NAME_NEW_CHUNKS;
         this.featureColorsKeyStart = "New_Chunks";
 

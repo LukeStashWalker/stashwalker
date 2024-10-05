@@ -33,7 +33,6 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     {
 
-        this.enabled = false;
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
         this.featureColorsKeyStart = "Altered_Dungeons";
         this.spawnerColorKey = this.featureColorsKeyStart + "_Spawner";

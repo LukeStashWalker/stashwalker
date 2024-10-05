@@ -25,7 +25,6 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
 
     {
 
-        this.enabled = false;
         this.featureName = FEATURE_NAME_SIGN_READER;
         this.featureColorsKeyStart = "Sign_Reader";
 

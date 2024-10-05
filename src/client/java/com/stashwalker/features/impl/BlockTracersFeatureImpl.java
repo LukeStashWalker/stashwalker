@@ -32,7 +32,6 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
 
     {
 
-        this.enabled = false;
         this.featureName = FEATURE_NAME_BLOCK_TRACER;
         this.featureColorsKeyStart = "Block_Tracers";
 
