@@ -30,10 +30,10 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         this.enabled = false;
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
-        this.featureColorsKeyStart = "Altered_Dungeons_";
+        this.featureColorsKeyStart = "Altered_Dungeons";
 
-        this.featureColors.put(this.featureColorsKeyStart + "Spawner", new Pair<>(Color.BLUE, Color.BLUE));
-        this.featureColors.put(this.featureColorsKeyStart + "Dungeon", new Pair<>(Color.GRAY, Color.GRAY));
+        this.featureColors.put(this.featureColorsKeyStart + "_Spawner", new Pair<>(Color.BLUE, Color.BLUE));
+        this.featureColors.put(this.featureColorsKeyStart + "_Dungeon", new Pair<>(Color.GRAY, Color.GRAY));
     }
 
     @Override
@@ -85,12 +85,12 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                     
                     if (color.equals(Color.BLUE)) {
 
-                        Color configuredColor = featureColors.get(featureColorsKeyStart + "Spawner").getKey();
+                        Color configuredColor = featureColors.get(featureColorsKeyStart + "_Spawner").getKey();
                         RenderUtil.drawLine(context, newBlockPos, configuredColor.getRed(), configuredColor.getGreen(), configuredColor.getBlue(),
                             color.getAlpha(), false);
                     } else if (color.equals(Color.GRAY)) {
 
-                        Color configuredColor = featureColors.get(featureColorsKeyStart + "Dungeon").getKey();
+                        Color configuredColor = featureColors.get(featureColorsKeyStart + "_Dungeon").getKey();
                         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
                         newBlockPos = newBlockPos.subtract(cameraPos);
                         RenderUtil.drawBlockSquare(context, newBlockPos, configuredColor.getRed(), configuredColor.getGreen(), configuredColor.getBlue(),
