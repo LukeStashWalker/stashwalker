@@ -28,7 +28,7 @@ public class ConfigManager {
 
             Constants.FEATURES.forEach(f -> {
 
-                this.configData.getFeatureSettings().put(f.getFeatureName(), f.isEnabled());
+                this.configData.getFeatureSettings().put(f.getFeatureName().replaceAll(" ", "_"), f.isEnabled());
 
                 f.getFeatureColors().entrySet()
                 .forEach(e -> {
@@ -65,7 +65,7 @@ public class ConfigManager {
 
                 Constants.FEATURES.forEach(f -> {
 
-                    Boolean state = configData.getFeatureSettings().get(f.getFeatureName());
+                    Boolean state = configData.getFeatureSettings().get(f.getFeatureName().replaceAll(" ", "_"));
                     f.setEnabled(state != null ? state : false);
 
                     f.getFeatureColors().entrySet()

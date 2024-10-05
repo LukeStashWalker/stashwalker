@@ -201,12 +201,11 @@ public class StashwalkerModClient implements ClientModInitializer {
             return;
         }
 
-        ListIterator<Text> iterator = Constants.MESSAGES_BUFFER.listIterator();
-        while (iterator.hasNext()) {
+        Constants.MESSAGES_BUFFER.forEach(m -> {
 
-            RenderUtil.sendClientSideMessage(iterator.next());
-            iterator.remove();
-        }
+            RenderUtil.sendClientSideMessage(m);
+        });
+        Constants.MESSAGES_BUFFER.clear();
 
         Constants.FEATURES.forEach(f -> {
 
