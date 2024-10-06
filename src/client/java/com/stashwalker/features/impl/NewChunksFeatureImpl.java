@@ -5,8 +5,8 @@ import java.awt.Color;
 import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkLoadProcessFeature;
-import com.stashwalker.features.RenderableFeature;
+import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -15,7 +15,7 @@ import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.Chunk;
 
 
-public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessFeature, RenderableFeature  {
+public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
     private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(64 * 64);
 
@@ -28,7 +28,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
     }
 
     @Override
-    public void processChunk (Chunk chunk) {
+    public void processLoadedChunk (Chunk chunk) {
 
         if (this.enabled) {
 

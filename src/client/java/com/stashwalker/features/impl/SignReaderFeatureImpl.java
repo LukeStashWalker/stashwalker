@@ -6,7 +6,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkScanProcessFeature;
+import com.stashwalker.features.ChunkScanProcessor;
 import com.stashwalker.utils.SignTextExtractor;
 
 import net.minecraft.block.entity.BlockEntity;
@@ -19,7 +19,7 @@ import net.minecraft.world.chunk.Chunk;
 
 import java.util.Set;
 
-public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkScanProcessFeature  {
+public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkScanProcessor  {
 
     private final ConcurrentBoundedSet<Integer> displayedSignsCache = new ConcurrentBoundedSet<>(5000);
 
@@ -32,7 +32,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
     }
 
     @Override
-    public void processChunk (Chunk chunk) {
+    public void processScannedChunk (Chunk chunk) {
 
         if (enabled) {
 

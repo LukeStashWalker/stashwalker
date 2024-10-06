@@ -37,12 +37,12 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.features.ChunkLoadProcessFeature;
-import com.stashwalker.features.ChunkScanProcessFeature;
+import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkScanProcessor;
 import com.stashwalker.features.Feature;
-import com.stashwalker.features.ProcessFeature;
-import com.stashwalker.features.ProcessPositionFeature;
-import com.stashwalker.features.RenderableFeature;
+import com.stashwalker.features.Processor;
+import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.FinderUtil;
@@ -127,9 +127,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                             Constants.FEATURES.forEach(f -> {
 
-                                if (f instanceof ChunkScanProcessFeature) {
+                                if (f instanceof ChunkScanProcessor) {
 
-                                    ((ChunkScanProcessFeature) f).processChunk(chunk);
+                                    ((ChunkScanProcessor) f).processScannedChunk(chunk);
                                 }
                             });
 
@@ -140,9 +140,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                                     Constants.FEATURES.forEach(f -> {
 
-                                        if (f.isEnabled() && f instanceof ProcessPositionFeature) {
+                                        if (f.isEnabled() && f instanceof PositionProcessor) {
 
-                                            ((ProcessPositionFeature) f).processPosition(pos, playerChunkPosX, playerChunkPosZ);
+                                            ((PositionProcessor) f).processPosition(pos, playerChunkPosX, playerChunkPosZ);
                                         }
                                     });
                                 }
@@ -153,9 +153,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 Constants.FEATURES.forEach(f -> {
 
-                    if (f instanceof ProcessPositionFeature) {
+                    if (f instanceof PositionProcessor) {
 
-                        ((ProcessPositionFeature) f).update();
+                        ((PositionProcessor) f).update();
                     }
                 });
             });
@@ -164,9 +164,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 Constants.FEATURES.forEach(f -> {
 
-                    if (f instanceof ProcessFeature) {
+                    if (f instanceof Processor) {
 
-                        ((ProcessFeature) f).process();
+                        ((Processor) f).process();
                     }
                 });
             });
@@ -181,9 +181,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             Constants.FEATURES.forEach(f -> {
 
-                if (f instanceof ChunkLoadProcessFeature) {
+                if (f instanceof ChunkLoadProcessor) {
 
-                    ((ChunkLoadProcessFeature) f).processChunk(chunk);
+                    ((ChunkLoadProcessor) f).processLoadedChunk(chunk);
                 }
             });
 
@@ -207,9 +207,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         Constants.FEATURES.forEach(f -> {
 
-            if (f instanceof RenderableFeature) {
+            if (f instanceof Renderable) {
 
-                ((RenderableFeature) f).render(context);
+                ((Renderable) f).render(context);
             }
         });
     }

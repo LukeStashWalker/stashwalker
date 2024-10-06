@@ -6,8 +6,8 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ProcessPositionFeature;
-import com.stashwalker.features.RenderableFeature;
+import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
-public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements ProcessPositionFeature, RenderableFeature  {
+public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Renderable  {
 
     private final DoubleListBuffer<Pair<BlockPos, Block>> buffer = new DoubleListBuffer<>();
     private final List<Pair<BlockPos, Block>> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());

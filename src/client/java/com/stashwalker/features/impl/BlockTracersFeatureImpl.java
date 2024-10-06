@@ -6,9 +6,9 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkLoadProcessFeature;
-import com.stashwalker.features.ProcessPositionFeature;
-import com.stashwalker.features.RenderableFeature;
+import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.ArrayList;
 
-public class BlockTracersFeatureImpl extends AbstractBaseFeature implements ProcessPositionFeature, ChunkLoadProcessFeature, RenderableFeature  {
+public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkLoadProcessor, Renderable  {
 
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
     private final List<Pair<BlockPos, Color>> positionsTemp = Collections.synchronizedList(new ArrayList<>());
@@ -117,7 +117,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
     }
 
     @Override
-    public void processChunk (Chunk chunk) {
+    public void processLoadedChunk (Chunk chunk) {
 
         if (this.enabled) {
 

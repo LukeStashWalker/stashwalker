@@ -1,6 +1,6 @@
 package com.stashwalker.features;
 
-public interface ProcessFeature {
+public interface Processor {
     
     void process ();
 }

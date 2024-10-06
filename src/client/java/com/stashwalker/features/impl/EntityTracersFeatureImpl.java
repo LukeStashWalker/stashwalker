@@ -5,8 +5,8 @@ import java.awt.Color;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ProcessFeature;
-import com.stashwalker.features.RenderableFeature;
+import com.stashwalker.features.Processor;
+import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -18,7 +18,7 @@ import net.minecraft.util.math.Vec3d;
 import java.util.Collections;
 import java.util.List;
 
-public class EntityTracersFeatureImpl extends AbstractBaseFeature implements ProcessFeature, RenderableFeature  {
+public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable  {
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
 
