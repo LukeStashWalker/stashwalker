@@ -1,6 +1,11 @@
 Releases
 ===
 
+Version 1.2.0-fabric-0.103.0+-mc1.21.1
+---
+- added new feature: altered dungeon (see README)
+- multiple structural improvements and fixes
+
 Version 1.1.6-fabric-0.103.0+-mc1.21.1
 ---
 - show mod name and features HUD correctly when Boss bar HUD is visible
