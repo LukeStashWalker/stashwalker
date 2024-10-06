@@ -38,6 +38,7 @@ This mod is open source, you can check the code yourself. This mod has been test
     <!-- - single or double chest if the chest is in a dungeon with a broken spawner (potential kit shop dropoff location) -->
 - new chunks: renders rectangles around new chunks (based on copper ore in the Overworld and ancient debris in the Nether), enabling you to follow chunk trails
 - sign reader: posts text of signs you pass by in the chat HUD
+- altered dungeons: this feature highlights a dungeon if it has been altered (somebody has been inside the dungeon). It checks for pillars in a radius above the dungeon. A pillar block (can also be air) is defined as a block for which all block around it horizontally are of a different type of block. It there are 5 of more pillar blocks above each other vertically a pillar is detected. When a dungeon is detected it also highlights zombies, skeletons and spiders. If there are multiple of these mobs already inside the dungeon this can be an indication that these mobs where spawned when the player was near the spawner
 
 ![alt text](screenshots/1.png)
 
@@ -60,6 +61,8 @@ This mod is open source, you can check the code yourself. This mod has been test
 ![alt text](screenshots/10.png)
 
 ![alt text](screenshots/11.png)
+
+![alt text](screenshots/12.png)
 
 ## How to build jar from source
 
