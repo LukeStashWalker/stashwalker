@@ -58,11 +58,12 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ![alt text](screenshots/9.png)
 
+![alt text](screenshots/12.png)
+
 ![alt text](screenshots/10.png)
 
 ![alt text](screenshots/11.png)
 
-![alt text](screenshots/12.png)
 
 ## How to build jar from source
 
