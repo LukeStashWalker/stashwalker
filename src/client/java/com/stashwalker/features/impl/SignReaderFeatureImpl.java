@@ -3,11 +3,9 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
-import com.stashwalker.features.ChunkScanProcessor;
 import com.stashwalker.utils.SignTextExtractor;
 
 import net.minecraft.block.entity.BlockEntity;
