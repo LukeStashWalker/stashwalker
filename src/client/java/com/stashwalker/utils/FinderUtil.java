@@ -22,17 +22,21 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 
+import java.lang.Class;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.Pair;
+import com.stashwalker.models.AlteredDungeon;
 
 import java.util.HashSet;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.mob.SkeletonEntity;
+import net.minecraft.entity.mob.SpiderEntity;
+import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.util.math.Box;
@@ -363,7 +367,7 @@ public class FinderUtil {
         return entities;
     }
 
-    private static boolean isDungeonWithChest (BlockPos pos) {
+    public static boolean isDungeonWithChest (BlockPos pos) {
 
         boolean chestFound = false;
         boolean mossyCobbleFound = false;
@@ -392,63 +396,123 @@ public class FinderUtil {
         return false;
     }
 
-    public static List<Pair<BlockPos, Block>> getAlteredDungeonsBlocksWithPillars (BlockPos pos, int chunkX, int chunkY) {
+    public static boolean isAlteredDungeon (BlockPos pos) {
 
         final int checkHeight = 50;
         final int horizontalSearchRadius = 10;
         final int minimumPillarHeight = 5;
-        final List<Pair<BlockPos, Block>> finalResult = new ArrayList<>();
-        if (
-            areAdjacentChunksLoaded(chunkX, chunkY)
-            && isDungeonWithChest(pos)
-        ) {
 
-            for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
+        for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
 
-                for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
 
-                    BlockPos startPos = new BlockPos(x, pos.getY(), z);
-                    BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
-                    List<BlockPos> result = new ArrayList<>();
-                    for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
+                BlockPos startPos = new BlockPos(x, pos.getY(), z);
+                BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
+                List<BlockPos> result = new ArrayList<>();
+                for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
-                        if (
-                            isDifferentFromSurroundingBlocks(pillarPos)
-                            && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
-                        ) {
+                    if (
+                        isDifferentFromSurroundingBlocks(pillarPos)
+                        && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
+                    ) {
 
-                            result.add(new BlockPos(pillarPos));
-                        } else {
+                        result.add(new BlockPos(pillarPos));
 
-                            if (result.size() >= minimumPillarHeight) {
+                        if (result.size() >= minimumPillarHeight) {
 
-                                result.forEach(p -> finalResult.add(new Pair<>(p, Constants.MC_CLIENT_INSTANCE.world.getBlockState(p).getBlock())));
-                            }
-
-                            result.clear();
+                            return true;
                         }
+                    } else {
+
+                        result.clear();
                     }
                 }
             }
-        }     
-
-        if (finalResult.size() > 0) {
-
-            int horizontalRadius = 4;
-            int height = 5;
-            BlockPos startPos = new BlockPos(pos.getX() - horizontalRadius, pos.getY() - 1, pos.getZ() - horizontalRadius);
-            BlockPos endPos = new BlockPos(pos.getX() + horizontalRadius, pos.getY() + (height - 1), pos.getZ() + horizontalRadius);
-            for (BlockPos boxPos : BlockPos.iterate(startPos, endPos)) {
-
-                if (isBlockType(boxPos, Blocks.COBBLESTONE) || isBlockType(boxPos, Blocks.MOSSY_COBBLESTONE) || isBlockType(boxPos, Blocks.CHEST)) {
-
-                    finalResult.add(new Pair<>(new BlockPos(boxPos), Constants.MC_CLIENT_INSTANCE.world.getBlockState(boxPos).getBlock()));
-                }
-            }
-            finalResult.add(new Pair<>(new BlockPos(pos), Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()));
         }
 
-        return finalResult;
+        return false;
+    }
+
+    public static AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
+
+        final int checkHeight = 50;
+        final int horizontalSearchRadius = 10;
+        final int minimumPillarHeight = 5;
+        final AlteredDungeon alteredDungeon = new AlteredDungeon();
+
+        // Add the pillar positions
+        for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
+
+            for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
+
+                BlockPos startPos = new BlockPos(x, pos.getY(), z);
+                BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
+                List<BlockPos> result = new ArrayList<>();
+                for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
+
+                    if (isDifferentFromSurroundingBlocks(pillarPos)
+                            && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
+                    ) {
+
+                        result.add(new BlockPos(pillarPos));
+                    } else {
+
+                        if (result.size() >= minimumPillarHeight) {
+
+                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> toVec3d(r)).toList());
+                        }
+
+                        result.clear();
+                    }
+                }
+            }
+        }
+
+        // Add the dungeon positions
+        int dungeonHorizontalRadius = 4;
+        int dungeonHeight = 5;
+        BlockPos startPos = new BlockPos(pos.getX() - dungeonHorizontalRadius, pos.getY() - 1, pos.getZ() - dungeonHorizontalRadius);
+        BlockPos endPos = new BlockPos(pos.getX() + dungeonHorizontalRadius, pos.getY() + (dungeonHeight - 1),
+                pos.getZ() + dungeonHorizontalRadius);
+        for (BlockPos boxPos : BlockPos.iterate(startPos, endPos)) {
+
+            if (isBlockType(boxPos, Blocks.COBBLESTONE) || isBlockType(boxPos, Blocks.MOSSY_COBBLESTONE)) {
+
+                alteredDungeon.getDungeonPositions().add(toVec3d(boxPos));
+            } else if (isBlockType(boxPos, Blocks.CHEST)) {
+
+                alteredDungeon.getChestPositions().add(toVec3d(boxPos));
+            }
+        }
+        alteredDungeon.setSpawnerPosition(toVec3d(pos));
+
+        // Add the entity Positions
+        int boxHorizontalRadius = 6; // Some of the mobs may have wandered out of the Dungeon a little
+        int boxHeight = 4;
+        Box entitiesBox = new Box(
+            pos.getX() - boxHorizontalRadius, pos.getY() - 1, pos.getZ() - boxHorizontalRadius,
+            pos.getX() + boxHorizontalRadius, pos.getY() + (boxHeight - 1), pos.getZ() + boxHorizontalRadius
+        );
+        alteredDungeon.setZombiePositions(
+            getEntityPositions(ZombieEntity.class, entitiesBox)
+        );
+        alteredDungeon.setSkeletonPositions(
+            getEntityPositions(SkeletonEntity.class, entitiesBox)
+        );
+        alteredDungeon.setSpiderPositions(
+            getEntityPositions(SpiderEntity.class, entitiesBox)
+        );
+
+        return alteredDungeon;
+    }
+
+    private static List<Vec3d> getEntityPositions (Class<? extends Entity> clazz, Box box) {
+
+        return Constants.MC_CLIENT_INSTANCE.world
+            .getEntitiesByClass(clazz, box, e -> { return true;})
+            .stream()
+            .map(e -> new Vec3d(e.getPos().x, e.getPos().y + 0.5D, e.getPos().z))
+            .toList();
     }
 
     private static boolean isDifferentFromSurroundingBlocks (BlockPos pos) {
@@ -654,5 +718,10 @@ public class FinderUtil {
                                 .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                         .append(Text.literal(featureToggle ? " enabled" : " disabled")
                                 .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
+    }
+
+    private static Vec3d toVec3d (BlockPos pos) {
+
+        return new Vec3d(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
     }
 }

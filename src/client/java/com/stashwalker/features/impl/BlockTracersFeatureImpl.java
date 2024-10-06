@@ -165,7 +165,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                     Vec3d newBlockPos = new Vec3d(
                             blockPos.getX() + 0.5D,
                             blockPos.getY() + 0.5D,
-                            blockPos.getZ() + 0.5D);
+                            blockPos.getZ() + 0.5D
+                    );
 
                     RenderUtil.drawLine(context, newBlockPos, color.getRed(), color.getGreen(),
                             color.getBlue(),
