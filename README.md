@@ -7,7 +7,7 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 - configure keybindings in options menu
 - red entity tracers, draws a tracer to valuable items and entities that may contain items:
-    - stacked chest minecarts: if multiple chest minecarts are stacked in the same place
+    - stacked chest minecarts: if multiple chest minecarts are stacked in the same place (if the shadow under the minecarts is very dark this is an indication that there are a lot stacked on each other)
     - chest boat
     - llama's and donkeys that have chests
     - elytra item
