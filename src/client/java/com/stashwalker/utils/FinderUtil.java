@@ -412,7 +412,10 @@ public class FinderUtil {
                     List<BlockPos> result = new ArrayList<>();
                     for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
-                        if (isDifferentFromSurroundingBlocks(pillarPos)) {
+                        if (
+                            isDifferentFromSurroundingBlocks(pillarPos)
+                            && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
+                        ) {
 
                             result.add(new BlockPos(pillarPos));
                         } else {
