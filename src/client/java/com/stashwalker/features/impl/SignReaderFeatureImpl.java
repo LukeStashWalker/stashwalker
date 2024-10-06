@@ -6,6 +6,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
+import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.ChunkScanProcessor;
 import com.stashwalker.utils.SignTextExtractor;
 
@@ -19,9 +20,7 @@ import net.minecraft.world.chunk.Chunk;
 
 import java.util.Set;
 
-public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkScanProcessor  {
-
-    private final ConcurrentBoundedSet<Integer> displayedSignsCache = new ConcurrentBoundedSet<>(5000);
+public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor  {
 
     {
 
@@ -32,12 +31,14 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
     }
 
     @Override
-    public void processScannedChunk (Chunk chunk) {
+    public void processLoadedChunk (Chunk chunk) {
 
         if (enabled) {
 
             Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
             if (blockPositions != null) {
+
+                int signCount = 0;
 
                 for (BlockPos pos : blockPositions) {
 
@@ -46,18 +47,12 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
                     // Check for signs
                     if (blockEntity instanceof SignBlockEntity) {
 
-                        // Get the player's current position
-                        BlockPos playerPos = Constants.MC_CLIENT_INSTANCE.player.getBlockPos();
-
-                        // Calculate the distance between the player's position and the sign's
-                        // position
-                        double squaredDistance = blockEntity.getPos().getSquaredDistance(playerPos);
-
                         String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
-                        if (!this.displayedSignsCache.contains(blockEntity.getPos().toShortString().hashCode())
-                                && !signText.isEmpty()
-                                && squaredDistance > 5 * 5
-                                && !signText.equals("<----\n---->")) {
+                        if (
+                            !signText.isEmpty()
+                            && !signText.equals("<----\n---->")
+                            && signCount < 50 // Limit to 50 signs per chunk in case somebody goes nuts with the sign placement
+                        ) {
 
                             Text styledText = Text.empty()
                                     .append(Text.literal("[")
@@ -73,18 +68,11 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkS
 
                             Constants.MESSAGES_BUFFER.add(styledText);
 
-                            this.displayedSignsCache
-                                    .add(blockEntity.getPos().toShortString().hashCode());
+                            signCount++;
                         }
                     }
                 }
             }
         }
-    }
-
-    @Override
-    public void clear () {
-        
-        displayedSignsCache.clear();
     }
 }

@@ -3,6 +3,8 @@ package com.stashwalker.features;
 import java.awt.Color;
 import java.util.Map;
 
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+
 import com.stashwalker.containers.Pair;
 
 import java.util.Collections;
@@ -45,5 +47,10 @@ public abstract class AbstractBaseFeature implements Feature {
     public Map<String, Pair<Color, Color>> getFeatureColors () {
 
         return featureColors;
+    }
+
+    @Override
+    public void clear ()  {
+        
     }
 }
