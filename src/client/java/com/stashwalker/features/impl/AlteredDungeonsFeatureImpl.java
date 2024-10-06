@@ -98,7 +98,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
             for (AlteredDungeon alteredDungeon : alteredDungeons) {
 
                 Color spawnerColor = featureColors.get(spawnerColorKey).getKey();
-                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), spawnerColor.getRed(), spawnerColor.getGreen(),
+                RenderUtil.drawLineStartFromCrosshair(context, alteredDungeon.getSpawnerPosition(), spawnerColor.getRed(), spawnerColor.getGreen(),
                         spawnerColor.getBlue(),
                         spawnerColor.getAlpha(), false);
                 

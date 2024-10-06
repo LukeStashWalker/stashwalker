@@ -65,7 +65,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                     }
 
                     Color color = featureColors.get(featureColorsKeyStart).getKey();
-                    RenderUtil.drawLine(context, entityPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), true);
+                    RenderUtil.drawLineStartFromCrosshair(context, entityPos, color.getRed(), color.getGreen(), color.getBlue(), color.getAlpha(), true);
                 }
             }
         }

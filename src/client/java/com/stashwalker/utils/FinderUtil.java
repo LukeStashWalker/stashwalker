@@ -400,7 +400,7 @@ public class FinderUtil {
 
         final int checkHeight = 50;
         final int horizontalSearchRadius = 10;
-        final int minimumPillarHeight = 5;
+        final int minimumPillarHeight = 7;
 
         for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
 

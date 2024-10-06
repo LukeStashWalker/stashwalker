@@ -18,6 +18,7 @@ import net.minecraft.sound.SoundEvents;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
+import com.stashwalker.models.CubeLine;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -28,11 +29,97 @@ import net.minecraft.util.math.RotationAxis;
 import org.joml.Vector3f;
 
 import java.awt.Color;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class RenderUtil {
 
-    public static void drawLine (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
+public static void drawLines(WorldRenderContext context, Set<CubeLine> lines, int r, int g, int b, int alpha) {
+    Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
+    Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
+    // Vector3f pos = new Vector3f(0, 0, 1);
+
+    // Use a single shared MatrixStack instance if applicable
+    // if (Constants.MC_CLIENT_INSTANCE.options.getBobView().getValue()) {
+    //     MatrixStack bobViewMatrices = new MatrixStack(); // Consider reusing or managing a pool of these
+    //     bobView(bobViewMatrices);
+    //     pos.mulPosition(bobViewMatrices.peek().getPositionMatrix().invert());
+    // }
+
+    RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f); // Normalize colors
+
+    GL11.glEnable(GL11.GL_BLEND);
+    GL11.glDisable(GL11.GL_DEPTH_TEST);
+    GL11.glEnable(GL11.GL_LINE_SMOOTH);
+    GL11.glLineWidth(1.0f);
+
+    Tessellator tessellator = RenderSystem.renderThreadTesselator();
+    BufferBuilder bufferBuilder = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION);
+    RenderSystem.setShader(GameRenderer::getPositionProgram);
+
+    // Iterate through the lines and draw each one
+    for (CubeLine line : lines) {
+        Vec3d start = line.getStart(); // Assuming CubeLine has a method to get Vec3d from start
+        Vec3d end = line.getEnd(); // Assuming CubeLine has a method to get Vec3d from end
+
+        // Adjust positions based on camera
+        start = start.subtract(cameraPos);
+        end = end.subtract(cameraPos);
+
+        bufferBuilder
+            .vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z)
+            .vertex(matrix4f, (float) end.x, (float) end.y, (float) end.z);
+    }
+
+    if (lines.size() > 0) {
+
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+    }
+
+
+    end();
+}
+
+    public static void drawLine (WorldRenderContext context, Vec3d start, Vec3d end, int r, int g, int b, int alpha) {
+
+        Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
+        Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
+        Vector3f pos = new Vector3f(0, 0, 1);
+
+        // Use a single shared MatrixStack instance if applicable
+        if (Constants.MC_CLIENT_INSTANCE.options.getBobView().getValue()) {
+
+            MatrixStack bobViewMatrices = new MatrixStack(); // Consider reusing or managing a pool of these
+            bobView(bobViewMatrices);
+            pos.mulPosition(bobViewMatrices.peek().getPositionMatrix().invert());
+        }
+
+        start = start.subtract(cameraPos);
+
+        end = end.subtract(cameraPos);
+
+        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f); // Normalize colors
+
+        GL11.glEnable(GL11.GL_BLEND);
+        GL11.glDisable(GL11.GL_DEPTH_TEST);
+        GL11.glEnable(GL11.GL_LINE_SMOOTH);
+        GL11.glLineWidth(1.0f);
+
+        Tessellator tessellator = RenderSystem.renderThreadTesselator();
+        BufferBuilder bufferBuilder = tessellator.begin(DrawMode.DEBUG_LINES, VertexFormats.POSITION);
+        RenderSystem.setShader(GameRenderer::getPositionProgram);
+
+        bufferBuilder
+            .vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z)
+            .vertex(matrix4f, (float) end.x, (float) end.y, (float) end.z);
+
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+
+        end();
+    }
+
+    public static void drawLineStartFromCrosshair (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
@@ -265,6 +352,36 @@ public class RenderUtil {
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
 
         end();
+    }
+
+public static Set<CubeLine> toCubeLines(ChunkPos chunkPos) {
+        Set<CubeLine> cubeLines = new HashSet<>();
+        // Same logic for transforming ChunkPos to CubeLines as before
+        double startX = chunkPos.getStartX();
+        double endX = chunkPos.getEndX() + 1;
+        double startZ = chunkPos.getStartZ();
+        double endZ = chunkPos.getEndZ() + 1;
+        // double bottomY = 0.0;
+        // double topY = 100.0;
+        double bottomY = 63.0;
+        double topY = 78.0;
+
+        cubeLines.add(new CubeLine(new Vec3d(startX, bottomY, startZ), new Vec3d(endX, bottomY, startZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, bottomY, startZ), new Vec3d(endX, bottomY, endZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, bottomY, endZ), new Vec3d(startX, bottomY, endZ)));
+        cubeLines.add(new CubeLine(new Vec3d(startX, bottomY, endZ), new Vec3d(startX, bottomY, startZ)));
+
+        cubeLines.add(new CubeLine(new Vec3d(startX, topY, startZ), new Vec3d(endX, topY, startZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, topY, startZ), new Vec3d(endX, topY, endZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, topY, endZ), new Vec3d(startX, topY, endZ)));
+        cubeLines.add(new CubeLine(new Vec3d(startX, topY, endZ), new Vec3d(startX, topY, startZ)));
+
+        cubeLines.add(new CubeLine(new Vec3d(startX, bottomY, startZ), new Vec3d(startX, topY, startZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, bottomY, startZ), new Vec3d(endX, topY, startZ)));
+        cubeLines.add(new CubeLine(new Vec3d(endX, bottomY, endZ), new Vec3d(endX, topY, endZ)));
+        cubeLines.add(new CubeLine(new Vec3d(startX, bottomY, endZ), new Vec3d(startX, topY, endZ)));
+
+        return cubeLines;
     }
 
     // Based on code from Meteor client

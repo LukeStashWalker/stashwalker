@@ -2,6 +2,7 @@ package com.stashwalker.features.impl;
 
 import java.awt.Color;
 
+import com.stashwalker.containers.ConcurrentBoundedCubeLineSet;
 import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
@@ -9,6 +10,8 @@ import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
+import com.stashwalker.models.CubeLine;
+import com.stashwalker.containers.ConcurrentBoundedCubeLineSet;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.util.math.ChunkPos;
@@ -17,7 +20,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
-    private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(64 * 64);
+    private final ConcurrentBoundedCubeLineSet buffer = new ConcurrentBoundedCubeLineSet(32 * 32);
 
     {
 
@@ -34,7 +37,8 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
             if (FinderUtil.isNewChunk(chunk)) {
 
-                this.buffer.add(chunk.getPos());
+                this.buffer.addAll(RenderUtil.toCubeLines(chunk.getPos()));
+                this.buffer.updateRenderableLines();
             }
         }
     }
@@ -47,16 +51,27 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
             Color color = featureColors.get(featureColorsKeyStart).getKey();
 
             RenderUtil
-                    .drawChunkSquare(
+                    .drawLines(
                             context,
-                            this.buffer,
-                            63,
-                            16,
+                            this.buffer.getRenderableLines(),
                             color.getRed(),
                             color.getGreen(),
                             color.getBlue(),
                             color.getAlpha()
                     );
+
+            // this.buffer.getRenderableLines().forEach(l -> {
+            // RenderUtil
+            //         .drawLine(
+            //                 context,
+            //                 l.getStart(),
+            //                 l.getEnd(),
+            //                 color.getRed(),
+            //                 color.getGreen(),
+            //                 color.getBlue(),
+            //                 color.getAlpha()
+            //         );
+            // });
         }
     }
 
