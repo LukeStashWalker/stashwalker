@@ -17,6 +17,7 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.Heightmap;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
@@ -24,6 +25,7 @@ import net.minecraft.world.chunk.ChunkStatus;
 
 import java.lang.Class;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -373,7 +375,7 @@ public class FinderUtil {
         boolean mossyCobbleFound = false;
         if (isBlockType(pos, Blocks.SPAWNER)) {
 
-            int dungeonSearchRadius = 6;
+            int dungeonSearchRadius = 4;
             BlockPos startPos = new BlockPos(pos.getX() - dungeonSearchRadius, pos.getY() - 1, pos.getZ() - dungeonSearchRadius);
             BlockPos endPos = new BlockPos(pos.getX() + dungeonSearchRadius, pos.getY(), pos.getZ() + dungeonSearchRadius);
             for (BlockPos p : BlockPos.iterate(startPos, endPos)) {
@@ -396,29 +398,42 @@ public class FinderUtil {
         return false;
     }
 
-    public static boolean isAlteredDungeon (BlockPos pos) {
+    public static boolean isHiddenAlteredDungeon (BlockPos pos) {
 
-        final int checkHeight = 50;
         final int horizontalSearchRadius = 10;
         final int minimumPillarHeight = 5;
 
-        for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
+        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
 
-            for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
 
+                int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos startPos = new BlockPos(x, pos.getY(), z);
-                BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
+                BlockPos endPos = new BlockPos(x, topY, z);
                 List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
                     if (
-                        isDifferentFromSurroundingBlocks(pillarPos)
+
+                        !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPos).isAir()
+                        && isDifferentFromSurroundingBlocks(pillarPos)
                         && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
                     ) {
 
                         result.add(new BlockPos(pillarPos));
 
-                        if (result.size() >= minimumPillarHeight) {
+                        if (
+                            result.size() >= minimumPillarHeight
+                        ) {
+
+                            // Not trying to conceal
+                            if (
+                                isBlockType(endPos, Blocks.NETHERRACK)
+                                || isBlockType(endPos, Blocks.OBSIDIAN)
+                            ) {
+
+                                return false;
+                            }
 
                             return true;
                         }
@@ -435,33 +450,36 @@ public class FinderUtil {
 
     public static AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
 
-        final int checkHeight = 50;
         final int horizontalSearchRadius = 10;
         final int minimumPillarHeight = 5;
         final AlteredDungeon alteredDungeon = new AlteredDungeon();
 
         // Add the pillar positions
-        for (int x = pos.getX() - horizontalSearchRadius; x < pos.getX() + horizontalSearchRadius; x++) {
+        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
 
-            for (int z = pos.getZ() - horizontalSearchRadius; z < pos.getZ() + horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
 
+                int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z);
                 BlockPos startPos = new BlockPos(x, pos.getY(), z);
-                BlockPos endPos = new BlockPos(x, pos.getY() + checkHeight, z);
+                BlockPos endPos = new BlockPos(x, topY, z);
                 List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
-                    if (isDifferentFromSurroundingBlocks(pillarPos)
-                            && !isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
+                    BlockPos pillarPosCopy = new BlockPos(pillarPos);
+                    if (
+                        !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPosCopy).isAir()
+                        && isDifferentFromSurroundingBlocks(pillarPosCopy)
+                        && !isBlockType(pillarPosCopy, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
                     ) {
 
-                        result.add(new BlockPos(pillarPos));
+                        result.add(pillarPosCopy);
                     } else {
 
                         if (result.size() >= minimumPillarHeight) {
 
                             alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> toVec3d(r)).toList());
                         }
-
+                        
                         result.clear();
                     }
                 }
@@ -526,13 +544,15 @@ public class FinderUtil {
             pos.north().west(),  // North-West
             pos.south().east(),  // South-East
             pos.south().west(),  // South-West
-    };
+        };
 
         for (BlockPos adjacentPos : surroundingPositions) {
 
             if (
-                !Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isSolidBlock(Constants.MC_CLIENT_INSTANCE.world, adjacentPos)
-                || isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())
+                isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())
+                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isAir()
+                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isOf(Blocks.WATER)
+                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isOf(Blocks.LAVA)
             ) {
 
                 return false;            

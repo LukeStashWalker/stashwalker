@@ -67,7 +67,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                     if (
                         FinderUtil.areAdjacentChunksLoaded(chunkX, chunkZ)
                         && FinderUtil.isDungeonWithChest(pos)
-                        && FinderUtil.isAlteredDungeon(pos)
+                        && FinderUtil.isHiddenAlteredDungeon(pos)
                     ) {
 
                         AlteredDungeon result = FinderUtil.getAlteredDungeonsBlocksWithPillars(pos);
@@ -96,19 +96,19 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
             List<AlteredDungeon> alteredDungeons = buffer.readBuffer();
 
             for (AlteredDungeon alteredDungeon : alteredDungeons) {
+                
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false);
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getPillarPositions(), featureColors.get(pillarColorKey).getKey(), false);
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false);
+
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true);
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true);
+                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true);
 
                 Color spawnerColor = featureColors.get(spawnerColorKey).getKey();
                 RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), spawnerColor.getRed(), spawnerColor.getGreen(),
                         spawnerColor.getBlue(),
                         spawnerColor.getAlpha(), false);
-                
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false);
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getPillarPositions(), featureColors.get(pillarColorKey).getKey(), false);
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false);
-
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true);
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true);
-                RenderUtil.drawVec3dBoxes(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true);
             }
         }
     }
