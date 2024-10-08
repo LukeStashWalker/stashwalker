@@ -7,7 +7,7 @@ import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
-import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -28,12 +28,12 @@ import net.minecraft.world.chunk.Chunk;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
 
-public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkLoadProcessor, Renderable  {
+public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Processor, ChunkLoadProcessor, Renderable  {
 
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
-    private final List<Pair<BlockPos, Color>> positionsTemp = Collections.synchronizedList(new ArrayList<>());
 
     {
 
@@ -107,17 +107,52 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    public void processPosition (BlockPos pos, int chunkX, int chunkZ) {
+    public void process() {
 
         if (this.enabled) {
 
-            if (this.isInterestingBlockPosition(pos, chunkX, chunkZ)) {
+            int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+            int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
-                String key = featureColorsKeyStart + "_"
-                        + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
-                                .getName().getString().replace(" ", "_");
-                this.positionsTemp.add(new Pair<BlockPos, Color>(pos, featureColors.get(key).getKey()));
+            int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+            int xStart = playerChunkPosX - playerRenderDistance;
+            int xEnd = playerChunkPosX + playerRenderDistance + 1;
+            int zStart = playerChunkPosZ - playerRenderDistance;
+            int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+            final List<Pair<BlockPos, Color>> positionsTemp = Collections.synchronizedList(new ArrayList<>());
+
+            for (int x = xStart; x < xEnd; x++) {
+
+                for (int z = zStart; z < zEnd; z++) {
+
+                    Chunk chunk = FinderUtil.getChunkEarly(x, z);
+
+                    if (chunk != null) {
+
+                        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                        if (blockPositions != null) {
+
+                            for (BlockPos pos : blockPositions) {
+
+                                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+                                if (World.OVERWORLD.equals(dimensionKey)) {
+
+                                    if (this.isInterestingBlockPosition(pos, x, z)) {
+
+                                        String key = featureColorsKeyStart + "_"
+                                                + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
+                                                        .getName().getString().replace(" ", "_");
+                                        positionsTemp
+                                                .add(new Pair<BlockPos, Color>(pos, featureColors.get(key).getKey()));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+
+            this.buffer.updateBuffer(positionsTemp);
         }
     }
 
@@ -143,17 +178,6 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
             }
         }
     }
-
-    @Override
-    public void update () {
-
-        if (this.enabled) {
-
-            this.buffer.updateBuffer(Collections.synchronizedList(positionsTemp));
-            this.positionsTemp.clear();
-        }
-    }
-
 
     @Override
     public void render (WorldRenderContext context) {

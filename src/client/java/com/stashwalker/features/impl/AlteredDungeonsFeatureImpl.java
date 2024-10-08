@@ -6,7 +6,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.models.AlteredDungeon;
 import com.stashwalker.utils.FinderUtil;
@@ -21,16 +21,17 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.Heightmap;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.ArrayList;
 
-public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Renderable  {
+public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements Processor, Renderable  {
 
     private final DoubleListBuffer<AlteredDungeon> buffer = new DoubleListBuffer<>();
-    private final List<AlteredDungeon> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
     private String spawnerColorKey;
     private String dungeonColorKey;
     private String chestColorKey;
@@ -63,36 +64,54 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     }
 
     @Override
-    public void processPosition (BlockPos pos, int chunkX, int chunkZ) {
+    public void process() {
 
         if (this.enabled) {
 
-                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
-                if (World.OVERWORLD.equals(dimensionKey)) {
+            int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+            int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
 
-                    if (
-                        FinderUtil.areAdjacentChunksLoaded(chunkX, chunkZ)
-                        && this.isSpawnerInDungeonWithChest(pos)
-                        && this.isHiddenAlteredDungeon(pos)
-                    ) {
+            int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+            int xStart = playerChunkPosX - playerRenderDistance;
+            int xEnd = playerChunkPosX + playerRenderDistance + 1;
+            int zStart = playerChunkPosZ - playerRenderDistance;
+            int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+            final List<AlteredDungeon> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
 
-                        AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
-                        dungeonsTemp.add(result);
+            for (int x = xStart; x < xEnd; x++) {
+
+                for (int z = zStart; z < zEnd; z++) {
+
+                    Chunk chunk = FinderUtil.getChunkEarly(x, z);
+
+                    if (chunk != null) {
+
+                        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                        if (blockPositions != null) {
+
+                            for (BlockPos pos : blockPositions) {
+
+                                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+                                if (World.OVERWORLD.equals(dimensionKey)) {
+
+                                    if (FinderUtil.areAdjacentChunksLoaded(x, z)
+                                            && this.isSpawnerInDungeonWithChest(pos)
+                                            && this.isHiddenAlteredDungeon(pos)
+                                    ) {
+
+                                        AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
+                                        dungeonsTemp.add(result);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            }
+
+            this.buffer.updateBuffer(dungeonsTemp);
         }
     }
-
-    @Override
-    public void update () {
-
-        if (this.enabled) {
-
-            this.buffer.updateBuffer(Collections.synchronizedList(this.dungeonsTemp));
-            this.dungeonsTemp.clear();
-        }
-    }
-
 
     @Override
     public void render (WorldRenderContext context) {
@@ -167,11 +186,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
-                    if (
-
-                        isDifferentFromSurroundingBlocks(pillarPos)
-                        && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
-                    ) {
+                    if (isDifferentFromSurroundingSolidBlocks(pillarPos)) {
 
                         result.add(new BlockPos(pillarPos));
 
@@ -183,7 +198,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                             if (
                                 FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
                                 || FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
-                                || isDifferentFromSurroundingBlocks(new BlockPos(x, topY + 1, z)) // Hole
+                                || isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
                             ) {
 
                                 return false;
@@ -220,11 +235,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
-                    if (
-                        // !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPosCopy).isAir()
-                        /*&&*/ isDifferentFromSurroundingBlocks(pillarPosCopy)
-                        && !FinderUtil.isBlockType(pillarPosCopy, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
-                    ) {
+                    if (isDifferentFromSurroundingSolidBlocks(pillarPosCopy)) {
 
                         result.add(pillarPosCopy);
 
@@ -286,7 +297,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         return alteredDungeon;
     }
 
-    private static boolean isDifferentFromSurroundingBlocks (BlockPos pos) {
+    private static boolean isDifferentFromSurroundingSolidBlocks (BlockPos pos) {
 
         BlockPos[] surroundingPositions = {
             pos.north(), 
@@ -303,9 +314,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
             if (
                 FinderUtil.isBlockType(pos, Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).getBlock())
-                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isAir()
-                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isOf(Blocks.WATER)
-                || Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isOf(Blocks.LAVA)
+                || !Constants.MC_CLIENT_INSTANCE.world.getBlockState(adjacentPos).isSolidBlock(Constants.MC_CLIENT_INSTANCE.world, adjacentPos)
             ) {
 
                 return false;            

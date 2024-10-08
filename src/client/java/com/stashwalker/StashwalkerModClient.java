@@ -41,22 +41,18 @@ import net.minecraft.client.world.ClientWorld;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.features.ChunkLoadProcessor;
-import com.stashwalker.features.ChunkScanProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.Processor;
-import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
-import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 @Environment(EnvType.CLIENT)
 public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 200;
-    private final ExecutorService processPositionsAndChunkScanThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
-    private final ExecutorService processThreadPool = Executors.newFixedThreadPool(3, new DaemonThreadFactory());
+    private final ExecutorService processThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
@@ -108,60 +104,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Constants.FEATURES.forEach(f -> f.clear());
             }
             previousWorld = dimensionKey;
-
-            this.processPositionsAndChunkScanThreadPool.submit(() -> {
-
-                int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-                int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
-
-                int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-                int xStart = playerChunkPosX - playerRenderDistance;
-                int xEnd = playerChunkPosX + playerRenderDistance + 1;
-                int zStart = playerChunkPosZ - playerRenderDistance;
-                int zEnd = playerChunkPosZ + playerRenderDistance + 1;
-
-                for (int x = xStart; x < xEnd; x++) {
-
-                    for (int z = zStart; z < zEnd; z++) {
-
-                        Chunk chunk = FinderUtil.getChunkEarly(x, z);
-
-                        if (chunk != null) {
-
-                            Constants.FEATURES.forEach(f -> {
-
-                                if (f instanceof ChunkScanProcessor) {
-
-                                    ((ChunkScanProcessor) f).processScannedChunk(chunk);
-                                }
-                            });
-
-                            Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                            if (blockPositions != null) {
-
-                                for (BlockPos pos : blockPositions) {
-
-                                    Constants.FEATURES.forEach(f -> {
-
-                                        if (f.isEnabled() && f instanceof PositionProcessor) {
-
-                                            ((PositionProcessor) f).processPosition(pos, playerChunkPosX, playerChunkPosZ);
-                                        }
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Constants.FEATURES.forEach(f -> {
-
-                    if (f instanceof PositionProcessor) {
-
-                        ((PositionProcessor) f).update();
-                    }
-                });
-            });
 
             this.processThreadPool.submit(() -> {
 
