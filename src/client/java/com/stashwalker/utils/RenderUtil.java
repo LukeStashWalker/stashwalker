@@ -68,7 +68,7 @@ public class RenderUtil {
 
         bufferBuilder
             .vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z)
-            .vertex(matrix4f, (float) relativeEnd.x, (float) relativeEnd.y, (float) end.z);
+            .vertex(matrix4f, (float) relativeEnd.x, (float) relativeEnd.y, (float) relativeEnd.z);
 
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
 
