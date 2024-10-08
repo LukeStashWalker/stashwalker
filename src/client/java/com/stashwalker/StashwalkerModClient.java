@@ -13,6 +13,9 @@ import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.text.Style;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;
@@ -45,7 +48,6 @@ import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
-import com.stashwalker.utils.FeatureUtil;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -299,7 +301,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 f.clear();
 
                 Constants.MESSAGES_BUFFER
-                        .add(FeatureUtil.createStyledTextForFeature(featureName, state));
+                        .add(this.createStyledTextForFeature(featureName, state));
             }
         });
     }
@@ -404,5 +406,20 @@ public class StashwalkerModClient implements ClientModInitializer {
                 GLFW.GLFW_KEY_0,
                 "category.stashwalker.keys"
         ));
+    }
+    
+    public Text createStyledTextForFeature (String featureName, boolean featureToggle) {
+
+                return Text.empty()
+                        .append(Text.literal("[")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal("Stashwalker, ")
+                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                        .append(Text.literal(featureName)
+                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                        .append(Text.literal("]:")
+                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                        .append(Text.literal(featureToggle ? " enabled" : " disabled")
+                                .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
     }
 }
