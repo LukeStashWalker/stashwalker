@@ -53,7 +53,7 @@ public class RenderUtil {
                 .add(Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos());
         start = new Vec3d(start.x - cameraPos.x, start.y - cameraPos.y, start.z - cameraPos.z);
 
-        end = end.subtract(cameraPos);
+        Vec3d relativeEnd = end.subtract(cameraPos);
 
         RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f); // Normalize colors
 
@@ -68,7 +68,7 @@ public class RenderUtil {
 
         bufferBuilder
             .vertex(matrix4f, (float) start.x, (float) start.y, (float) start.z)
-            .vertex(matrix4f, (float) end.x, (float) end.y, (float) end.z);
+            .vertex(matrix4f, (float) relativeEnd.x, (float) relativeEnd.y, (float) end.z);
 
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
 

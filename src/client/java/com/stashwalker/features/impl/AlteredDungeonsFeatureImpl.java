@@ -169,8 +169,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                     if (
 
-                        !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPos).isAir()
-                        && isDifferentFromSurroundingBlocks(pillarPos)
+                        isDifferentFromSurroundingBlocks(pillarPos)
                         && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
                     ) {
 
@@ -184,6 +183,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                             if (
                                 FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
                                 || FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
+                                || isDifferentFromSurroundingBlocks(new BlockPos(x, topY + 1, z)) // Hole
                             ) {
 
                                 return false;
@@ -221,12 +221,20 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
                     if (
-                        !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPosCopy).isAir()
-                        && isDifferentFromSurroundingBlocks(pillarPosCopy)
+                        // !Constants.MC_CLIENT_INSTANCE.world.getBlockState(pillarPosCopy).isAir()
+                        /*&&*/ isDifferentFromSurroundingBlocks(pillarPosCopy)
                         && !FinderUtil.isBlockType(pillarPosCopy, Blocks.MUDDY_MANGROVE_ROOTS) // Can give false positive
                     ) {
 
                         result.add(pillarPosCopy);
+
+                        if (
+                            pillarPosCopy.getY() == topY
+                            && result.size() >= minimumPillarHeight
+                        ) {
+
+                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> RenderUtil.toVec3d(r)).toList());
+                        }
                     } else {
 
                         if (result.size() >= minimumPillarHeight) {
