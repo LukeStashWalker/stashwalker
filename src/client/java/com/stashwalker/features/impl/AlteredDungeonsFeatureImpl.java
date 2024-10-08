@@ -186,7 +186,10 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
-                    if (isDifferentFromSurroundingSolidBlocks(pillarPos)) {
+                    if (
+                        isDifferentFromSurroundingSolidBlocks(pillarPos)
+                        && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
+                    ) {
 
                         result.add(new BlockPos(pillarPos));
 
@@ -199,6 +202,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                                 FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
                                 || FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
                                 || isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
+                                || topY <= (bottomPos.getY() + 5) // Deep hole or exposed Dungeon
                             ) {
 
                                 return false;
@@ -228,14 +232,17 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
             for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
 
-                int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z);
-                BlockPos startPos = new BlockPos(x, pos.getY(), z);
-                BlockPos endPos = new BlockPos(x, topY, z);
+                int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
+                BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
+                BlockPos topPos = new BlockPos(x, topY, z);
                 List<BlockPos> result = new ArrayList<>();
-                for (BlockPos pillarPos : BlockPos.iterate(startPos, endPos)) {
+                for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
-                    if (isDifferentFromSurroundingSolidBlocks(pillarPosCopy)) {
+                    if (
+                        isDifferentFromSurroundingSolidBlocks(pillarPosCopy)
+                        && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
+                    ) {
 
                         result.add(pillarPosCopy);
 
@@ -244,7 +251,16 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                             && result.size() >= minimumPillarHeight
                         ) {
 
-                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> RenderUtil.toVec3d(r)).toList());
+                            // Not trying to conceal
+                            if (
+                                !FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
+                                && !FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
+                                && !isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
+                                && !(topY <= (bottomPos.getY() + 5)) // Deep hole or exposed Dungeon
+                            ) {
+
+                                alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> RenderUtil.toVec3d(r)).toList());
+                            }
                         }
                     } else {
 
