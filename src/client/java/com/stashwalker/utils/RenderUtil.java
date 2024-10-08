@@ -22,6 +22,7 @@ import com.stashwalker.containers.ConcurrentBoundedSet;
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.RotationAxis;
@@ -32,7 +33,7 @@ import java.util.List;
 
 public class RenderUtil {
 
-    public static void drawLine (WorldRenderContext context, Vec3d end, int r, int g, int b, int alpha, boolean withSmallBox) {
+    public static void drawLine (WorldRenderContext context, Vec3d end, Color color, boolean withSmallBox) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
@@ -54,7 +55,7 @@ public class RenderUtil {
 
         end = end.subtract(cameraPos);
 
-        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f); // Normalize colors
+        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f); // Normalize colors
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -73,25 +74,25 @@ public class RenderUtil {
 
         end();
 
-        drawBlockSquare(context, end, r, g, b, alpha, withSmallBox);
+        drawBlockSquare(context, end, color, withSmallBox);
     }
 
-    public static void drawChunkSquare (
-        WorldRenderContext context, 
-        ConcurrentBoundedSet<ChunkPos> chunkPositions, 
-        int rectangleLevel,
-        int rectableHeight, 
-        int r, 
-        int g, 
-        int b, 
-        int alpha
+    public static void drawChunkSquares (
+            WorldRenderContext context,
+            ConcurrentBoundedSet<ChunkPos> chunkPositions,
+            int squareLevel,
+            int r,
+            int g,
+            int b,
+            int fillInAlpha
     ) {
 
         MatrixStack matrixStack = context.matrixStack();
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
 
-        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f);
+        // Step 1: Draw the outline (opaque)
+        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); // Opaque color
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -101,8 +102,6 @@ public class RenderUtil {
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
         BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
         RenderSystem.setShader(GameRenderer::getPositionProgram);
-
-        double topHeight = (rectangleLevel + rectableHeight) - cameraPos.y;
 
         boolean shouldDraw = false;
         for (ChunkPos pos : chunkPositions) {
@@ -113,56 +112,55 @@ public class RenderUtil {
             double endX = pos.getEndX() + 1 - cameraPos.x;
             double startZ = pos.getStartZ() - cameraPos.z;
             double endZ = pos.getEndZ() + 1 - cameraPos.z;
-            double bottomHeight = rectangleLevel - cameraPos.y;
+            double bottomHeight = squareLevel - cameraPos.y;
 
-            // Draw the base square around the chunk
+            // Draw the base square outline around the chunk (opaque)
             bufferBuilder
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
-
-                // Draw vertical lines from each corner to the top height
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
-                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ)
-
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
-
-                .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
-
-                .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
-
-                // Draw the top square at height 100
-                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
-
-                .vertex(matrix, (float) endX, (float) topHeight, (float) startZ)
-                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
-
-                .vertex(matrix, (float) endX, (float) topHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
-
-                .vertex(matrix, (float) startX, (float) topHeight, (float) endZ)
-                .vertex(matrix, (float) startX, (float) topHeight, (float) startZ);
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ)
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ);
         }
 
+        if (shouldDraw) {
+            BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+        }
+
+        // Step 2: Draw the fill
+        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, fillInAlpha / 255.0f); // Use alpha for transparency
+        GL11.glDisable(GL11.GL_CULL_FACE); // Disable face culling to ensure both sides of the fill are rendered
+        bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+
+        for (ChunkPos pos : chunkPositions) {
+
+            shouldDraw = true;
+
+            double startX = pos.getStartX() - cameraPos.x;
+            double endX = pos.getEndX() + 1 - cameraPos.x;
+            double startZ = pos.getStartZ() - cameraPos.z;
+            double endZ = pos.getEndZ() + 1 - cameraPos.z;
+            double bottomHeight = squareLevel - cameraPos.y;
+
+            // Draw the filled square inside the chunk (50% transparent)
+            bufferBuilder
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
+                    .vertex(matrix, (float) endX, (float) bottomHeight, (float) endZ)
+                    .vertex(matrix, (float) startX, (float) bottomHeight, (float) endZ);
+        }
 
         if (shouldDraw) {
-
             BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-        } 
-        
+        }
+
         end();
     }
 
-    public static void drawVec3dBoxes (WorldRenderContext context, List<Vec3d> vec3ds, Color color, boolean withSmallBox) {
+    public static void drawBlockSquares (WorldRenderContext context, List<Vec3d> vec3ds, Color color, boolean withSmallBox) {
 
         vec3ds.forEach(v -> {
 
@@ -170,38 +168,24 @@ public class RenderUtil {
         });
     }
 
-    public static void drawBlockSquare (WorldRenderContext context, Vec3d newBlockPos, Color color, boolean withSmallBox) {
+    public static void drawBlockSquare (WorldRenderContext context, Vec3d vec3d, Color color, boolean withSmallBox) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
-        newBlockPos = newBlockPos.subtract(cameraPos);
-        RenderUtil.drawBlockSquare(context, newBlockPos, color.getRed(), color.getGreen(), color.getBlue(),
-            color.getAlpha(), withSmallBox);
-    }
-
-    private static void drawBlockSquare (
-            WorldRenderContext context,
-            Vec3d vec3d,
-            int r,
-            int g,
-            int b,
-            int alpha,
-            boolean withSmallBox
-    ) {
-
+        vec3d = vec3d.subtract(cameraPos);
         MatrixStack matrixStack = context.matrixStack();
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
-
-        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, alpha / 255.0f);
-
+        
+        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f);
+        
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glLineWidth(1.0f);
-
+        
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
         BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
         RenderSystem.setShader(GameRenderer::getPositionProgram);
-
+        
         double startX;
         double endX;
         double startZ;
@@ -209,7 +193,7 @@ public class RenderUtil {
         double startY;
         double endY;
         if (withSmallBox) {
-
+        
             startX = vec3d.x - 0.1D;
             endX = vec3d.x + 0.1D;
             startZ = vec3d.z - 0.1D;
@@ -217,7 +201,7 @@ public class RenderUtil {
             startY = vec3d.y - 0.1D;
             endY = vec3d.y + 0.1D;
         } else {
-
+        
             startX = vec3d.x - 0.5D;
             endX = vec3d.x + 0.5D;
             startZ = vec3d.z - 0.5D;
@@ -225,7 +209,7 @@ public class RenderUtil {
             startY = vec3d.y - 0.5D;
             endY = vec3d.y + 0.5D;
         }
-
+        
         bufferBuilder
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) startY, (float) startZ)
@@ -235,35 +219,35 @@ public class RenderUtil {
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
-
+        
                 // Draw vertical lines from each corner to the top height
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ)
-
+        
                 .vertex(matrix, (float) endX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
-
+        
                 .vertex(matrix, (float) endX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
-
+        
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
-
+        
                 // Draw the top square at height 100
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
-
+        
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
-
+        
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
-
+        
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ);
-
+        
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-
+        
         end();
     }
 
@@ -312,5 +296,10 @@ public class RenderUtil {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 
         RenderSystem.setShader(() -> null); // Reset shader to allow for cleanup
+    }
+
+    public static Vec3d toVec3d (BlockPos pos) {
+
+        return new Vec3d(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
     }
 }

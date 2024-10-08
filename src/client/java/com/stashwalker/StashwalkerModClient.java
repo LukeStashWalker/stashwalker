@@ -45,6 +45,7 @@ import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
+import com.stashwalker.utils.FeatureUtil;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -298,7 +299,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 f.clear();
 
                 Constants.MESSAGES_BUFFER
-                        .add(FinderUtil.createStyledTextForFeature(featureName, state));
+                        .add(FeatureUtil.createStyledTextForFeature(featureName, state));
             }
         });
     }
