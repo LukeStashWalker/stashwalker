@@ -13,6 +13,7 @@ import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.SpiderEntity;
@@ -144,10 +145,11 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public boolean isSpawnerInDungeonWithChest (BlockPos pos) {
 
-        boolean chestFound = false;
-        boolean mossyCobbleFound = false;
         if (FinderUtil.isBlockType(pos, Blocks.SPAWNER)) {
 
+            boolean mossyCobbleFound = false;
+            boolean cobbleFound = false;
+            boolean chestFound = false;
             int dungeonSearchRadius = 4;
             BlockPos startPos = new BlockPos(pos.getX() - dungeonSearchRadius, pos.getY() - 1, pos.getZ() - dungeonSearchRadius);
             BlockPos endPos = new BlockPos(pos.getX() + dungeonSearchRadius, pos.getY(), pos.getZ() + dungeonSearchRadius);
@@ -156,12 +158,15 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 if (FinderUtil.isBlockType(p, Blocks.MOSSY_COBBLESTONE)) {
 
                     mossyCobbleFound = true;
+                } else if (FinderUtil.isBlockType(p, Blocks.COBBLESTONE)) {
+
+                    cobbleFound = true;
                 } else if (FinderUtil.isBlockType(p, Blocks.CHEST)) {
 
                     chestFound = true;
                 }
 
-                if (chestFound && mossyCobbleFound) {
+                if (mossyCobbleFound && cobbleFound && chestFound) {
 
                     return true;
                 }
@@ -186,12 +191,13 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
+                    BlockPos pillarPosCopy = new BlockPos(pillarPos);
                     if (
-                        isDifferentFromSurroundingSolidBlocks(pillarPos)
-                        && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
+                        isDifferentFromSurroundingSolidBlocks(pillarPosCopy)
+                        && !isFalsePositive(pillarPosCopy)
                     ) {
 
-                        result.add(new BlockPos(pillarPos));
+                        result.add(pillarPosCopy);
 
                         if (
                             result.size() >= minimumPillarHeight
@@ -199,9 +205,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                             // Not trying to conceal
                             if (
-                                FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
-                                || FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
-                                || isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
+                                isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
                                 || topY <= (bottomPos.getY() + 5) // Deep hole or exposed Dungeon
                             ) {
 
@@ -241,7 +245,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
                     if (
                         isDifferentFromSurroundingSolidBlocks(pillarPosCopy)
-                        && !FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
+                        && !isFalsePositive(pillarPos)
                     ) {
 
                         result.add(pillarPosCopy);
@@ -253,9 +257,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                             // Not trying to conceal
                             if (
-                                !FinderUtil.isBlockType(topPos, Blocks.NETHERRACK)
-                                && !FinderUtil.isBlockType(topPos, Blocks.OBSIDIAN)
-                                && !isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
+                                !isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
                                 && !(topY <= (bottomPos.getY() + 5)) // Deep hole or exposed Dungeon
                             ) {
 
@@ -313,7 +315,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         return alteredDungeon;
     }
 
-    private static boolean isDifferentFromSurroundingSolidBlocks (BlockPos pos) {
+    private boolean isDifferentFromSurroundingSolidBlocks (BlockPos pos) {
 
         BlockPos[] surroundingPositions = {
             pos.north(), 
@@ -338,5 +340,52 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         }
 
         return true;    
+    }
+
+    private boolean isSurroundedByCombination (BlockPos pos, Block... blocks) {
+
+        BlockPos[] surroundingPositions = {
+            pos.north(), 
+            pos.south(), 
+            pos.east(), 
+            pos.west(),
+            pos.north().east(),  // North-East
+            pos.north().west(),  // North-West
+            pos.south().east(),  // South-East
+            pos.south().west(),  // South-West
+        };
+
+        for (BlockPos adjacentPos : surroundingPositions) {
+
+            boolean match = false;
+            for (Block block: blocks) {
+
+                if (FinderUtil.isBlockType(adjacentPos, block)) {
+
+                    match = true;
+                    break;
+                }
+            }
+
+            if (!match) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+    
+    private boolean isFalsePositive (BlockPos pillarPos) {
+        
+        return 
+            FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
+            || (FinderUtil.isBlockType(pillarPos, Blocks.STONE) && isSurroundedByCombination(pillarPos, Blocks.SAND, Blocks.SANDSTONE));
+    }
+
+    private boolean isTopInHole (int topY, BlockPos bottomPos, int x, int z) {
+
+        return isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
+        || (topY <= (bottomPos.getY() + 5)); // Deep hole or exposed Dungeon
     }
 }
