@@ -6,7 +6,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.Processor;
+import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.models.AlteredDungeon;
 import com.stashwalker.utils.FinderUtil;
@@ -24,16 +24,18 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.Heightmap;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 import java.util.ArrayList;
 
-public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements Processor, Renderable  {
+public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Renderable  {
 
+    private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<AlteredDungeon> buffer = new DoubleListBuffer<>();
     private String spawnerColorKey;
     private String dungeonColorKey;
@@ -69,53 +71,35 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     }
 
     @Override
-    public void process() {
+    public void process (BlockPos pos, UUID callIdentifier) {
 
-        if (this.enabled) {
+        if (enabled) {
 
-            int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-            int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+            if (!this.dungeonsTempMap.containsKey(callIdentifier)) {
 
-            int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-            int xStart = playerChunkPosX - playerRenderDistance;
-            int xEnd = playerChunkPosX + playerRenderDistance + 1;
-            int zStart = playerChunkPosZ - playerRenderDistance;
-            int zEnd = playerChunkPosZ + playerRenderDistance + 1;
-            final List<AlteredDungeon> dungeonsTemp = Collections.synchronizedList(new ArrayList<>());
+                this.dungeonsTempMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
+            } 
 
-            for (int x = xStart; x < xEnd; x++) {
+            RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
+            if (World.OVERWORLD.equals(dimensionKey)) {
 
-                for (int z = zStart; z < zEnd; z++) {
+                if (
+                    this.isSpawnerInDungeonWithChest(pos)
+                    && this.isHiddenAlteredDungeon(pos)
+                ) {
 
-                    Chunk chunk = FinderUtil.getChunkEarly(x, z);
-
-                    if (chunk != null) {
-
-                        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                        if (blockPositions != null) {
-
-                            for (BlockPos pos : blockPositions) {
-
-                                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
-                                if (World.OVERWORLD.equals(dimensionKey)) {
-
-                                    if (FinderUtil.areAdjacentChunksLoaded(x, z)
-                                            && this.isSpawnerInDungeonWithChest(pos)
-                                            && this.isHiddenAlteredDungeon(pos)
-                                    ) {
-
-                                        AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
-                                        dungeonsTemp.add(result);
-                                    }
-                                }
-                            }
-                        }
-                    }
+                    AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
+                    this.dungeonsTempMap.get(callIdentifier).add(result);
                 }
             }
-
-            this.buffer.updateBuffer(dungeonsTemp);
         }
+    }
+
+    @Override
+    public void update (UUID callIdentifier) {
+
+        this.buffer.updateBuffer(this.dungeonsTempMap.get(callIdentifier));
+        this.dungeonsTempMap.remove(callIdentifier);
     }
 
     @Override

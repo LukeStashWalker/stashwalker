@@ -7,7 +7,7 @@ import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
-import com.stashwalker.features.Processor;
+import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -27,12 +27,15 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 import java.util.ArrayList;
 
-public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Processor, ChunkLoadProcessor, Renderable  {
+public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkLoadProcessor, Renderable  {
 
+    private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
 
     {
@@ -107,53 +110,31 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
     }
 
     @Override
-    public void process() {
+    public void process (BlockPos pos, UUID callIdentifier) {
 
-        if (this.enabled) {
+        if (enabled) {
 
-            int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
-            int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+            if (!this.positionsTempMap.containsKey(callIdentifier)) {
 
-            int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-            int xStart = playerChunkPosX - playerRenderDistance;
-            int xEnd = playerChunkPosX + playerRenderDistance + 1;
-            int zStart = playerChunkPosZ - playerRenderDistance;
-            int zEnd = playerChunkPosZ + playerRenderDistance + 1;
-            final List<Pair<BlockPos, Color>> positionsTemp = Collections.synchronizedList(new ArrayList<>());
+                this.positionsTempMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
+            } 
 
-            for (int x = xStart; x < xEnd; x++) {
+            if (this.isInterestingBlockPosition(pos)) {
 
-                for (int z = zStart; z < zEnd; z++) {
-
-                    Chunk chunk = FinderUtil.getChunkEarly(x, z);
-
-                    if (chunk != null) {
-
-                        Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
-                        if (blockPositions != null) {
-
-                            for (BlockPos pos : blockPositions) {
-
-                                RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
-                                if (World.OVERWORLD.equals(dimensionKey)) {
-
-                                    if (this.isInterestingBlockPosition(pos, x, z)) {
-
-                                        String key = featureColorsKeyStart + "_"
-                                                + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
-                                                        .getName().getString().replace(" ", "_");
-                                        positionsTemp
-                                                .add(new Pair<BlockPos, Color>(pos, featureColors.get(key).getKey()));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                String key = featureColorsKeyStart + "_"
+                    + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
+                    .getName().getString().replace(" ", "_");
+                this.positionsTempMap.get(callIdentifier)
+                    .add(new Pair<BlockPos, Color>(pos, featureColors.get(key).getKey()));
             }
-
-            this.buffer.updateBuffer(positionsTemp);
         }
+    }
+
+    @Override
+    public void update (UUID callIdentifier) {
+
+        this.buffer.updateBuffer(this.positionsTempMap.get(callIdentifier));
+        this.positionsTempMap.remove(callIdentifier);
     }
 
     @Override
@@ -209,22 +190,20 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    public boolean isInterestingBlockPosition (BlockPos pos, int chunkX, int chunkZ) {
+    public boolean isInterestingBlockPosition(BlockPos pos) {
 
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
         if (
 
-                FinderUtil.isBlockType(pos, Blocks.BARREL)
+        FinderUtil.isBlockType(pos, Blocks.BARREL)
 
                 ||
 
-                (FinderUtil.areAdjacentChunksLoaded(chunkX, chunkZ)
-                        &&
-                        (FinderUtil.isDoubleChest(world, pos)
-                                && (
-                                // Not a Dungeon
-                                !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                        && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER))))
+                (FinderUtil.isDoubleChest(world, pos)
+                        && (
+                        // Not a Dungeon
+                        !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                                && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)))
 
                 || FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)

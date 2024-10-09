@@ -16,12 +16,15 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
 import net.minecraft.world.World;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents.EndTick;
@@ -39,10 +42,12 @@ import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.Feature;
+import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
+import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 @Environment(EnvType.CLIENT)
@@ -50,6 +55,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 200;
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
+    private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
@@ -109,6 +115,56 @@ public class StashwalkerModClient implements ClientModInitializer {
                     if (f instanceof Processor) {
 
                         ((Processor) f).process();
+                    }
+                });
+            });
+
+            this.positionsProcessThreadPool.submit(() -> {
+
+                final UUID callIdentifier = UUID.randomUUID();
+
+                final int playerChunkPosX = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().x;
+                final int playerChunkPosZ = Constants.MC_CLIENT_INSTANCE.player.getChunkPos().z;
+
+                final int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+                final int xStart = playerChunkPosX - playerRenderDistance;
+                final int xEnd = playerChunkPosX + playerRenderDistance + 1;
+                final int zStart = playerChunkPosZ - playerRenderDistance;
+                final int zEnd = playerChunkPosZ + playerRenderDistance + 1;
+
+                for (int x = xStart; x < xEnd; x++) {
+
+                    for (int z = zStart; z < zEnd; z++) {
+
+                        final Chunk chunk = FinderUtil.getChunkEarly(x, z);
+                        if (
+                            chunk != null
+                            && FinderUtil.areAdjacentChunksLoaded(x, z)
+                        ) {
+
+                            Set<BlockPos> blockPositions = chunk.getBlockEntityPositions();
+                            if (blockPositions != null) {
+
+                                for (BlockPos pos : blockPositions) {
+
+                                    Constants.FEATURES.forEach(f -> {
+
+                                        if (f instanceof PositionProcessor) {
+
+                                            ((PositionProcessor) f).process(pos, callIdentifier);
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Constants.FEATURES.forEach(f -> {
+
+                    if (f instanceof PositionProcessor) {
+
+                        ((PositionProcessor) f).update(callIdentifier);
                     }
                 });
             });
