@@ -197,7 +197,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Proc
                             blockPos.getZ() + 0.5D
                     );
 
-                    RenderUtil.drawLine(context, newBlockPos, color, false);
+                    RenderUtil.drawLine(context, newBlockPos, color, false, false);
                 }
             }
         }

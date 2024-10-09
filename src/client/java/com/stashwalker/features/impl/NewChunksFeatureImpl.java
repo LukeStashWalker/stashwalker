@@ -63,7 +63,8 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
                             color.getRed(),
                             color.getGreen(),
                             color.getBlue(),
-                            50
+                            50,
+                            false
                     );
         }
     }

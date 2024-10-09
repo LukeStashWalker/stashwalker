@@ -12,8 +12,9 @@ This mod is open source, you can check the code yourself. This mod has been test
     - llama's and donkeys that have chests
     - elytra item
     - enchanted gapp item
-    - diamond/netherite armor item
-    - diamond/netherite tool item
+    - enchanted diamond/netherite armor item
+    - enchanted diamond/netherite tool item
+    - enchanted diamond/netherite weapon item
     - xp bottle item
     - totem item
     - item frame

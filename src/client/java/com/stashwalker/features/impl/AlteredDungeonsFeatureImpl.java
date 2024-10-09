@@ -13,7 +13,6 @@ import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
@@ -43,6 +42,8 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     private String spiderColorKey;
     private String skeletonColorKey;
     private String zombieColorKey;
+    private int minimumPillarHeight = 8;
+    private int horizontalSearchRadius = 10;
 
     {
 
@@ -126,20 +127,20 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
             for (AlteredDungeon alteredDungeon : alteredDungeons) {
                 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false);
+                RenderUtil.drawBlockSquares(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false, false);
 
                 for (Pair<Vec3d, Color> pair: alteredDungeon.getPillarPositions()) {
 
-                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false);
+                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false, false);
                 }
 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false);
+                RenderUtil.drawBlockSquares(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false, false);
 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true);
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true);
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true);
+                RenderUtil.drawBlockSquares(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true, false);
+                RenderUtil.drawBlockSquares(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true, false);
+                RenderUtil.drawBlockSquares(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true, false);
 
-                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), featureColors.get(spawnerColorKey).getKey(), false);
+                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), featureColors.get(spawnerColorKey).getKey(), false, false);
             }
         }
     }
@@ -185,12 +186,9 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public boolean isHiddenAlteredDungeon (BlockPos pos) {
 
-        final int horizontalSearchRadius = 10;
-        final int minimumPillarHeight = 10;
+        for (int x = pos.getX() - this.horizontalSearchRadius; x <= pos.getX() + this.horizontalSearchRadius; x++) {
 
-        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
-
-            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - this.horizontalSearchRadius; z <= pos.getZ() + this.horizontalSearchRadius; z++) {
 
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
@@ -204,7 +202,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                         result.add(pillarPosCopy);
 
                         if (
-                            result.size() >= minimumPillarHeight
+                            result.size() >= this.minimumPillarHeight
                         ) {
 
                             return true;
@@ -222,14 +220,12 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
 
-        final int horizontalSearchRadius = 10;
-        final int minimumPillarHeight = 10;
         final AlteredDungeon alteredDungeon = new AlteredDungeon();
 
         // Add the pillar positions
-        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
+        for (int x = pos.getX() - this.horizontalSearchRadius; x <= pos.getX() + this.horizontalSearchRadius; x++) {
 
-            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - this.horizontalSearchRadius; z <= pos.getZ() + this.horizontalSearchRadius; z++) {
 
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
@@ -244,14 +240,14 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                         if (
                             pillarPosCopy.getY() == topY
-                            && result.size() >= minimumPillarHeight
+                            && result.size() >= this.minimumPillarHeight
                         ) {
 
                             alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
                     } else {
 
-                        if (result.size() >= minimumPillarHeight) {
+                        if (result.size() >= this.minimumPillarHeight) {
 
                             alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
