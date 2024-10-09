@@ -20,6 +20,7 @@ import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.ElytraItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
@@ -93,7 +94,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     }
 
     public List<Entity> findEntities () {
-        
+
         int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
         double renderDistanceInBlocks = playerRenderDistance * 16; // Convert render distance to blocks
         Vec3d playerPos = Constants.MC_CLIENT_INSTANCE.player.getPos();
@@ -116,10 +117,36 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                         ItemEntity itemEntity = (ItemEntity) e;
                         ItemStack itemStack = itemEntity.getStack();
 
-                        if (isEnchantedDiamondOrNetherite(itemStack)) {
+                        if (
+                            isEnchantedDiamondOrNetherite(itemStack)
+
+                            || itemStack.getItem() == Items.ELYTRA
+                            || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+                            || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+                            || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+                            || itemStack.getItem() == Items.END_CRYSTAL
+
+                            || itemStack.getItem() == Items.SHULKER_BOX
+                            || itemStack.getItem() == Items.WHITE_SHULKER_BOX
+                            || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
+                            || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
+                            || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
+                            || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
+                            || itemStack.getItem() == Items.LIME_SHULKER_BOX
+                            || itemStack.getItem() == Items.PINK_SHULKER_BOX
+                            || itemStack.getItem() == Items.GRAY_SHULKER_BOX
+                            || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
+                            || itemStack.getItem() == Items.CYAN_SHULKER_BOX
+                            || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
+                            || itemStack.getItem() == Items.BLUE_SHULKER_BOX
+                            || itemStack.getItem() == Items.BROWN_SHULKER_BOX
+                            || itemStack.getItem() == Items.GREEN_SHULKER_BOX
+                            || itemStack.getItem() == Items.RED_SHULKER_BOX
+                            || itemStack.getItem() == Items.BLACK_SHULKER_BOX
+                        ) {
 
                             return true;
-                        }
+                        } 
 
                     } else if (
                         (
@@ -161,9 +188,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
 private boolean isEnchantedDiamondOrNetherite(ItemStack itemStack) {
 
-    // Check if the item is diamond or netherite armor, weapon, or tool
-    if (itemStack.hasEnchantments()) { // Check for enchantments first
+    if (itemStack.hasEnchantments()) {
+
         if (itemStack.getItem() instanceof ArmorItem) {
+
             return (itemStack.getItem() == Items.DIAMOND_BOOTS ||
                     itemStack.getItem() == Items.DIAMOND_CHESTPLATE ||
                     itemStack.getItem() == Items.DIAMOND_HELMET ||
@@ -173,6 +201,7 @@ private boolean isEnchantedDiamondOrNetherite(ItemStack itemStack) {
                             itemStack.getItem() == Items.NETHERITE_HELMET ||
                             itemStack.getItem() == Items.NETHERITE_LEGGINGS);
         } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
+
             return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||
                     itemStack.getItem() == Items.DIAMOND_AXE ||
                     itemStack.getItem() == Items.DIAMOND_SHOVEL ||
@@ -184,7 +213,7 @@ private boolean isEnchantedDiamondOrNetherite(ItemStack itemStack) {
         }
     }
 
-    return false; // Return false if not an enchanted diamond or netherite item
+    return false;
 }
 
 
