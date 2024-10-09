@@ -20,7 +20,6 @@ import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ElytraItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
@@ -186,7 +185,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         return entities;
     }
 
-private boolean isEnchantedDiamondOrNetherite(ItemStack itemStack) {
+private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
 
     if (itemStack.hasEnchantments()) {
 

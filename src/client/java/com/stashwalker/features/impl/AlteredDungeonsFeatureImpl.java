@@ -42,7 +42,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     private String spiderColorKey;
     private String skeletonColorKey;
     private String zombieColorKey;
-    private int minimumPillarHeight = 8;
+    private int minimumPillarHeight = 10;
     private int horizontalSearchRadius = 10;
 
     {
