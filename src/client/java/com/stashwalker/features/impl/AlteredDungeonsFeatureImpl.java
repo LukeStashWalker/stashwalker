@@ -14,13 +14,16 @@ import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.MapColor;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.Heightmap;
@@ -36,7 +39,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     private String spawnerColorKey;
     private String dungeonColorKey;
     private String chestColorKey;
-    private String pillarColorKey;
+    private String pillarDefaultColorKey;
     private String spiderColorKey;
     private String skeletonColorKey;
     private String zombieColorKey;
@@ -48,7 +51,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         this.spawnerColorKey = this.featureColorsKeyStart + "_Spawner";
         this.dungeonColorKey = this.featureColorsKeyStart + "_Dungeon";
         this.chestColorKey = this.featureColorsKeyStart + "_Chest";
-        this.pillarColorKey = this.featureColorsKeyStart + "_Pillar";
+        this.pillarDefaultColorKey = this.featureColorsKeyStart + "_PillarDefault";
 
         this.spiderColorKey = this.featureColorsKeyStart + "_Spider";
         this.skeletonColorKey = this.featureColorsKeyStart + "_Skeleton";
@@ -57,7 +60,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         this.featureColors.put(spawnerColorKey, new Pair<>(Color.BLUE, Color.BLUE));
         this.featureColors.put(dungeonColorKey, new Pair<>(Color.GRAY, Color.GRAY));
         this.featureColors.put(chestColorKey, new Pair<>(Color.YELLOW, Color.YELLOW));
-        this.featureColors.put(pillarColorKey, new Pair<>(Color.RED, Color.RED));
+        this.featureColors.put(pillarDefaultColorKey, new Pair<>(Color.RED, Color.RED));
 
         this.featureColors.put(spiderColorKey, new Pair<>(Color.RED, Color.RED));
         this.featureColors.put(skeletonColorKey, new Pair<>(Color.RED, Color.RED));
@@ -124,15 +127,19 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
             for (AlteredDungeon alteredDungeon : alteredDungeons) {
                 
                 RenderUtil.drawBlockSquares(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false);
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getPillarPositions(), featureColors.get(pillarColorKey).getKey(), false);
+
+                for (Pair<Vec3d, Color> pair: alteredDungeon.getPillarPositions()) {
+
+                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false);
+                }
+
                 RenderUtil.drawBlockSquares(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false);
 
                 RenderUtil.drawBlockSquares(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true);
                 RenderUtil.drawBlockSquares(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true);
                 RenderUtil.drawBlockSquares(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true);
 
-                Color spawnerColor = featureColors.get(spawnerColorKey).getKey();
-                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), spawnerColor, false);
+                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), featureColors.get(spawnerColorKey).getKey(), false);
             }
         }
     }
@@ -179,7 +186,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     public boolean isHiddenAlteredDungeon (BlockPos pos) {
 
         final int horizontalSearchRadius = 10;
-        final int minimumPillarHeight = 5;
+        final int minimumPillarHeight = 10;
 
         for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
 
@@ -192,25 +199,13 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
-                    if (
-                        isDifferentFromSurroundingSolidBlocks(pillarPosCopy)
-                        && !isFalsePositive(pillarPosCopy)
-                    ) {
+                    if (isDifferentFromSurroundingSolidBlocks(pillarPosCopy)) {
 
                         result.add(pillarPosCopy);
 
                         if (
                             result.size() >= minimumPillarHeight
                         ) {
-
-                            // Not trying to conceal
-                            if (
-                                isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
-                                || topY <= (bottomPos.getY() + 5) // Deep hole or exposed Dungeon
-                            ) {
-
-                                return false;
-                            }
 
                             return true;
                         }
@@ -228,7 +223,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     public AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
 
         final int horizontalSearchRadius = 10;
-        final int minimumPillarHeight = 5;
+        final int minimumPillarHeight = 10;
         final AlteredDungeon alteredDungeon = new AlteredDungeon();
 
         // Add the pillar positions
@@ -243,10 +238,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
-                    if (
-                        isDifferentFromSurroundingSolidBlocks(pillarPosCopy)
-                        && !isFalsePositive(pillarPos)
-                    ) {
+                    if (isDifferentFromSurroundingSolidBlocks(pillarPosCopy)) {
 
                         result.add(pillarPosCopy);
 
@@ -255,20 +247,13 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                             && result.size() >= minimumPillarHeight
                         ) {
 
-                            // Not trying to conceal
-                            if (
-                                !isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
-                                && !(topY <= (bottomPos.getY() + 5)) // Deep hole or exposed Dungeon
-                            ) {
-
-                                alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> RenderUtil.toVec3d(r)).toList());
-                            }
+                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
                     } else {
 
                         if (result.size() >= minimumPillarHeight) {
 
-                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> RenderUtil.toVec3d(r)).toList());
+                            alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
                         
                         result.clear();
@@ -342,50 +327,16 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         return true;    
     }
 
-    private boolean isSurroundedByCombination (BlockPos pos, Block... blocks) {
+    private Color getBlockPosColor (BlockPos pos) {
 
-        BlockPos[] surroundingPositions = {
-            pos.north(), 
-            pos.south(), 
-            pos.east(), 
-            pos.west(),
-            pos.north().east(),  // North-East
-            pos.north().west(),  // North-West
-            pos.south().east(),  // South-East
-            pos.south().west(),  // South-West
-        };
+        BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
+        MapColor mapColor = blockState.getMapColor(Constants.MC_CLIENT_INSTANCE.world, pos);
+        if (mapColor != null) {
 
-        for (BlockPos adjacentPos : surroundingPositions) {
+            return new Color(mapColor.color);
+        } else {
 
-            boolean match = false;
-            for (Block block: blocks) {
-
-                if (FinderUtil.isBlockType(adjacentPos, block)) {
-
-                    match = true;
-                    break;
-                }
-            }
-
-            if (!match) {
-
-                return false;
-            }
+            return this.featureColors.get(dungeonColorKey).getKey();
         }
-
-        return true;
-    }
-    
-    private boolean isFalsePositive (BlockPos pillarPos) {
-        
-        return 
-            FinderUtil.isBlockType(pillarPos, Blocks.MUDDY_MANGROVE_ROOTS)
-            || (FinderUtil.isBlockType(pillarPos, Blocks.STONE) && isSurroundedByCombination(pillarPos, Blocks.SAND, Blocks.SANDSTONE));
-    }
-
-    private boolean isTopInHole (int topY, BlockPos bottomPos, int x, int z) {
-
-        return isDifferentFromSurroundingSolidBlocks(new BlockPos(x, topY + 1, z)) // Hole
-        || (topY <= (bottomPos.getY() + 5)); // Deep hole or exposed Dungeon
     }
 }

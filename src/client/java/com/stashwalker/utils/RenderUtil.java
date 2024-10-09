@@ -168,24 +168,26 @@ public class RenderUtil {
         });
     }
 
-    public static void drawBlockSquare (WorldRenderContext context, Vec3d vec3d, Color color, boolean withSmallBox) {
+    public static void drawBlockSquare(WorldRenderContext context, Vec3d vec3d, Color color, boolean withSmallBox) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         vec3d = vec3d.subtract(cameraPos);
         MatrixStack matrixStack = context.matrixStack();
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
-        
-        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f);
-        
+
+        // First pass: Draw the lines
+        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f,
+                color.getAlpha() / 255.0f);
+
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
         GL11.glEnable(GL11.GL_LINE_SMOOTH);
         GL11.glLineWidth(1.0f);
-        
+
         Tessellator tessellator = RenderSystem.renderThreadTesselator();
         BufferBuilder bufferBuilder = tessellator.begin(VertexFormat.DrawMode.DEBUG_LINES, VertexFormats.POSITION);
         RenderSystem.setShader(GameRenderer::getPositionProgram);
-        
+
         double startX;
         double endX;
         double startZ;
@@ -193,7 +195,6 @@ public class RenderUtil {
         double startY;
         double endY;
         if (withSmallBox) {
-        
             startX = vec3d.x - 0.1D;
             endX = vec3d.x + 0.1D;
             startZ = vec3d.z - 0.1D;
@@ -201,7 +202,6 @@ public class RenderUtil {
             startY = vec3d.y - 0.1D;
             endY = vec3d.y + 0.1D;
         } else {
-        
             startX = vec3d.x - 0.5D;
             endX = vec3d.x + 0.5D;
             startZ = vec3d.z - 0.5D;
@@ -209,7 +209,8 @@ public class RenderUtil {
             startY = vec3d.y - 0.5D;
             endY = vec3d.y + 0.5D;
         }
-        
+
+        // Draw lines for the block square
         bufferBuilder
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) startY, (float) startZ)
@@ -219,37 +220,78 @@ public class RenderUtil {
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
-        
-                // Draw vertical lines from each corner to the top height
+
+                // Vertical lines
                 .vertex(matrix, (float) startX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ)
-        
                 .vertex(matrix, (float) endX, (float) startY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
-        
                 .vertex(matrix, (float) endX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
-        
                 .vertex(matrix, (float) startX, (float) startY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
-        
-                // Draw the top square at height 100
+
+                // Top square
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
-        
                 .vertex(matrix, (float) endX, (float) endY, (float) startZ)
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
-        
                 .vertex(matrix, (float) endX, (float) endY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
-        
                 .vertex(matrix, (float) startX, (float) endY, (float) endZ)
                 .vertex(matrix, (float) startX, (float) endY, (float) startZ);
-        
+
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
-        
+
+        // Second pass: Fill the sides with 20% alpha transparency
+        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, 0.2f); // 20%
+                                                                                                                         // alpha
+        GL11.glDisable(GL11.GL_CULL_FACE); // Render both sides of the quads
+        bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
+
+        // Fill the sides
+        bufferBuilder
+                // Front face
+                .vertex(matrix, (float) startX, (float) startY, (float) startZ)
+                .vertex(matrix, (float) startX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) startY, (float) startZ)
+
+                // Back face
+                .vertex(matrix, (float) startX, (float) startY, (float) endZ)
+                .vertex(matrix, (float) startX, (float) endY, (float) endZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) endZ)
+                .vertex(matrix, (float) endX, (float) startY, (float) endZ)
+
+                // Left face
+                .vertex(matrix, (float) startX, (float) startY, (float) startZ)
+                .vertex(matrix, (float) startX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) startX, (float) endY, (float) endZ)
+                .vertex(matrix, (float) startX, (float) startY, (float) endZ)
+
+                // Right face
+                .vertex(matrix, (float) endX, (float) startY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) endZ)
+                .vertex(matrix, (float) endX, (float) startY, (float) endZ)
+
+                // Top face
+                .vertex(matrix, (float) startX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) endY, (float) endZ)
+                .vertex(matrix, (float) startX, (float) endY, (float) endZ)
+
+                // Bottom face
+                .vertex(matrix, (float) startX, (float) startY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) startY, (float) startZ)
+                .vertex(matrix, (float) endX, (float) startY, (float) endZ)
+                .vertex(matrix, (float) startX, (float) startY, (float) endZ);
+
+        BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
+
         end();
     }
+
 
     // Based on code from Meteor client
     private static void bobView (MatrixStack matrices) {
@@ -292,6 +334,7 @@ public class RenderUtil {
         GL11.glDisable(GL11.GL_BLEND);
         GL11.glEnable(GL11.GL_DEPTH_TEST);
         GL11.glDisable(GL11.GL_LINE_SMOOTH);
+        GL11.glEnable(GL11.GL_CULL_FACE);
 
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 

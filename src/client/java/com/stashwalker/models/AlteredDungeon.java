@@ -3,6 +3,10 @@ package com.stashwalker.models;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
+
+import com.stashwalker.containers.Pair;
+
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 
@@ -11,7 +15,7 @@ public class AlteredDungeon {
     private Vec3d spawnerPosition = null;
     private List<Vec3d> chestPositions = Collections.synchronizedList(new ArrayList<>());
     private List<Vec3d> dungeonPositions = Collections.synchronizedList(new ArrayList<>());
-    private List<Vec3d> pillarPositions = Collections.synchronizedList(new ArrayList<>());
+    private List<Pair<Vec3d, Color>> pillarPositions = Collections.synchronizedList(new ArrayList<>());
 
     private List<Vec3d> zombiePositions = Collections.synchronizedList(new ArrayList<>());
     private List<Vec3d> spiderPositions = Collections.synchronizedList(new ArrayList<>());
@@ -47,12 +51,12 @@ public class AlteredDungeon {
         this.dungeonPositions = Collections.synchronizedList(dungeonPositions);
     }
 
-    public List<Vec3d> getPillarPositions () {
+    public List<Pair<Vec3d, Color>> getPillarPositions () {
 
         return pillarPositions;
     }
 
-    public void setPillarPositions (List<Vec3d> pillarPositions) {
+    public void setPillarPositions (List<Pair<Vec3d, Color>> pillarPositions) {
 
         this.pillarPositions = Collections.synchronizedList(pillarPositions);
     }
