@@ -26,7 +26,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
-    private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(64 * 64);
+    private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(2048);
 
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;

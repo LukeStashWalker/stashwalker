@@ -173,7 +173,7 @@ public class RenderUtil {
         });
     }
 
-    public static void drawBlockSquare(WorldRenderContext context, Vec3d vec3d, Color color, boolean withSmallBox, boolean fill) {
+    public static void drawBlockSquare (WorldRenderContext context, Vec3d vec3d, Color color, boolean withSmallBox, boolean fill) {
 
         Vec3d cameraPos = Constants.MC_CLIENT_INSTANCE.gameRenderer.getCamera().getPos();
         vec3d = vec3d.subtract(cameraPos);
