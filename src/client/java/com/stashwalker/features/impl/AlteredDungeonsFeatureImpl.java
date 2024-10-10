@@ -63,7 +63,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     private final String pillarSearchRadiusKey = "pillarSearchRadius";
     private final Integer pillarSearchRadiusDefaultValue = 10;
     private final String fillInBoxesKey = "fillInBoxes";
-    private final Boolean fillInBoxesDefaultValue = false;
+    private final Boolean fillInBoxesDefaultValue = true;
 
     public AlteredDungeonsFeatureImpl () {
 

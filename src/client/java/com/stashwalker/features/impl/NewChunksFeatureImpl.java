@@ -31,7 +31,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
     private final String fillInSquaresKey = "fillInSquares";
-    private final Boolean fillInSequaresDefaultValue = false;
+    private final Boolean fillInSequaresDefaultValue = true;
 
     public NewChunksFeatureImpl () {
 

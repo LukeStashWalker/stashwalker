@@ -40,7 +40,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final String entityColorKey = "entityColor";
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
-    private final Boolean fillInBoxesDefaultValue = false;
+    private final Boolean fillInBoxesDefaultValue = true;
 
     public EntityTracersFeatureImpl () {
 

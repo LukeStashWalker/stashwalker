@@ -56,7 +56,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private static final int SCAN_INTERVAL = 300;
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
-    private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
+    private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;

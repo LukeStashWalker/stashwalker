@@ -59,7 +59,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final String signColorKey = "blastFurnaceColor";
     private final Color signColorDefaultValue = Color.CYAN;
     private final String fillInBoxesKey = "fillInBoxes";
-    private final Boolean fillInBoxesDefaultValue = false;
+    private final Boolean fillInBoxesDefaultValue = true;
 
     public BlockTracersFeatureImpl () {
 
