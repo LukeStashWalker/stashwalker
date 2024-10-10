@@ -10,6 +10,7 @@ import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.models.AlteredDungeon;
 import com.stashwalker.utils.FinderUtil;
+import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -37,37 +38,55 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<AlteredDungeon> buffer = new DoubleListBuffer<>();
-    private String spawnerColorKey;
-    private String dungeonColorKey;
-    private String chestColorKey;
-    private String pillarDefaultColorKey;
-    private String spiderColorKey;
-    private String skeletonColorKey;
-    private String zombieColorKey;
-    private int minimumPillarHeight = 10;
-    private int horizontalSearchRadius = 10;
 
-    {
+    private final String spawnerColorKey = "spawnerColor";
+    private final Color spawnerColorDefaultValue = Color.BLUE;
+
+    private final String cobbleColorKey = "cobbyColor";
+    private final Color cobbleColorDefaultValue = Color.GRAY;
+    private final String mossyCobbleColorKey = "mossyCobbyColor";
+    private final Color mossyCobbleColorDefaultValue = new Color(54, 120, 22);
+    private final String chestColorKey = "chestColor";
+    private final Color chestColorDefaultValue = Color.YELLOW;
+    private final String pillarDefaultColorKey = "pillarDefaultColor";
+    private final Color pillarDefaultDefaultValue = Color.DARK_GRAY;
+
+    private final String spiderColorKey = "spiderColor";
+    private final Color spiderColorDefaultValue = Color.BLACK;
+    private final String  skeletonColorKey = "skeletonColor";
+    private final Color skeletonColorDefaultValue = Color.WHITE;
+    private final String zombieColorKey = "zombieColor";
+    private final Color zombieColorDefaultValue = Color.GREEN;
+
+    private final String minimumPillarHeightKey = "minimumPillarHeight";
+    private final Integer minimumPillarHeightDefaultValue = 10;
+    private final String pillarSearchRadiusKey = "pillarSearchRadius";
+    private final Integer pillarSearchRadiusDefaultValue = 10;
+    private final String fillInBoxesKey = "fillInBoxes";
+    private final Boolean fillInBoxesDefaultValue = false;
+
+    public AlteredDungeonsFeatureImpl () {
+
+        super();
 
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
-        this.featureColorsKeyStart = "Altered_Dungeons";
-        this.spawnerColorKey = this.featureColorsKeyStart + "_Spawner";
-        this.dungeonColorKey = this.featureColorsKeyStart + "_Dungeon";
-        this.chestColorKey = this.featureColorsKeyStart + "_Chest";
-        this.pillarDefaultColorKey = this.featureColorsKeyStart + "_PillarDefault";
 
-        this.spiderColorKey = this.featureColorsKeyStart + "_Spider";
-        this.skeletonColorKey = this.featureColorsKeyStart + "_Skeleton";
-        this.zombieColorKey = this.featureColorsKeyStart + "_Zombie";
+        this.defaultIntegerMap.put(spawnerColorKey, spawnerColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(cobbleColorKey, cobbleColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(mossyCobbleColorKey, mossyCobbleColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(chestColorKey, chestColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(pillarDefaultColorKey, pillarDefaultDefaultValue.getRGB());
+        this.defaultIntegerMap.put(spiderColorKey, spiderColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(skeletonColorKey, skeletonColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(zombieColorKey, zombieColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(minimumPillarHeightKey, minimumPillarHeightDefaultValue);
+        this.defaultIntegerMap.put(pillarSearchRadiusKey, pillarSearchRadiusDefaultValue);
 
-        this.featureColors.put(spawnerColorKey, new Pair<>(Color.BLUE, Color.BLUE));
-        this.featureColors.put(dungeonColorKey, new Pair<>(Color.GRAY, Color.GRAY));
-        this.featureColors.put(chestColorKey, new Pair<>(Color.YELLOW, Color.YELLOW));
-        this.featureColors.put(pillarDefaultColorKey, new Pair<>(Color.RED, Color.RED));
+        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
 
-        this.featureColors.put(spiderColorKey, new Pair<>(Color.RED, Color.RED));
-        this.featureColors.put(skeletonColorKey, new Pair<>(Color.RED, Color.RED));
-        this.featureColors.put(zombieColorKey, new Pair<>(Color.RED, Color.RED));
+        this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
+        this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
+        this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
     @Override
@@ -107,24 +126,69 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         if (this.enabled) {
 
+            final boolean fillBoxes = this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey);
+
             List<AlteredDungeon> alteredDungeons = buffer.readBuffer();
 
             for (AlteredDungeon alteredDungeon : alteredDungeons) {
                 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getDungeonPositions(), featureColors.get(dungeonColorKey).getKey(), false, false);
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getCobblePositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.cobbleColorKey)), 
+                    false, 
+                    fillBoxes
+                );
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getMossyCobblePositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.mossyCobbleColorKey)), 
+                    false, 
+                    fillBoxes
+                );
 
                 for (Pair<Vec3d, Color> pair: alteredDungeon.getPillarPositions()) {
 
-                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false, false);
+                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false, fillBoxes);
                 }
 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getChestPositions(), featureColors.get(chestColorKey).getKey(), false, false);
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getChestPositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.chestColorKey)), 
+                    false, 
+                    fillBoxes
+                );
 
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getSpiderPositions(), featureColors.get(spiderColorKey).getKey(), true, false);
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getSkeletonPositions(), featureColors.get(skeletonColorKey).getKey(), true, false);
-                RenderUtil.drawBlockSquares(context, alteredDungeon.getZombiePositions(), featureColors.get(zombieColorKey).getKey(), true, false);
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getSpiderPositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.spiderColorKey)), 
+                    true, 
+                    fillBoxes
+                );
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getSpiderPositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.skeletonColorKey)), 
+                    true, 
+                    fillBoxes
+                );
+                RenderUtil.drawBlockSquares(
+                    context, 
+                    alteredDungeon.getSpiderPositions(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.zombieColorKey)), 
+                    true, 
+                    fillBoxes
+                );
 
-                RenderUtil.drawLine(context, alteredDungeon.getSpawnerPosition(), featureColors.get(spawnerColorKey).getKey(), false, false);
+                RenderUtil.drawLine(
+                    context, 
+                    alteredDungeon.getSpawnerPosition(), 
+                    new Color(this.featureConfig.getIntegerConfigs().get(this.spawnerColorKey)), 
+                    false, 
+                    fillBoxes
+                );
             }
         }
     }
@@ -170,9 +234,11 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public boolean isHiddenAlteredDungeon (BlockPos pos) {
 
-        for (int x = pos.getX() - this.horizontalSearchRadius; x <= pos.getX() + this.horizontalSearchRadius; x++) {
+        final int horizontalSearchRadius = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
+        final int minimumPillarHeight = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
+        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
 
-            for (int z = pos.getZ() - this.horizontalSearchRadius; z <= pos.getZ() + this.horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
 
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
@@ -186,7 +252,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                         result.add(pillarPosCopy);
 
                         if (
-                            result.size() >= this.minimumPillarHeight
+                            result.size() >= minimumPillarHeight
                         ) {
 
                             return true;
@@ -204,12 +270,13 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
 
-        final AlteredDungeon alteredDungeon = new AlteredDungeon();
-
         // Add the pillar positions
-        for (int x = pos.getX() - this.horizontalSearchRadius; x <= pos.getX() + this.horizontalSearchRadius; x++) {
+        final AlteredDungeon alteredDungeon = new AlteredDungeon();
+        final int minimumPillarHeight = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
+        final int horizontalSearchRadius = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
+        for (int x = pos.getX() - horizontalSearchRadius; x <= pos.getX() + horizontalSearchRadius; x++) {
 
-            for (int z = pos.getZ() - this.horizontalSearchRadius; z <= pos.getZ() + this.horizontalSearchRadius; z++) {
+            for (int z = pos.getZ() - horizontalSearchRadius; z <= pos.getZ() + horizontalSearchRadius; z++) {
 
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
@@ -224,14 +291,14 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
                         if (
                             pillarPosCopy.getY() == topY
-                            && result.size() >= this.minimumPillarHeight
+                            && result.size() >= minimumPillarHeight
                         ) {
 
                             alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
                     } else {
 
-                        if (result.size() >= this.minimumPillarHeight) {
+                        if (result.size() >= minimumPillarHeight) {
 
                             alteredDungeon.getPillarPositions().addAll(result.stream().map(r -> new Pair<>(RenderUtil.toVec3d(r), getBlockPosColor(r))).toList());
                         }
@@ -250,13 +317,17 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 pos.getZ() + dungeonHorizontalRadius);
         for (BlockPos boxPos : BlockPos.iterate(startPos, endPos)) {
 
-            if (FinderUtil.isBlockType(boxPos, Blocks.COBBLESTONE) || FinderUtil.isBlockType(boxPos, Blocks.MOSSY_COBBLESTONE)) {
+            if (FinderUtil.isBlockType(boxPos, Blocks.COBBLESTONE)) {
 
-                alteredDungeon.getDungeonPositions().add(RenderUtil.toVec3d(boxPos));
+                alteredDungeon.getCobblePositions().add(RenderUtil.toVec3d(boxPos));
+            } else if (FinderUtil.isBlockType(boxPos, Blocks.MOSSY_COBBLESTONE)) {
+
+                alteredDungeon.getMossyCobblePositions().add(RenderUtil.toVec3d(boxPos));
             } else if (FinderUtil.isBlockType(boxPos, Blocks.CHEST)) {
 
                 alteredDungeon.getChestPositions().add(RenderUtil.toVec3d(boxPos));
             }
+
         }
         alteredDungeon.setSpawnerPosition(RenderUtil.toVec3d(pos));
 
@@ -316,7 +387,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
             return new Color(mapColor.color);
         } else {
 
-            return this.featureColors.get(dungeonColorKey).getKey();
+            return new Color(this.featureConfig.getIntegerConfigs().get(this.pillarDefaultColorKey));
         }
     }
 }

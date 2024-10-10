@@ -10,6 +10,7 @@ import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
+import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.ArrayList;
 
@@ -38,75 +40,48 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
 
-    {
+    private final String chestColorKey = "chestColor";
+    private final Color chestColorDefaultValue = Color.YELLOW;
+    private final String barrelColorKey = "barrelColor";
+    private final Color barrelColorDefaultValue = new Color(210, 105, 30);
+    private final String shulkerColorKey = "shulkerColor";
+    private final Color shulkerColorDefaultValue = Color.WHITE;
+    private final String hopperColorKey = "hopperColor";
+    private final Color hopperColorDefaultValue = Color.BLACK;
+    private final String dropperColorKey = "dropperColor";
+    private final Color dropperColorDefaultValue = Color.BLACK;
+    private final String dispenserColorKey = "dispenserColor";
+    private final Color dispenserColorDefaultValue = Color.BLACK;
+    private final String furnaceColorKey = "furnaceColor";
+    private final Color furnaceColorDefaultValue = Color.BLACK;
+    private final String blastFurnaceColorKey = "blastFurnaceColor";
+    private final Color blastFurnaceColorDefaultValue = Color.BLACK;
+    private final String signColorKey = "blastFurnaceColor";
+    private final Color signColorDefaultValue = Color.CYAN;
+    private final String fillInBoxesKey = "fillInBoxes";
+    private final Boolean fillInBoxesDefaultValue = false;
+
+    public BlockTracersFeatureImpl () {
+
+        super();
 
         this.featureName = FEATURE_NAME_BLOCK_TRACER;
-        this.featureColorsKeyStart = "Block_Tracers";
 
-        // Default render colors
-        this.featureColors.put(this.featureColorsKeyStart + "_" + Blocks.CHEST.getName().getString().replace(" ", "_"), new Pair<>(Color.YELLOW, Color.YELLOW));
+        this.defaultIntegerMap.put(chestColorKey, chestColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(barrelColorKey, barrelColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(shulkerColorKey, shulkerColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(hopperColorKey, hopperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(dropperColorKey, dropperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(dispenserColorKey, dispenserColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(furnaceColorKey, furnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(blastFurnaceColorKey, blastFurnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(signColorKey, signColorDefaultValue.getRGB());
 
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BARREL.getName().getString().replace(" ", "_"), new Pair<>(new Color(210, 105, 30), new Color(210, 105, 30)));
+        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
 
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.WHITE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.ORANGE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.MAGENTA_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.LIGHT_BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.YELLOW_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.LIME_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.PINK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.LIGHT_GRAY_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CYAN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.PURPLE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BLUE_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BROWN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.GREEN_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.RED_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BLACK_SHULKER_BOX.getName().getString().replace(" ", "_"), new Pair<>(Color.WHITE, Color.WHITE));
-        
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.HOPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK,  Color.BLACK));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.DROPPER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.DISPENSER.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BLAST_FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.FURNACE.getName().getString().replace(" ", "_"), new Pair<>(Color.BLACK, Color.BLACK));
-
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.SPRUCE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BIRCH_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.ACACIA_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CHERRY_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.JUNGLE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.DARK_OAK_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CRIMSON_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.MANGROVE_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BAMBOO_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.WARPED_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.SPRUCE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BIRCH_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.ACACIA_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CHERRY_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.JUNGLE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.DARK_OAK_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CRIMSON_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.MANGROVE_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BAMBOO_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.WARPED_WALL_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.SPRUCE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BIRCH_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.ACACIA_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CHERRY_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.JUNGLE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.DARK_OAK_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.CRIMSON_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.MANGROVE_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.BAMBOO_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
-        this.featureColors.put(this.featureColorsKeyStart +  "_" + Blocks.WARPED_HANGING_SIGN.getName().getString().replace(" ", "_"), new Pair<>(Color.CYAN, Color.CYAN));
+        this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
+        this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
+        this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
     @Override
@@ -119,14 +94,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 this.positionsTempMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
             } 
 
-            if (this.isInterestingBlockPosition(pos)) {
+            this.isInterestingBlockPosition(pos).ifPresent(c -> {
 
-                String key = featureColorsKeyStart + "_"
-                    + Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos).getBlock()
-                    .getName().getString().replace(" ", "_");
                 this.positionsTempMap.get(callIdentifier)
-                    .add(new Pair<BlockPos, Color>(pos, featureColors.get(key).getKey()));
-            }
+                        .add(new Pair<BlockPos, Color>(pos, c));
+            });
         }
     }
 
@@ -178,7 +150,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                             blockPos.getZ() + 0.5D
                     );
 
-                    RenderUtil.drawLine(context, newBlockPos, color, false, false);
+                    RenderUtil.drawLine(context, newBlockPos, color, false, this.featureConfig.getBooleanConfigs().get(fillInBoxesKey));
                 }
             }
         }
@@ -190,22 +162,25 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    public boolean isInterestingBlockPosition(BlockPos pos) {
+    public Optional<Color> isInterestingBlockPosition(BlockPos pos) {
 
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
-        if (
+        Map<String, Integer> integerMap = this.featureConfig.getIntegerConfigs();
+        if (FinderUtil.isBlockType(pos, Blocks.BARREL)) {
 
-        FinderUtil.isBlockType(pos, Blocks.BARREL)
+            return Optional.of(new Color(integerMap.get(this.barrelColorKey)));
+        } else if (
 
-                ||
+        (FinderUtil.isDoubleChest(world, pos)
+                && (
+                // Not a Dungeon
+                !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                        && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)))) {
 
-                (FinderUtil.isDoubleChest(world, pos)
-                        && (
-                        // Not a Dungeon
-                        !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                                && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)))
+            return Optional.of(new Color(integerMap.get(this.chestColorKey)));
+        } else if (
 
-                || FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
+        FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
@@ -221,15 +196,35 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 || FinderUtil.isBlockType(pos, Blocks.BROWN_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
-                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
+                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)) {
 
-                || FinderUtil.isBlockType(pos, Blocks.HOPPER)
-                || FinderUtil.isBlockType(pos, Blocks.DROPPER)
-                || FinderUtil.isBlockType(pos, Blocks.DISPENSER)
-                || FinderUtil.isBlockType(pos, Blocks.BLAST_FURNACE)
-                || FinderUtil.isBlockType(pos, Blocks.FURNACE)
+            return Optional.of(new Color(integerMap.get(this.shulkerColorKey)));
+        } else if (
 
-                || FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
+        FinderUtil.isBlockType(pos, Blocks.HOPPER)) {
+
+            return Optional.of(new Color(integerMap.get(this.hopperColorKey)));
+        } else if (
+
+        FinderUtil.isBlockType(pos, Blocks.DROPPER)) {
+
+            return Optional.of(new Color(integerMap.get(this.dropperColorKey)));
+        } else if (
+
+        FinderUtil.isBlockType(pos, Blocks.DISPENSER)) {
+
+            return Optional.of(new Color(integerMap.get(this.dispenserColorKey)));
+        } else if (
+
+        FinderUtil.isBlockType(pos, Blocks.BLAST_FURNACE)) {
+
+            return Optional.of(new Color(integerMap.get(this.blastFurnaceColorKey)));
+        } else if (
+
+        FinderUtil.isBlockType(pos, Blocks.FURNACE)) {
+
+            return Optional.of(new Color(integerMap.get(this.furnaceColorKey)));
+        } else if (FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
                 || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
                 || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
                 || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
@@ -263,14 +258,12 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
                 || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
                 || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)
+                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)) {
 
-        ) {
-
-            return true;
+            return Optional.of(new Color(integerMap.get(this.signColorKey)));
         } else {
 
-            return false;
+            return Optional.empty();
         }
     }
 

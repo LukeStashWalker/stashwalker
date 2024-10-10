@@ -3,31 +3,19 @@ package com.stashwalker.models;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.SortedMap;
 
 public class StashwalkerConfig {
 
-    private Map<String, Boolean> featureSettings = Collections.synchronizedMap(new HashMap<>());
-    private Map<String, Integer> featureColors = Collections.synchronizedMap(new HashMap<>());
+    private Map<String, FeatureConfig> featureConfigs = Collections.synchronizedMap(new HashMap<>());
 
-    public Map<String, Boolean> getFeatureSettings () {
+    public Map<String, FeatureConfig> getFeatureConfigs () {
 
-        return featureSettings;
+        return featureConfigs;
     }
 
-    public void setFeatureSettings (Map<String, Boolean> featureSettings) {
+    public void setFeatureConfigs (Map<String, FeatureConfig> featureConfigs) {
 
-        this.featureSettings = featureSettings;
-    }
-
-    public Map<String, Integer> getFeatureColors () {
-
-        return featureColors;
-    }
-
-    public void setBlockColors (SortedMap<String, Integer> blockColors) {
-
-        this.featureColors = blockColors;
+        this.featureConfigs = featureConfigs;
     }
 }
 

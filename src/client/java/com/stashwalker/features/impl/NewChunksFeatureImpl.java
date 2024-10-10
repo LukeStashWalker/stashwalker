@@ -6,11 +6,11 @@ import java.util.List;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
+import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -28,12 +28,24 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
     private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(64 * 64);
 
-    {
+    private final String newChunksColorKey = "newChunksColor";
+    private final Color newChunksColorDefaultValue = Color.RED;
+    private final String fillInSquaresKey = "fillInSquares";
+    private final Boolean fillInSequaresDefaultValue = false;
+
+    public NewChunksFeatureImpl () {
+
+        super();
 
         this.featureName = FEATURE_NAME_NEW_CHUNKS;
-        this.featureColorsKeyStart = "New_Chunks";
 
-        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
+        this.defaultIntegerMap.put(newChunksColorKey, newChunksColorDefaultValue.getRGB());
+
+        this.defaultBooleanMap.put(fillInSquaresKey, fillInSequaresDefaultValue);
+
+        this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
+        this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
+        this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
     @Override
@@ -53,7 +65,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
         if (this.enabled) {
 
-            Color color = featureColors.get(featureColorsKeyStart).getKey();
+            Color color = new Color(this.featureConfig.getIntegerConfigs().get(this.newChunksColorKey));
 
             RenderUtil
                     .drawChunkSquares(
@@ -64,7 +76,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
                             color.getGreen(),
                             color.getBlue(),
                             50,
-                            false
+                            this.featureConfig.getBooleanConfigs().get(this.fillInSquaresKey)
                     );
         }
     }

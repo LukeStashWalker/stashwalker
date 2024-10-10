@@ -1,20 +1,26 @@
 package com.stashwalker.features;
 
-import java.awt.Color;
-import java.util.Map;
-
-import com.stashwalker.containers.Pair;
-
 import java.util.Collections;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
+import java.util.Map;
+import com.stashwalker.models.FeatureConfig;
 
 public abstract class AbstractBaseFeature implements Feature {
 
     protected boolean enabled = true;
     protected String featureName;
-    protected Map<String, Pair<Color, Color>> featureColors = Collections.synchronizedMap(new LinkedHashMap<>());
+    protected FeatureConfig featureConfig = new FeatureConfig();
 
-    protected String featureColorsKeyStart;
+    protected Map<String, Integer> defaultIntegerMap;
+    protected Map<String, Boolean> defaultBooleanMap;
+    protected Map<String, String> defaultStringMap;
+
+    public AbstractBaseFeature () {
+
+        this.defaultIntegerMap = Collections.synchronizedMap(new HashMap<>());
+        this.defaultBooleanMap = Collections.synchronizedMap(new HashMap<>());
+        this.defaultStringMap = Collections.synchronizedMap(new HashMap<>());
+    }
     
     @Override
     public boolean isEnabled () {
@@ -35,16 +41,31 @@ public abstract class AbstractBaseFeature implements Feature {
     }
 
     @Override
-    public String getFeatureColorKeyStart () {
+    public FeatureConfig getFeatureConfig () {
 
-        return featureColorsKeyStart;
+        return this.featureConfig;
     }
 
+    @Override
+    public void setFeatureConfig (FeatureConfig featureConfig) {
+
+        this.featureConfig = featureConfig;
+    }
 
     @Override
-    public Map<String, Pair<Color, Color>> getFeatureColors () {
+    public Map<String, Integer> getDefaultIntegerMap () {
 
-        return featureColors;
+        return this.defaultIntegerMap;
+    }
+    @Override
+    public Map<String, Boolean> getDefaultBooleanMap () {
+
+        return this.defaultBooleanMap;
+    }
+    @Override
+    public Map<String, String> getDefaultStringMap () {
+
+        return this.defaultStringMap;
     }
 
     @Override

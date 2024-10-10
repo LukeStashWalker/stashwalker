@@ -3,9 +3,9 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.SignTextExtractor;
 
 import net.minecraft.block.entity.BlockEntity;
@@ -20,12 +20,21 @@ import java.util.Set;
 
 public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor  {
 
-    {
+
+    private final String signTextColorKey = "signTextColor";
+    private final Color signTextColorDefaultValue = Color.CYAN;
+
+    public SignReaderFeatureImpl () {
+
+        super();
 
         this.featureName = FEATURE_NAME_SIGN_READER;
-        this.featureColorsKeyStart = "Sign_Reader";
 
-        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.CYAN, Color.CYAN));
+        this.defaultIntegerMap.put(signTextColorKey, signTextColorDefaultValue.getRGB());
+
+        this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
+        this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
+        this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
     @Override
@@ -62,7 +71,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                                     .append(Text.literal("]:\n")
                                             .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                                     .append(Text.literal(signText)
-                                            .setStyle(Style.EMPTY.withColor(this.featureColors.get(featureColorsKeyStart).getKey().getRGB())));
+                                            .setStyle(Style.EMPTY.withColor(this.featureConfig.getIntegerConfigs().get(this.signTextColorKey))));
 
                             Constants.MESSAGES_BUFFER.add(styledText);
 

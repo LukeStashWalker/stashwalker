@@ -14,7 +14,8 @@ public class AlteredDungeon {
 
     private Vec3d spawnerPosition = null;
     private List<Vec3d> chestPositions = Collections.synchronizedList(new ArrayList<>());
-    private List<Vec3d> dungeonPositions = Collections.synchronizedList(new ArrayList<>());
+    private List<Vec3d> cobblePositions = Collections.synchronizedList(new ArrayList<>());
+    private List<Vec3d> mossyCobblePositions = Collections.synchronizedList(new ArrayList<>());
     private List<Pair<Vec3d, Color>> pillarPositions = Collections.synchronizedList(new ArrayList<>());
 
     private List<Vec3d> zombiePositions = Collections.synchronizedList(new ArrayList<>());
@@ -41,14 +42,24 @@ public class AlteredDungeon {
         this.chestPositions = Collections.synchronizedList(chestPositions);
     }
 
-    public List<Vec3d> getDungeonPositions () {
+    public List<Vec3d> getCobblePositions () {
 
-        return dungeonPositions;
+        return cobblePositions;
     }
 
-    public void setDungeonPositions (List<Vec3d> dungeonPositions) {
+    public void setCobblePositions (List<Vec3d> cobblePositions) {
 
-        this.dungeonPositions = Collections.synchronizedList(dungeonPositions);
+        this.cobblePositions = Collections.synchronizedList(cobblePositions);
+    }
+
+    public List<Vec3d> getMossyCobblePositions () {
+
+        return mossyCobblePositions;
+    }
+
+    public void setMossyCobblePositions (List<Vec3d> mossyCobblePositions) {
+
+        this.mossyCobblePositions = Collections.synchronizedList(mossyCobblePositions);
     }
 
     public List<Pair<Vec3d, Color>> getPillarPositions () {

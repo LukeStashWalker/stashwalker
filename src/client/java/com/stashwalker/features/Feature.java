@@ -1,26 +1,29 @@
 package com.stashwalker.features;
 
-import java.awt.Color;
 import java.util.Map;
 
-import com.stashwalker.containers.Pair;
+import com.stashwalker.models.FeatureConfig;
 
 public interface Feature {
 
-    public static final String FEATURE_NAME_BLOCK_TRACER = "Block Tracers";
-    public static final String FEATURE_NAME_ENTITY_TRACER = "Entity Tracers";
-    public static final String FEATURE_NAME_NEW_CHUNKS = "New Chunks";
-    public static final String FEATURE_NAME_SIGN_READER = "Sign Reader";
-    public static final String FEATURE_NAME_ALTERED_DUNGEONS = "Altered Dungeons";
+    public static final String FEATURE_NAME_BLOCK_TRACER = "BlockTracers";
+    public static final String FEATURE_NAME_ENTITY_TRACER = "EntityTracers";
+    public static final String FEATURE_NAME_NEW_CHUNKS = "NewChunks";
+    public static final String FEATURE_NAME_SIGN_READER = "SignReader";
+    public static final String FEATURE_NAME_ALTERED_DUNGEONS = "AlteredDungeons";
 
     boolean isEnabled ();
     void setEnabled (boolean enabled);
 
-    Map<String, Pair<Color, Color>> getFeatureColors ();
-
     String getFeatureName ();
     
-    String getFeatureColorKeyStart ();
+    FeatureConfig getFeatureConfig ();
+
+    void setFeatureConfig (FeatureConfig featureConfig);
+
+    Map<String, Integer> getDefaultIntegerMap ();
+    Map<String, Boolean> getDefaultBooleanMap ();
+    Map<String, String> getDefaultStringMap ();
 
     void clear ();
 }

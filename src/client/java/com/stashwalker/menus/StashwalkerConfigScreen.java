@@ -6,13 +6,8 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.Collections;
-import java.awt.Color;
-
 import com.stashwalker.constants.Constants;
+import com.stashwalker.utils.StringUtil;
 
 public class StashwalkerConfigScreen {
 
@@ -24,45 +19,53 @@ public class StashwalkerConfigScreen {
         ConfigBuilder builder = ConfigBuilder.create()
                 .setParentScreen(parent)
                 .setTitle(Text.translatable("Stashwalker config"));
-
-
-        // Category text is only visible if there are multiple categories
-        ConfigCategory general = builder.getOrCreateCategory(Text.translatable("Block tracer colors"));
-
-        ConfigEntryBuilder entryBuilder = builder.entryBuilder();
-
+        
         Constants.FEATURES.forEach(f -> {
 
-            Set<String> textDescriptions = new HashSet<>();
-            f.getFeatureColors()
-                    .entrySet()
-                    .stream()
-                    .sorted(Collections.reverseOrder(Map.Entry.comparingByKey()))
-                    .forEach(e -> {
+            ConfigCategory category = builder.getOrCreateCategory(Text.translatable(f.getFeatureName()));
+            ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-                        if (!textDescriptions.contains(f.getFeatureColorKeyStart())) {
+            f.getFeatureConfig().getBooleanConfigs().entrySet().forEach(e -> {
 
-                            general.addEntry(
-                                entryBuilder.startTextDescription(Text.translatable(f.getFeatureColorKeyStart().replace("_", " "))).build()
-                            );
-                        }
-                        textDescriptions.add(f.getFeatureColorKeyStart());
+                if (!e.getKey().toLowerCase().equals("enabled")) {
 
-                        Color color = e.getValue().getKey() != null
-                                ? e.getValue().getKey()
-                                : e.getValue().getValue();
-                        general.addEntry(
-                                entryBuilder
-                                        .startAlphaColorField(Text.translatable("\t\t" + e.getKey().replaceAll("_", " ")),
-                                                color.getRGB())
-                                        .setTooltip(Text.translatable("Hex color value format: #<opaqueness><red><green><blue>,\nfor every part the values go from 00 to ff,\nfor example: #ffff0000 = red"))
-                                        .setDefaultValue(e.getValue().getValue().getRGB())
-                                        .setSaveConsumer(newColor -> {
-                                            e.getValue().setKey(new Color(newColor));
-                                        })
-                                        .build()
-                        );
-                    });
+                    category.addEntry(
+                            entryBuilder
+                                    .startBooleanToggle(
+                                            Text.translatable(StringUtil.convertCamelCaseToWords(e.getKey())),
+                                            e.getValue())
+                                    .setDefaultValue(f.getDefaultBooleanMap().get(e.getKey()))
+                                    .setSaveConsumer(newValue -> f.getFeatureConfig().getBooleanConfigs()
+                                            .put(e.getKey(), newValue))
+                                    .build());
+                }
+            });
+
+            f.getFeatureConfig().getIntegerConfigs().entrySet().forEach(e -> {
+
+                if (e.getKey().toLowerCase().contains("color")) {
+
+                    category.addEntry(
+                            entryBuilder
+                                    .startAlphaColorField(
+                                            Text.translatable(StringUtil.convertCamelCaseToWords(e.getKey())),
+                                            e.getValue())
+                                    .setDefaultValue(f.getDefaultIntegerMap().get(e.getKey()))
+                                    .setTooltip(Text.translatable(
+                                            "Hex color value format: #<opaqueness><red><green><blue>,\nfor every part the values go from 00 to ff,\nfor example: #ffff0000 = red"))
+                                    .setSaveConsumer(newValue -> f.getFeatureConfig().getIntegerConfigs().put(e.getKey(), newValue))
+                                    .build());
+                } else {
+                    
+                    category.addEntry(
+                            entryBuilder
+                                    .startIntField(Text.translatable(StringUtil.convertCamelCaseToWords(e.getKey())),
+                                            e.getValue())
+                                    .setDefaultValue(f.getDefaultIntegerMap().get(e.getKey()))
+                                    .setSaveConsumer(newValue -> f.getFeatureConfig().getIntegerConfigs().put(e.getKey(), newValue))
+                                    .build());
+                }
+            });
         });
 
         builder.setSavingRunnable(Constants.CONFIG_MANAGER::saveConfig);

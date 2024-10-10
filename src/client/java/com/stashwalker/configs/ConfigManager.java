@@ -3,57 +3,21 @@ package com.stashwalker.configs;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.stashwalker.constants.Constants;
+import com.stashwalker.features.Feature;
+import com.stashwalker.models.FeatureConfig;
 import com.stashwalker.models.StashwalkerConfig;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
-import java.awt.Color;
 import java.util.Map;
-
-import com.stashwalker.containers.Pair;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v117.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v121.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private StashwalkerConfig configData = new StashwalkerConfig();
 
-    // Method to save configuration as JSON
-    public void saveConfig () {
-
-        try {
-
-            Constants.FEATURES.forEach(f -> {
-
-                this.configData.getFeatureSettings().put(f.getFeatureName().replaceAll(" ", "_"), f.isEnabled());
-
-                f.getFeatureColors().entrySet()
-                .forEach(e -> {
-
-                    if (e.getValue().getKey() != null) {
-
-                        this.configData.getFeatureColors().put(e.getKey(), e.getValue().getKey().getRGB());
-                    } else {
-
-                        // Save the default if not found
-                        this.configData.getFeatureColors().put(e.getKey(), e.getValue().getValue().getRGB());
-                    }
-                });
-            });
-
-            Files.createDirectories(CONFIG_PATH.getParent()); // Ensure the directory exists
-            String json = GSON.toJson(this.configData);
-            Files.writeString(CONFIG_PATH, json); // Write the JSON string to the file
-        } catch (IOException e) {
-
-            e.printStackTrace();
-        }
-    }
-
-    // Method to load the configuration from JSON
     public void loadConfig () {
 
         if (Files.exists(CONFIG_PATH)) {
@@ -61,35 +25,88 @@ public class ConfigManager {
             try {
 
                 String json = Files.readString(CONFIG_PATH);
-                this.configData = GSON.fromJson(json, StashwalkerConfig.class);
+                StashwalkerConfig stashwalkerConfigDisk = GSON.fromJson(json, StashwalkerConfig.class);
 
                 Constants.FEATURES.forEach(f -> {
 
-                    Boolean state = configData.getFeatureSettings().get(f.getFeatureName().replaceAll(" ", "_"));
-                    f.setEnabled(state != null ? state : false);
+                    FeatureConfig featureConfigDisk = 
+                        stashwalkerConfigDisk
+                            .getFeatureConfigs()
+                            .get(this.getFeatureNameKey(f));
+                    if (featureConfigDisk != null) {
 
-                    f.getFeatureColors().entrySet()
-                            .forEach(e -> {
+                        f.setEnabled(featureConfigDisk.getBooleanConfigs().get("enabled"));
+                        Map<String, Boolean> booleanMapDisk = featureConfigDisk.getBooleanConfigs();    
+                        Map<String, Integer> integerMapDisk = featureConfigDisk.getIntegerConfigs();    
+                        Map<String, String> stringMapDisk = featureConfigDisk.getStringConfigs();    
+                        if (booleanMapDisk != null) {
 
-                                Map<String, Integer> configDataFeatureColors = configData.getFeatureColors();
-                                if (configDataFeatureColors.containsKey(e.getKey())) {
+                            booleanMapDisk.entrySet().forEach(e -> {
 
-                                    Pair<Color, Color> featureColorsEntryValue = e.getValue();
-                                    featureColorsEntryValue
-                                            .setKey(new Color(
-                                                    configDataFeatureColors.get(e.getKey())));
-                                } else {
+                                Boolean value = e.getValue();
+                                if (value != null && e.getKey() != null) {
 
-                                    // Take the default of not found
-                                    e.getValue().setKey(e.getValue().getValue());
+                                    f.getFeatureConfig().getBooleanConfigs().put(e.getKey(), value);
                                 }
                             });
+                            
+                        }
+                        if (integerMapDisk != null) {
 
+                            integerMapDisk.entrySet().forEach(e -> {
+
+                                Integer value = e.getValue();
+                                if (value != null && e.getKey() != null) {
+
+                                    f.getFeatureConfig().getIntegerConfigs().put(e.getKey(), e.getValue());
+                                }
+                            });
+                            
+                        }
+                        if (stringMapDisk != null) {
+
+                            stringMapDisk.entrySet().forEach(e -> {
+
+                                String value = e.getValue();
+                                if (value != null && e.getKey() != null) {
+
+                                    f.getFeatureConfig().getStringConfigs().put(e.getKey(), e.getValue());
+                                }
+                            });
+                        }
+                    }
                 });
             } catch (IOException e) {
 
                 e.printStackTrace();
             }
         }
+    }
+
+    public void saveConfig () {
+
+        try {
+
+            StashwalkerConfig configData = new StashwalkerConfig();
+            Constants.FEATURES.forEach(f -> {
+
+                f.getFeatureConfig().getBooleanConfigs().put("enabled", f.isEnabled());
+                configData.getFeatureConfigs().put(getFeatureNameKey(f), f.getFeatureConfig());
+            });
+
+            Files.createDirectories(CONFIG_PATH.getParent()); // Ensure the directory exists
+            String json = GSON.toJson(configData);
+            Files.writeString(CONFIG_PATH, json); // Write the JSON string to the file
+        } catch (IOException e) {
+
+            e.printStackTrace();
+        }
+    }
+
+    private String getFeatureNameKey (Feature feature) {
+
+        String featureName = feature.getFeatureName();
+
+        return (featureName.toCharArray()[0] + "").toLowerCase() + featureName.substring(1);
     }
 }

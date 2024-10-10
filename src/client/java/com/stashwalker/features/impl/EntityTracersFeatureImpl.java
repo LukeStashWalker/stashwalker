@@ -4,10 +4,10 @@ import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
+import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
@@ -37,12 +37,24 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
 
-    {
+    private final String entityColorKey = "entityColor";
+    private final Color entityColorDefaultValue = Color.RED;
+    private final String fillInBoxesKey = "fillInBoxes";
+    private final Boolean fillInBoxesDefaultValue = false;
+
+    public EntityTracersFeatureImpl () {
+
+        super();
 
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
-        this.featureColorsKeyStart = "Entity_Tracers";
+        
+        this.defaultIntegerMap.put(entityColorKey, entityColorDefaultValue.getRGB());
 
-        this.featureColors.put(this.featureColorsKeyStart, new Pair<>(Color.RED, Color.RED));
+        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
+
+        this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
+        this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
+        this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
     @Override
@@ -79,8 +91,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                                 entity.getPos().getZ());
                     }
 
-                    Color color = featureColors.get(featureColorsKeyStart).getKey();
-                    RenderUtil.drawLine(context, entityPos, color, true, false);
+                    Color color = new Color(this.getFeatureConfig().getIntegerConfigs().get(this.entityColorKey));
+                    RenderUtil.drawLine(context, entityPos, color, true, this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
                 }
             }
         }
