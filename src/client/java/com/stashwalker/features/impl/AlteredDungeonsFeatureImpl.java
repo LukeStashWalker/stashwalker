@@ -169,14 +169,14 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 );
                 RenderUtil.drawBlockSquares(
                     context, 
-                    alteredDungeon.getSpiderPositions(), 
+                    alteredDungeon.getSkeletonPositions(), 
                     new Color(this.featureConfig.getIntegerConfigs().get(this.skeletonColorKey)), 
                     true, 
                     fillBoxes
                 );
                 RenderUtil.drawBlockSquares(
                     context, 
-                    alteredDungeon.getSpiderPositions(), 
+                    alteredDungeon.getZombiePositions(), 
                     new Color(this.featureConfig.getIntegerConfigs().get(this.zombieColorKey)), 
                     true, 
                     fillBoxes
