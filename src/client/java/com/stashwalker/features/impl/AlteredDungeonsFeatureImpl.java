@@ -42,9 +42,9 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     private final String spawnerColorKey = "spawnerColor";
     private final Color spawnerColorDefaultValue = Color.BLUE;
 
-    private final String cobbleColorKey = "cobbyColor";
+    private final String cobbleColorKey = "cobbleColor";
     private final Color cobbleColorDefaultValue = Color.GRAY;
-    private final String mossyCobbleColorKey = "mossyCobbyColor";
+    private final String mossyCobbleColorKey = "mossyCobbleColor";
     private final Color mossyCobbleColorDefaultValue = new Color(54, 120, 22);
     private final String chestColorKey = "chestColor";
     private final Color chestColorDefaultValue = Color.YELLOW;
