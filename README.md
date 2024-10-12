@@ -87,6 +87,10 @@ This mod is open source, you can check the code yourself. This mod has been test
 	-	"java": "21",
 	-	"fabric-api": ">=0.103.0+1.21.1"
 
+## Tip
+
+- if you run into memory issues you can do the following: runner -> installations -> ... -> edit -> more options -> update the value of xmx in JVM arguments to 4G or higher
+
 ## Contact
 
 - feedback or feature requests can be sent to original_plan_c@hotmail.com
