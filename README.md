@@ -89,7 +89,7 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ## Tip
 
-- if you run into memory issues you can do the following: runner -> installations -> <your installation> -> ... -> edit -> more options -> update the value of xmx in JVM arguments to 4G or higher
+- if you run into memory issues you can do the following: runner -> installations -> your installation -> ... -> edit -> more options -> update the value of xmx in JVM arguments to 4G or higher
 
 ## Contact
 
