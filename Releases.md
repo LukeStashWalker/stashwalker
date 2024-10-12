@@ -4,7 +4,7 @@ Releases
 Version 1.2.0-fabric-0.103.0+-mc1.21.1
 ---
 - multiple performance improvements
-- added more configuration option to the mod menu
+- added more configuration options to the mod menu
 - refinement of the altered dungeons feature
 
 Version 1.2.0-fabric-0.103.0+-mc1.21.1
