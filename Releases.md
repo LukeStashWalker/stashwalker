@@ -1,7 +1,7 @@
 Releases
 ===
 
-Version 1.2.0-fabric-0.103.0+-mc1.21.1
+Version 1.2.1-fabric-0.103.0+-mc1.21.1
 ---
 - multiple performance improvements
 - added more configuration options to the mod menu
