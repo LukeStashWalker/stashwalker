@@ -2,7 +2,10 @@ package com.stashwalker.features.impl;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
@@ -26,7 +29,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
-    private final ConcurrentBoundedSet<ChunkPos> buffer = new ConcurrentBoundedSet<>(2048);
+    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = Collections.synchronizedMap(new HashMap<>());
 
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
@@ -55,7 +58,9 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
             if (this.isNewChunk(chunk)) {
 
-                this.buffer.add(chunk.getPos());
+                long threadId = Thread.currentThread().threadId();
+                ConcurrentBoundedSet<ChunkPos> set = buffer.computeIfAbsent(threadId, c -> new ConcurrentBoundedSet<>(1000));
+                set.add(chunk.getPos());
             }
         }
     }
@@ -67,10 +72,12 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
             Color color = new Color(this.featureConfig.getIntegerConfigs().get(this.newChunksColorKey));
 
-            RenderUtil
+            for (ConcurrentBoundedSet<ChunkPos> set: this.buffer.values()) {
+
+                RenderUtil
                     .drawChunkSquares(
                             context,
-                            this.buffer,
+                            set,
                             63,
                             color.getRed(),
                             color.getGreen(),
@@ -78,6 +85,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
                             50,
                             this.featureConfig.getBooleanConfigs().get(this.fillInSquaresKey)
                     );
+            }
         }
     }
 

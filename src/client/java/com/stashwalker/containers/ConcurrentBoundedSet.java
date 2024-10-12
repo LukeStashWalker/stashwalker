@@ -13,7 +13,7 @@ public class ConcurrentBoundedSet<E> implements Iterable<E> {
     public ConcurrentBoundedSet (int maxSize) {
 
         this.maxSize = maxSize;
-        this.atomicSet = new AtomicReference<>(new LinkedHashSet<>());
+        this.atomicSet = new AtomicReference<>(new LinkedHashSet<>(maxSize));
     }
 
     public boolean add (E element) {
