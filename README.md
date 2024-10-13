@@ -86,6 +86,9 @@ This mod is open source, you can check the code yourself. This mod has been test
 	-	"minecraft": "1.21.1",
 	-	"java": "21",
 	-	"fabric-api": ">=0.103.0+1.21.1"
+- and if you want to update the stashwalker config in the mod menu:
+    -   "modmenu": "11.0.2"
+    -   "cloth-config": "15.0.130"
 
 ## Tip
 
