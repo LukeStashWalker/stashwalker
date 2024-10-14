@@ -114,21 +114,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         if (this.enabled) {
 
-            if (this.hasSolidBlocksNearBuildLimit(chunk)) {
-
-                Text styledText = Text.empty()
-                        .append(Text.literal("[")
-                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                        .append(Text.literal("Stashwalker, ")
-                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                        .append(Text.literal("blockEntities")
-                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                        .append(Text.literal("]:\n")
-                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                        .append(Text.literal("Blocks found near (old) build limit")
-                                .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                Constants.MESSAGES_BUFFER.add(styledText);
-            }
+            this.checkChunkForBlockNearBuildLimit(chunk);
         }
     }
 
@@ -267,7 +253,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         }
     }
 
-    public boolean hasSolidBlocksNearBuildLimit (Chunk chunk) {
+    public void checkChunkForBlockNearBuildLimit(Chunk chunk) {
 
         if (chunk != null) {
 
@@ -279,37 +265,39 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 RegistryKey<World> dimensionKey = world.getRegistryKey();
                 if (World.OVERWORLD.equals(dimensionKey)) {
 
+                    boolean sentMessage = false;
                     int[] yLevels = new int[] {
                             319, 318, 255, 254
                     };
                     for (int yLevel : yLevels) {
 
                         for (BlockPos pos : BlockPos.iterate(
-                            chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
-                            chunkPos.getEndX(), yLevel, chunkPos.getEndZ())
-                        ) {
+                                chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                                chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
 
                             BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
-                            if (!blockState.isAir()) {
-                                
-                                return true;
+                            if (!blockState.isAir() && !sentMessage) {
+
+                                Text styledText = Text.empty()
+                                        .append(Text.literal("[")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal("Stashwalker, ")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                        .append(Text.literal("blockEntities")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                        .append(Text.literal("]:\n")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal(String.format("Blocks found near (old) build limit: %s", pos.toShortString()))
+                                                .setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                                Constants.MESSAGES_BUFFER.add(styledText);
+
+                                sentMessage = true;
                             }
                         }
                     }
 
-                    return false;
-                } else {
-
-                    return false;
-                }         
-            } else {
-
-                return false;
+                }
             }
-
-        } else {
-
-            return false;
         }
     }
 }
