@@ -47,7 +47,7 @@ Posts text of signs you pass by in the chat HUD
 
 ### Altered Dungeons 
 
-A common way people try to hide small stashes is in dungeon chests. This feature will shown if a pillar of blocks above the dungeon has been altered
+A common way people try to hide small stashes is in dungeon chests. This feature will show if a pillar of blocks above the dungeon has been altered
 
 ### Keybindings
 
