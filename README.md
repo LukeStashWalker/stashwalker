@@ -7,7 +7,7 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ### Entity Tracer
 
-draws a tracer to valuable items and entities that may contain items:
+Draws a tracer to valuable items and entities that may contain items:
 - stacked chest minecarts: if multiple chest minecarts are stacked in the same place (if the shadow under the minecarts is very dark this is an indication that there are a lot stacked on each other)
 - chest boats
 - llama's and donkeys that have chests
@@ -23,7 +23,7 @@ draws a tracer to valuable items and entities that may contain items:
 
 ### Block Tracers 
 
-different colored tracers to interesting blocks:
+Different colored tracers to interesting blocks:
 - containers
     - shulkerboxes
     - double chests (that are not in a dungeon)
