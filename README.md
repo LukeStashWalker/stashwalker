@@ -24,7 +24,7 @@ draws a tracer to valuable items and entities that may contain items
 
 ### Block Tracers 
 
-different colored tracers to interesting blocks
+different colored tracers to interesting blocks:
     - containers
         - shulkerboxes
         - double chests (that are not in a dungeon)
