@@ -7,35 +7,35 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 ### Entity Tracer
 
-draws a tracer to valuable items and entities that may contain items
-    - stacked chest minecarts: if multiple chest minecarts are stacked in the same place (if the shadow under the minecarts is very dark this is an indication that there are a lot stacked on each other)
-    - chest boat
-    - llama's and donkeys that have chests
-    - elytra item
-    - enchanted gapp item
-    - enchanted diamond/netherite armor item
-    - enchanted diamond/netherite tool item
-    - enchanted diamond/netherite weapon item
-    - xp bottle item
-    - totem item
-    - item frame
-    - smithing template item
-    - end crystal
+draws a tracer to valuable items and entities that may contain items:
+- stacked chest minecarts: if multiple chest minecarts are stacked in the same place (if the shadow under the minecarts is very dark this is an indication that there are a lot stacked on each other)
+- chest boat
+- llama's and donkeys that have chests
+- elytra item
+- enchanted gapp item
+- enchanted diamond/netherite armor item
+- enchanted diamond/netherite tool item
+- enchanted diamond/netherite weapon item
+- xp bottle item
+- totem item
+- item frame
+- smithing template item
+- end crystal
 
 ### Block Tracers 
 
 different colored tracers to interesting blocks:
-    - containers
-        - shulkerboxes
-        - double chests (that are not in a dungeon)
-        - barrels
-        - hoppers
-        - droppers
-        - dispensers
-        - blast furnaces
-        - furnaces
-    - signs
-    - warning message if block are found near (old) build limit
+- containers
+    - shulkerboxes
+    - double chests (that are not in a dungeon)
+    - barrels
+    - hoppers
+    - droppers
+    - dispensers
+    - blast furnaces
+    - furnaces
+- signs
+- warning message if block are found near (old) build limit
 
 ### New Chunks
 
