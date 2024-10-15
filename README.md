@@ -87,12 +87,12 @@ Configure mod configudation in the mod menu
 - install git, gradle and java 
 - clone the project: git clone https://github.com/LukeStashWalker/stashwalker.git
 - build with the following command in the project folder using git bash: ./gradlew build 
-- the jar will be in the build/libs/ directory
+- the jar will be in the build/libs/ folder
 
 <!-- ## How to run -->
 <!-- - ./gradlew runClient --debug-jvm -->
 
-## Pre-built releases
+## Pre-built jars
 
 - can be found in the 'releases' folder
 
@@ -107,7 +107,7 @@ Configure mod configudation in the mod menu
 
 ## Tip
 
-- if you run into memory issues you can do the following: runner -> installations -> your installation -> ... -> edit -> more options -> update the value of xmx in JVM arguments to 4G or higher
+- if you run into Minecraft memory issues you can do the following: runner -> installations -> your installation -> ... -> edit -> more options -> update the value of xmx in JVM arguments to 4G or higher
 
 ## Contact
 
