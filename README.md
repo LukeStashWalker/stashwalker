@@ -34,7 +34,7 @@ Different colored tracers to interesting blocks:
     - blast furnaces
     - furnaces
 - signs
-- warning message if block are found near (old) build limit
+- warning message if blocks are found near (old) build limit
 
 ### New Chunks
 
