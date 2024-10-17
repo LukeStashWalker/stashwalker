@@ -28,16 +28,16 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkLoadProcessor, Renderable  {
 
-    private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = new ConcurrentHashMap<>();
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
 
     private final String chestColorKey = "chestColor";
