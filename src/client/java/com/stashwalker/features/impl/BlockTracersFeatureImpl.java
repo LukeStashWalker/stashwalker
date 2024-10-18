@@ -58,8 +58,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final Color blastFurnaceColorDefaultValue = Color.BLACK;
     private final String signColorKey = "blastFurnaceColor";
     private final Color signColorDefaultValue = Color.CYAN;
+
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
+    private final String messageSoundKey = "messageSound";
+    private final Boolean messageSoundDefaultValue = true;
 
     public BlockTracersFeatureImpl () {
 
@@ -67,17 +70,18 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         this.featureName = FEATURE_NAME_BLOCK_TRACER;
 
-        this.defaultIntegerMap.put(chestColorKey, chestColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(barrelColorKey, barrelColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(shulkerColorKey, shulkerColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(hopperColorKey, hopperColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(dropperColorKey, dropperColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(dispenserColorKey, dispenserColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(furnaceColorKey, furnaceColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(blastFurnaceColorKey, blastFurnaceColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(signColorKey, signColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.chestColorKey, this.chestColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.barrelColorKey, this.barrelColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.shulkerColorKey, this.shulkerColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.hopperColorKey, this.hopperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.dropperColorKey, this.dropperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.dispenserColorKey, this.dispenserColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.furnaceColorKey, this.furnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.blastFurnaceColorKey, this.blastFurnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.signColorKey, this.signColorDefaultValue.getRGB());
 
-        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
+        this.defaultBooleanMap.put(this.messageSoundKey, this.messageSoundDefaultValue);
+        this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
@@ -289,7 +293,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                                                 .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                                         .append(Text.literal(String.format("Blocks found near (old) build limit: %s", pos.toShortString()))
                                                 .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                                Constants.MESSAGES_BUFFER.add(styledText);
+                                Constants.MESSAGES_BUFFER.add(new Pair<>(styledText, this.featureConfig.getBooleanConfigs().get(this.messageSoundKey)));
 
                                 sentMessage = true;
                             }

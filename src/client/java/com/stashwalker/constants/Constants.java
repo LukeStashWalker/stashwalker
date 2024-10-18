@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 
 import com.stashwalker.configs.ConfigManager;
+import com.stashwalker.containers.Pair;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.impl.AlteredDungeonsFeatureImpl;
 import com.stashwalker.features.impl.BlockTracersFeatureImpl;
@@ -33,7 +34,7 @@ public class Constants {
         )
     );
 
-    public static final List<Text> MESSAGES_BUFFER = Collections.synchronizedList(new LinkedList<>());
+    public static final List<Pair<Text, Boolean>> MESSAGES_BUFFER = Collections.synchronizedList(new LinkedList<>());
 
     public static final List<ChunkStatus> CHUNK_STATUSES = 
         Collections.synchronizedList(

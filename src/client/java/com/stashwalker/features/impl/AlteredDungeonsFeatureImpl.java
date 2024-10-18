@@ -71,16 +71,16 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
         this.featureName = FEATURE_NAME_ALTERED_DUNGEONS;
 
-        this.defaultIntegerMap.put(spawnerColorKey, spawnerColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(cobbleColorKey, cobbleColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(mossyCobbleColorKey, mossyCobbleColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(chestColorKey, chestColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(pillarDefaultColorKey, pillarDefaultDefaultValue.getRGB());
-        this.defaultIntegerMap.put(spiderColorKey, spiderColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(skeletonColorKey, skeletonColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(zombieColorKey, zombieColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(minimumPillarHeightKey, minimumPillarHeightDefaultValue);
-        this.defaultIntegerMap.put(pillarSearchRadiusKey, pillarSearchRadiusDefaultValue);
+        this.defaultIntegerMap.put(this.spawnerColorKey, this.spawnerColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.cobbleColorKey, this.cobbleColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.mossyCobbleColorKey, this.mossyCobbleColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.chestColorKey, this.chestColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.pillarDefaultColorKey, this.pillarDefaultDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.spiderColorKey, this.spiderColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.skeletonColorKey, this.skeletonColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.zombieColorKey, this.zombieColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.minimumPillarHeightKey, this.minimumPillarHeightDefaultValue);
+        this.defaultIntegerMap.put(this.pillarSearchRadiusKey, this.pillarSearchRadiusDefaultValue);
 
         this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
 

@@ -322,13 +322,16 @@ public class RenderUtil {
         }
     }
 
-    public static void sendClientSideMessage (Text text) {
+    public static void sendClientSideMessage (Text text, boolean sound) {
 
-        Constants.MC_CLIENT_INSTANCE.player.playSound(
-            SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
-            1.0F, // Volume
-            1.0F  // Pitch
-        );
+        if (sound) {
+
+            Constants.MC_CLIENT_INSTANCE.player.playSound(
+                SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
+                1.0F, // Volume
+                1.0F  // Pitch
+            );
+        }
 
         Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
     }

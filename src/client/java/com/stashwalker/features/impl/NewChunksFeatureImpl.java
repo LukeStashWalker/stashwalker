@@ -41,9 +41,9 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
         this.featureName = FEATURE_NAME_NEW_CHUNKS;
 
-        this.defaultIntegerMap.put(newChunksColorKey, newChunksColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.newChunksColorKey, this.newChunksColorDefaultValue.getRGB());
 
-        this.defaultBooleanMap.put(fillInSquaresKey, fillInSequaresDefaultValue);
+        this.defaultBooleanMap.put(this.fillInSquaresKey, this.fillInSequaresDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));

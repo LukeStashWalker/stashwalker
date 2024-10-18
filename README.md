@@ -9,6 +9,7 @@ This mod is open source, you can check the code yourself. This mod has been test
 
 Draws a tracer to valuable items and entities that may contain items:
 - stacked chest minecarts: if multiple chest minecarts are stacked in the same place (if the shadow under the minecarts is very dark this is an indication that there are a lot stacked on each other)
+- if a lot of chest minecarts are in close proximity of eachother, but not stacked (can be configured)
 - chest boats
 - llama's and donkeys that have chests
 - elytra's

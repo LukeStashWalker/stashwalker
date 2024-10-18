@@ -6,6 +6,8 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
+import java.rmi.dgc.VMID;
+
 import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.StringUtil;
 
@@ -65,6 +67,17 @@ public class StashwalkerConfigScreen {
                                     .setSaveConsumer(newValue -> f.getFeatureConfig().getIntegerConfigs().put(e.getKey(), newValue))
                                     .build());
                 }
+            });
+
+            f.getFeatureConfig().getStringConfigs().entrySet().forEach(e -> {
+
+                    category.addEntry(
+                            entryBuilder
+                                    .startStrField(Text.translatable(StringUtil.convertCamelCaseToWords(e.getKey())),
+                                            e.getValue())
+                                    .setDefaultValue(f.getDefaultStringMap().get(e.getKey()))
+                                    .setSaveConsumer(newValue -> f.getFeatureConfig().getStringConfigs().put(e.getKey(), newValue))
+                                    .build());
             });
         });
 

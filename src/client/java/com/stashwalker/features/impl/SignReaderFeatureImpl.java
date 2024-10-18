@@ -3,11 +3,13 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
+import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.SignTextExtractor;
 
+import io.netty.util.internal.StringUtil;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.text.Style;
@@ -16,6 +18,8 @@ import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor  {
@@ -23,6 +27,10 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
 
     private final String signTextColorKey = "signTextColor";
     private final Color signTextColorDefaultValue = Color.CYAN;
+    private final String ignoreWordListKey = "ignoreWordList";
+    private final String ignoreWordListDefaultValue = "cody,example1,example2";
+    private final String messageSoundKey = "messageSound";
+    private final Boolean messageSoundDefaultValue = true;
 
     public SignReaderFeatureImpl () {
 
@@ -30,7 +38,9 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
 
         this.featureName = FEATURE_NAME_SIGN_READER;
 
-        this.defaultIntegerMap.put(signTextColorKey, signTextColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.signTextColorKey, this.signTextColorDefaultValue.getRGB());
+        this.defaultStringMap.put(this.ignoreWordListKey, this.ignoreWordListDefaultValue);
+        this.defaultBooleanMap.put(this.messageSoundKey, this.messageSoundDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
@@ -55,10 +65,16 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                     if (blockEntity instanceof SignBlockEntity) {
 
                         String signText = SignTextExtractor.getSignText((SignBlockEntity) blockEntity);
+                        String ignoreListString = this.featureConfig.getStringConfigs().get(this.ignoreWordListKey);
+                        List<String> ignoreList = Arrays.stream(ignoreListString != null ? ignoreListString.split(",") : new String[]{})
+                            .filter(s -> !StringUtil.isNullOrEmpty(s))
+                            .map(s -> s.toLowerCase())
+                            .toList();
                         if (
                             !signText.isEmpty()
                             && !signText.equals("<----\n---->")
                             && signCount < 50 // Limit to 50 signs per chunk in case somebody goes nuts with the sign placement
+                            && !ignoreList.contains(signText.toLowerCase())
                         ) {
 
                             Text styledText = Text.empty()
@@ -73,7 +89,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                                     .append(Text.literal(signText)
                                             .setStyle(Style.EMPTY.withColor(this.featureConfig.getIntegerConfigs().get(this.signTextColorKey))));
 
-                            Constants.MESSAGES_BUFFER.add(styledText);
+                            Constants.MESSAGES_BUFFER.add(new Pair<>(styledText, this.featureConfig.getBooleanConfigs().get(this.messageSoundKey)));
 
                             signCount++;
                         }
