@@ -77,6 +77,8 @@ Configure mod configudation in the mod menu
 
 ![alt text](screenshots/13.png)
 
+![alt text](screenshots/14.png)
+
 ![alt text](screenshots/10.png)
 
 ![alt text](screenshots/11.png)
