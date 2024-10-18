@@ -55,7 +55,7 @@ Configure the keybindings in the options menu
 
 ### Mod Configuration
 
-Configure mod configudation in the mod menu
+Configure mod configuration in the mod menu
 
 ![alt text](screenshots/1.png)
 
