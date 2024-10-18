@@ -60,7 +60,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final Color furnaceColorDefaultValue = Color.BLACK;
     private final String blastFurnaceColorKey = "blastFurnaceColor";
     private final Color blastFurnaceColorDefaultValue = Color.BLACK;
-    private final String signColorKey = "blastFurnaceColor";
+    private final String signColorKey = "signColorColor";
     private final Color signColorDefaultValue = Color.CYAN;
 
     private final String closeProximitySingleChestsMinimumAmountKey = "closeProximitySingleChestsMinimumAmount";

@@ -35,6 +35,7 @@ public class Constants {
     );
 
     public static final List<Pair<Text, Boolean>> MESSAGES_BUFFER = Collections.synchronizedList(new LinkedList<>());
+    public static final List<Pair<String, Boolean>> CHAT_BUFFER = Collections.synchronizedList(new LinkedList<>());
 
     public static final List<ChunkStatus> CHUNK_STATUSES = 
         Collections.synchronizedList(

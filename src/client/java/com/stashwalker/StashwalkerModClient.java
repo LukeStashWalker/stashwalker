@@ -204,6 +204,12 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
         Constants.MESSAGES_BUFFER.clear();
 
+        Constants.CHAT_BUFFER.forEach(m -> {
+
+            RenderUtil.sendChatMessage(m.getKey(), m.getValue());
+        });
+        Constants.CHAT_BUFFER.clear();
+
         Constants.FEATURES.forEach(f -> {
 
             if (f instanceof Renderable) {

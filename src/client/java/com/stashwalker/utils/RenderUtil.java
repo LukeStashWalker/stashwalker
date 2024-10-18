@@ -13,6 +13,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.text.Text;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.sound.SoundEvents;
 
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -334,6 +335,24 @@ public class RenderUtil {
         }
 
         Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
+    }
+
+    public static void sendChatMessage (String text, boolean sound) {
+
+        if (sound) {
+
+            Constants.MC_CLIENT_INSTANCE.player.playSound(
+                SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
+                1.0F, // Volume
+                1.0F  // Pitch
+            );
+        }
+
+        ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
+        if (player != null) {
+
+            player.networkHandler.sendChatMessage(text.replace("\n", " "));
+        }
     }
 
     public static void renderHUDText (DrawContext drawContext, String text, int x, int y, int color) {
