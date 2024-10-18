@@ -1,8 +1,9 @@
 package com.stashwalker.features;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
+
 import com.stashwalker.models.FeatureConfig;
 
 public abstract class AbstractBaseFeature implements Feature {
@@ -17,9 +18,9 @@ public abstract class AbstractBaseFeature implements Feature {
 
     public AbstractBaseFeature () {
 
-        this.defaultIntegerMap = Collections.synchronizedMap(new HashMap<>());
-        this.defaultBooleanMap = Collections.synchronizedMap(new HashMap<>());
-        this.defaultStringMap = Collections.synchronizedMap(new HashMap<>());
+        this.defaultIntegerMap = Collections.synchronizedMap(new TreeMap<>());
+        this.defaultBooleanMap = Collections.synchronizedMap(new TreeMap<>());
+        this.defaultStringMap = Collections.synchronizedMap(new TreeMap<>());
     }
     
     @Override

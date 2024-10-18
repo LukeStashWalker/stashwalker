@@ -40,10 +40,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
-    private final String closeProximityMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
-    private final Integer closeProximityMinecartsMinimumAmountDefaultValue = 10;
-    private final String closeProximityMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
-    private final Integer closeProximityMinecartsMaximumBlockDistanceDefaultValue = 20;
+    private final String closeProximityChestMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
+    private final Integer closeProximityChestMinecartsMinimumAmountDefaultValue = 10;
+    private final String closeProximityChestMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
+    private final Integer closeProximityChestMinecartsMaximumBlockDistanceDefaultValue = 20;
 
     public EntityTracersFeatureImpl () {
 
@@ -52,8 +52,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
 
         this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(this.closeProximityMinecartsMinimumAmountKey, this.closeProximityMinecartsMinimumAmountDefaultValue);
-        this.defaultIntegerMap.put(this.closeProximityMinecartsMaximumBlockDistanceKey, this.closeProximityMinecartsMaximumBlockDistanceDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMinimumAmountKey, this.closeProximityChestMinecartsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMaximumBlockDistanceKey, this.closeProximityChestMinecartsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
@@ -198,8 +198,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         entities.addAll(
             this.findCloseProximityMinecartChests(
                 chestMinecartEntities, 
-                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMinimumAmountKey), 
-                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMaximumBlockDistanceKey) 
+                this.featureConfig.getIntegerConfigs().get(this.closeProximityChestMinecartsMinimumAmountKey), 
+                this.featureConfig.getIntegerConfigs().get(this.closeProximityChestMinecartsMaximumBlockDistanceKey) 
             )
         );
 

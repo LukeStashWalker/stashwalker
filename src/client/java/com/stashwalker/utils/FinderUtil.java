@@ -1,13 +1,8 @@
 package com.stashwalker.utils;
 
 import net.minecraft.block.Block;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.BlockState;
-import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
 
@@ -28,49 +23,6 @@ public class FinderUtil {
             .stream()
             .map(e -> new Vec3d(e.getPos().x, e.getPos().y + 0.5D, e.getPos().z))
             .toList();
-    }
-    
-    public static boolean isDoubleChest (World world, BlockPos pos) {
-
-        if (
-            !isBlockType(pos, Blocks.CHEST)
-            && !isBlockType(pos, Blocks.TRAPPED_CHEST)
-        ) {
-
-            return false;
-        }
-
-        BlockState state = world.getBlockState(pos);
-
-        Direction[] directions = {Direction.NORTH, Direction.SOUTH, Direction.WEST, Direction.EAST};
-        for (Direction direction : directions) {
-
-            BlockPos adjacentPos = pos.offset(direction);
-            BlockState adjacentState = world.getBlockState(adjacentPos);
-            Block adjacentBlock = adjacentState.getBlock();
-
-            if (
-                (
-                    adjacentBlock == Blocks.CHEST 
-                    || adjacentBlock == Blocks.TRAPPED_CHEST
-                )
-                && adjacentState.get(Properties.HORIZONTAL_FACING) == state.get(Properties.HORIZONTAL_FACING)
-            ) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    public static boolean isBlockInHorizontalRadius (World world, BlockPos pos, int radius, Block block) {
-
-        Box searchBox = new Box(pos).expand(radius, 0, radius);
-
-        return BlockPos.stream(searchBox).anyMatch(bp -> {
-            return world.getBlockState(bp).getBlock() == block;
-        });
     }
 
     public static Chunk getChunkEarly (int x, int z) {

@@ -28,6 +28,7 @@ Different colored tracers to interesting blocks:
 - containers
     - shulkerboxes
     - double chests (that are not in a dungeon)
+    - if a lot of single chests are in close proximity of each other (the amount and distance can be configured)
     - barrels
     - hoppers
     - droppers

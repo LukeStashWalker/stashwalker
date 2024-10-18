@@ -14,15 +14,19 @@ import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
@@ -59,6 +63,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final String signColorKey = "blastFurnaceColor";
     private final Color signColorDefaultValue = Color.CYAN;
 
+    private final String closeProximitySingleChestsMinimumAmountKey = "closeProximitySingleChestsMinimumAmount";
+    private final Integer closeProximitySingleChestsMinimumAmountDefaultValue = 10;
+    private final String closeProximitySingleChestsMaximumBlockDistanceKey = "closeProximitySingleChestsMaximumBlockDistance";
+    private final Integer closeProximitySingleChestsMaximumBlockDistanceDefaultValue = 10;
+
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
     private final String messageSoundKey = "messageSound";
@@ -79,6 +88,9 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         this.defaultIntegerMap.put(this.furnaceColorKey, this.furnaceColorDefaultValue.getRGB());
         this.defaultIntegerMap.put(this.blastFurnaceColorKey, this.blastFurnaceColorDefaultValue.getRGB());
         this.defaultIntegerMap.put(this.signColorKey, this.signColorDefaultValue.getRGB());
+
+        this.defaultIntegerMap.put(this.closeProximitySingleChestsMinimumAmountKey, this.closeProximitySingleChestsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximitySingleChestsMaximumBlockDistanceKey, this.closeProximitySingleChestsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.messageSoundKey, this.messageSoundDefaultValue);
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
@@ -152,7 +164,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    public Optional<Color> isInterestingBlockPosition(BlockPos pos) {
+    private Optional<Color> isInterestingBlockPosition (BlockPos pos) {
 
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
         Map<String, Integer> integerMap = this.featureConfig.getIntegerConfigs();
@@ -161,11 +173,20 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
             return Optional.of(new Color(integerMap.get(this.barrelColorKey)));
         } else if (
 
-        (FinderUtil.isDoubleChest(world, pos)
+        (
+            (
+                this.isDoubleChest(pos)
                 && (
-                // Not a Dungeon
-                !FinderUtil.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                        && !FinderUtil.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER)))) {
+                    // Not a Dungeon
+                    !this.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                    && !this.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER))
+                )
+            )
+
+            ||
+
+            this.isProximitySingleChest(pos)
+        ) {
 
             return Optional.of(new Color(integerMap.get(this.chestColorKey)));
         } else if (
@@ -257,7 +278,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         }
     }
 
-    public void checkChunkForBlockNearBuildLimit(Chunk chunk) {
+    public void checkChunkForBlockNearBuildLimit (Chunk chunk) {
 
         if (chunk != null) {
 
@@ -303,5 +324,120 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 }
             }
         }
+    }
+
+    private boolean isProximitySingleChest (BlockPos pos) {
+
+        pos = new BlockPos(pos);
+
+        if (!this.isSingleChest(pos)) {
+
+            return false;
+        }
+
+        int distance = this.featureConfig.getIntegerConfigs().get(this.closeProximitySingleChestsMaximumBlockDistanceKey);
+        int amount = this.featureConfig.getIntegerConfigs().get(this.closeProximitySingleChestsMinimumAmountKey);
+
+        int x = pos.getX();
+        int y = pos.getY();
+        int z = pos.getZ();
+        int count = 0;
+        for (int i = x - distance; i < x + distance + 1; i++) {
+
+            for (int j = y - distance; j < y + distance + 1; j++) {
+
+                for (int k = z - distance; k < z + distance + 1; k++) {
+
+                    BlockPos p = new BlockPos(i, j, k);
+                    if (
+                        !p.equals(pos)
+                        && isSingleChest(p)
+                    ) {
+
+                        count++;
+
+                        if (1 + count >= amount) { // The count is not including the pos itself
+
+                            return true;
+                        }
+                    }
+
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isSingleChest (BlockPos pos) {
+
+        if (!FinderUtil.isBlockType(pos, Blocks.CHEST) && !FinderUtil.isBlockType(pos, Blocks.TRAPPED_CHEST)) {
+
+            return false;
+        }
+
+        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+        BlockState state = world.getBlockState(pos);
+
+        Direction facing = state.get(Properties.HORIZONTAL_FACING);
+
+        Direction[] relevantSides = (facing == Direction.NORTH || facing == Direction.SOUTH)
+                ? new Direction[] { Direction.WEST, Direction.EAST }
+                : new Direction[] { Direction.NORTH, Direction.SOUTH };
+
+        for (Direction direction : relevantSides) {
+            BlockPos adjacentPos = pos.offset(direction);
+            BlockState adjacentState = world.getBlockState(adjacentPos);
+            Block adjacentBlock = adjacentState.getBlock();
+
+            if ((adjacentBlock == Blocks.CHEST || adjacentBlock == Blocks.TRAPPED_CHEST)
+                    && adjacentState.get(Properties.HORIZONTAL_FACING) == facing) {
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isDoubleChest (BlockPos pos) {
+
+        if (!FinderUtil.isBlockType(pos, Blocks.CHEST) && !FinderUtil.isBlockType(pos, Blocks.TRAPPED_CHEST)) {
+
+            return false;
+        }
+
+        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+        BlockState state = world.getBlockState(pos);
+
+        Direction facing = state.get(Properties.HORIZONTAL_FACING);
+
+        Direction[] relevantSides = (facing == Direction.NORTH || facing == Direction.SOUTH)
+                ? new Direction[] { Direction.WEST, Direction.EAST }
+                : new Direction[] { Direction.NORTH, Direction.SOUTH };
+
+        for (Direction direction : relevantSides) {
+
+            BlockPos adjacentPos = pos.offset(direction);
+            BlockState adjacentState = world.getBlockState(adjacentPos);
+            Block adjacentBlock = adjacentState.getBlock();
+
+            if ((adjacentBlock == Blocks.CHEST || adjacentBlock == Blocks.TRAPPED_CHEST)
+                    && adjacentState.get(Properties.HORIZONTAL_FACING) == facing) {
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isBlockInHorizontalRadius (World world, BlockPos pos, int radius, Block block) {
+
+        Box searchBox = new Box(pos).expand(radius, 0, radius);
+
+        return BlockPos.stream(searchBox).anyMatch(bp -> {
+            return world.getBlockState(bp).getBlock() == block && !bp.equals(pos);
+        });
     }
 }

@@ -309,7 +309,6 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
             }
         }
 
-        // Add the dungeon positions
         int dungeonHorizontalRadius = 4;
         int dungeonHeight = 5;
         BlockPos startPos = new BlockPos(pos.getX() - dungeonHorizontalRadius, pos.getY() - 1, pos.getZ() - dungeonHorizontalRadius);
@@ -331,7 +330,6 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
         }
         alteredDungeon.setSpawnerPosition(RenderUtil.toVec3d(pos));
 
-        // Add the entity Positions
         int boxHorizontalRadius = 6; // Some of the mobs may have wandered out of the Dungeon a little
         int boxHeight = 4;
         Box entitiesBox = new Box(
