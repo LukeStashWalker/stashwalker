@@ -66,6 +66,17 @@ public class StashwalkerConfigScreen {
                                     .build());
                 }
             });
+
+            f.getFeatureConfig().getStringConfigs().entrySet().forEach(e -> {
+
+                    category.addEntry(
+                            entryBuilder
+                                    .startStrField(Text.translatable(StringUtil.convertCamelCaseToWords(e.getKey())),
+                                            e.getValue())
+                                    .setDefaultValue(f.getDefaultStringMap().get(e.getKey()))
+                                    .setSaveConsumer(newValue -> f.getFeatureConfig().getStringConfigs().put(e.getKey(), newValue))
+                                    .build());
+            });
         });
 
         builder.setSavingRunnable(Constants.CONFIG_MANAGER::saveConfig);

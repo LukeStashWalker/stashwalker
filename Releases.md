@@ -1,6 +1,12 @@
 Releases
 ===
 
+Version 1.2.3-fabric-0.103.0+-mc1.21.1
+---
+- added multi configuration options to the mod menu
+- added ignore word list to the sign reader
+- added proximity chest minecarts search to entity tracers (see README)
+
 Version 1.2.2-fabric-0.103.0+-mc1.21.1
 ---
 - package modmenu and cloth-config with the mod
@@ -8,7 +14,7 @@ Version 1.2.2-fabric-0.103.0+-mc1.21.1
 Version 1.2.1-fabric-0.103.0+-mc1.21.1
 ---
 - multiple performance improvements
-- added more configuration option to the mod menu
+- added more configuration options to the mod menu
 - refinement of the altered dungeons feature
 
 Version 1.2.0-fabric-0.103.0+-mc1.21.1

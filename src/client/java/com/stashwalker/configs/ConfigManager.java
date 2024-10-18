@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v121.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v122.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public void loadConfig () {

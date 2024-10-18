@@ -40,6 +40,7 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
+import com.stashwalker.containers.Pair;
 import com.stashwalker.features.ChunkLoadProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
@@ -199,7 +200,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         Constants.MESSAGES_BUFFER.forEach(m -> {
 
-            RenderUtil.sendClientSideMessage(m);
+            RenderUtil.sendClientSideMessage(m.getKey(), m.getValue());
         });
         Constants.MESSAGES_BUFFER.clear();
 
@@ -296,7 +297,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 f.clear();
 
                 Constants.MESSAGES_BUFFER
-                        .add(this.createStyledTextForFeature(featureName, state));
+                        .add(new Pair<>(this.createStyledTextForFeature(featureName, state), true));
             }
         });
     }

@@ -11,7 +11,6 @@ import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
@@ -33,7 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable  {
+public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
 
@@ -41,16 +40,22 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
+    private final String closeProximityMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
+    private final Integer closeProximityMinecartsMinimumAmountDefaultValue = 10;
+    private final String closeProximityMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
+    private final Integer closeProximityMinecartsMaximumBlockDistanceDefaultValue = 20;
 
     public EntityTracersFeatureImpl () {
 
         super();
 
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
-        
-        this.defaultIntegerMap.put(entityColorKey, entityColorDefaultValue.getRGB());
 
-        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
+        this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.closeProximityMinecartsMinimumAmountKey, this.closeProximityMinecartsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityMinecartsMaximumBlockDistanceKey, this.closeProximityMinecartsMaximumBlockDistanceDefaultValue);
+
+        this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
@@ -92,7 +97,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                     }
 
                     Color color = new Color(this.getFeatureConfig().getIntegerConfigs().get(this.entityColorKey));
-                    RenderUtil.drawLine(context, entityPos, color, true, this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
+                    RenderUtil.drawLine(context, entityPos, color, true,
+                            this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
                 }
             }
         }
@@ -100,7 +106,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     @Override
     public void clear () {
-        
+
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
@@ -128,63 +134,53 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                         ItemEntity itemEntity = (ItemEntity) e;
                         ItemStack itemStack = itemEntity.getStack();
 
-                        if (
-                            isEnchantedDiamondOrNetherite(itemStack)
+                        if (isEnchantedDiamondOrNetherite(itemStack)
 
-                            || itemStack.getItem() == Items.ELYTRA
-                            || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
-                            || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
-                            || itemStack.getItem() == Items.TOTEM_OF_UNDYING
-                            || itemStack.getItem() == Items.END_CRYSTAL
+                                || itemStack.getItem() == Items.ELYTRA
+                                || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+                                || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+                                || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+                                || itemStack.getItem() == Items.END_CRYSTAL
 
-                            || itemStack.getItem() == Items.SHULKER_BOX
-                            || itemStack.getItem() == Items.WHITE_SHULKER_BOX
-                            || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
-                            || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
-                            || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
-                            || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
-                            || itemStack.getItem() == Items.LIME_SHULKER_BOX
-                            || itemStack.getItem() == Items.PINK_SHULKER_BOX
-                            || itemStack.getItem() == Items.GRAY_SHULKER_BOX
-                            || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
-                            || itemStack.getItem() == Items.CYAN_SHULKER_BOX
-                            || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
-                            || itemStack.getItem() == Items.BLUE_SHULKER_BOX
-                            || itemStack.getItem() == Items.BROWN_SHULKER_BOX
-                            || itemStack.getItem() == Items.GREEN_SHULKER_BOX
-                            || itemStack.getItem() == Items.RED_SHULKER_BOX
-                            || itemStack.getItem() == Items.BLACK_SHULKER_BOX
-                        ) {
+                                || itemStack.getItem() == Items.SHULKER_BOX
+                                || itemStack.getItem() == Items.WHITE_SHULKER_BOX
+                                || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
+                                || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
+                                || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIME_SHULKER_BOX
+                                || itemStack.getItem() == Items.PINK_SHULKER_BOX
+                                || itemStack.getItem() == Items.GRAY_SHULKER_BOX
+                                || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
+                                || itemStack.getItem() == Items.CYAN_SHULKER_BOX
+                                || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
+                                || itemStack.getItem() == Items.BLUE_SHULKER_BOX
+                                || itemStack.getItem() == Items.BROWN_SHULKER_BOX
+                                || itemStack.getItem() == Items.GREEN_SHULKER_BOX
+                                || itemStack.getItem() == Items.RED_SHULKER_BOX
+                                || itemStack.getItem() == Items.BLACK_SHULKER_BOX) {
 
                             return true;
-                        } 
+                        }
 
-                    } else if (
-                        (
-                            e instanceof AbstractDonkeyEntity
+                    } else if ((e instanceof AbstractDonkeyEntity
                             && ((AbstractDonkeyEntity) e).hasChest()
-                            && !((AbstractDonkeyEntity) e).hasPlayerRider()
-                        )
+                            && !((AbstractDonkeyEntity) e).hasPlayerRider())
 
-                        ||
+                            ||
 
-                        (
-                            e instanceof LlamaEntity
-                            && ((LlamaEntity) e).hasChest()
-                            && !((LlamaEntity) e).hasPlayerRider()
-                        )
+                            (e instanceof LlamaEntity
+                                    && ((LlamaEntity) e).hasChest()
+                                    && !((LlamaEntity) e).hasPlayerRider())
 
-                        ||
+                            ||
 
-                        (
-                            e instanceof ChestBoatEntity
-                            && !((ChestBoatEntity) e).hasPlayerRider()
-                        )
+                            (e instanceof ChestBoatEntity
+                                    && !((ChestBoatEntity) e).hasPlayerRider())
 
-                        ||
+                            ||
 
-                        (e instanceof ItemFrameEntity)
-                    ) {
+                            (e instanceof ItemFrameEntity)) {
 
                         return true;
                     }
@@ -192,64 +188,57 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                     return false;
                 });
 
-        entities.addAll(findOverlappingMinecartChests());
+        // Get all MinecartChests within the calculated radius
+        List<ChestMinecartEntity> chestMinecartEntities = Constants.MC_CLIENT_INSTANCE.player.getWorld()
+                .getEntitiesByClass(ChestMinecartEntity.class,
+                        boundingBox, e -> true);
+
+        entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
+
+        entities.addAll(
+            this.findCloseProximityMinecartChests(
+                chestMinecartEntities, 
+                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMinimumAmountKey), 
+                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMaximumBlockDistanceKey) 
+            )
+        );
 
         return entities;
     }
 
-private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
+    private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
 
-    if (itemStack.hasEnchantments()) {
+        if (itemStack.hasEnchantments()) {
 
-        if (itemStack.getItem() instanceof ArmorItem) {
+            if (itemStack.getItem() instanceof ArmorItem) {
 
-            return (itemStack.getItem() == Items.DIAMOND_BOOTS ||
-                    itemStack.getItem() == Items.DIAMOND_CHESTPLATE ||
-                    itemStack.getItem() == Items.DIAMOND_HELMET ||
-                    itemStack.getItem() == Items.DIAMOND_LEGGINGS) ||
-                    (itemStack.getItem() == Items.NETHERITE_BOOTS ||
-                            itemStack.getItem() == Items.NETHERITE_CHESTPLATE ||
-                            itemStack.getItem() == Items.NETHERITE_HELMET ||
-                            itemStack.getItem() == Items.NETHERITE_LEGGINGS);
-        } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
+                return (itemStack.getItem() == Items.DIAMOND_BOOTS ||
+                        itemStack.getItem() == Items.DIAMOND_CHESTPLATE ||
+                        itemStack.getItem() == Items.DIAMOND_HELMET ||
+                        itemStack.getItem() == Items.DIAMOND_LEGGINGS) ||
+                        (itemStack.getItem() == Items.NETHERITE_BOOTS ||
+                                itemStack.getItem() == Items.NETHERITE_CHESTPLATE ||
+                                itemStack.getItem() == Items.NETHERITE_HELMET ||
+                                itemStack.getItem() == Items.NETHERITE_LEGGINGS);
+            } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
 
-            return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||
-                    itemStack.getItem() == Items.DIAMOND_AXE ||
-                    itemStack.getItem() == Items.DIAMOND_SHOVEL ||
-                    itemStack.getItem() == Items.DIAMOND_SWORD) ||
-                    (itemStack.getItem() == Items.NETHERITE_PICKAXE ||
-                            itemStack.getItem() == Items.NETHERITE_AXE ||
-                            itemStack.getItem() == Items.NETHERITE_SHOVEL ||
-                            itemStack.getItem() == Items.NETHERITE_SWORD);
+                return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||
+                        itemStack.getItem() == Items.DIAMOND_AXE ||
+                        itemStack.getItem() == Items.DIAMOND_SHOVEL ||
+                        itemStack.getItem() == Items.DIAMOND_SWORD) ||
+                        (itemStack.getItem() == Items.NETHERITE_PICKAXE ||
+                                itemStack.getItem() == Items.NETHERITE_AXE ||
+                                itemStack.getItem() == Items.NETHERITE_SHOVEL ||
+                                itemStack.getItem() == Items.NETHERITE_SWORD);
+            }
         }
+
+        return false;
     }
 
-    return false;
-}
-
-
-
-    private List<Entity> findOverlappingMinecartChests () {
-
-        ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
-        int renderDistanceChunks = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-        double renderDistanceInBlocks = renderDistanceChunks * 16;
+    private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
 
         Set<ChestMinecartEntity> minecartChests = new HashSet<>();
-
-        Vec3d playerPos = Constants.MC_CLIENT_INSTANCE.player.getPos();
-        Box boundingBox = new Box(
-                playerPos.x - renderDistanceInBlocks,
-                -64,
-                playerPos.z - renderDistanceInBlocks,
-                playerPos.x + renderDistanceInBlocks,
-                320,
-                playerPos.z + renderDistanceInBlocks
-        );
-
-        // Get all MinecartChests within the calculated radius
-        List<ChestMinecartEntity> entities = player.getWorld().getEntitiesByClass(ChestMinecartEntity.class,
-                boundingBox, e -> true);
 
         Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
 
@@ -272,5 +261,42 @@ private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
 
         return new ArrayList<>(foundChestMinecastEntities);
     }
+
+    private List<Entity> findCloseProximityMinecartChests (
+        List<ChestMinecartEntity> entities, 
+        int chestMinecartAmount,
+        int blocksProximity
+    ) {
+
+        Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
+
+        for (int i = 0; i < entities.size(); i++) {
+
+            ChestMinecartEntity currentMinecart = entities.get(i);
+            Set<ChestMinecartEntity> nearbyMinecarts = new HashSet<>();
+
+            for (int j = 0; j < entities.size(); j++) {
+
+                if (i != j) {
+
+                    ChestMinecartEntity otherMinecart = entities.get(j);
+                    double distance = currentMinecart.squaredDistanceTo(otherMinecart);
+
+                    if (distance <= blocksProximity * blocksProximity) {
+                        
+                        nearbyMinecarts.add(otherMinecart);
+                    }
+                }
+            }
+
+            if (nearbyMinecarts.size() >= chestMinecartAmount) {
+
+                closeProximityMinecarts.addAll(nearbyMinecarts);
+            }
+        }
+
+        return new ArrayList<>(closeProximityMinecarts);
+    }
+
 
 }

@@ -58,8 +58,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     private final Color blastFurnaceColorDefaultValue = Color.BLACK;
     private final String signColorKey = "blastFurnaceColor";
     private final Color signColorDefaultValue = Color.CYAN;
+
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
+    private final String messageSoundKey = "messageSound";
+    private final Boolean messageSoundDefaultValue = true;
 
     public BlockTracersFeatureImpl () {
 
@@ -67,17 +70,18 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         this.featureName = FEATURE_NAME_BLOCK_TRACER;
 
-        this.defaultIntegerMap.put(chestColorKey, chestColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(barrelColorKey, barrelColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(shulkerColorKey, shulkerColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(hopperColorKey, hopperColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(dropperColorKey, dropperColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(dispenserColorKey, dispenserColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(furnaceColorKey, furnaceColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(blastFurnaceColorKey, blastFurnaceColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(signColorKey, signColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.chestColorKey, this.chestColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.barrelColorKey, this.barrelColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.shulkerColorKey, this.shulkerColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.hopperColorKey, this.hopperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.dropperColorKey, this.dropperColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.dispenserColorKey, this.dispenserColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.furnaceColorKey, this.furnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.blastFurnaceColorKey, this.blastFurnaceColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.signColorKey, this.signColorDefaultValue.getRGB());
 
-        this.defaultBooleanMap.put(fillInBoxesKey, fillInBoxesDefaultValue);
+        this.defaultBooleanMap.put(this.messageSoundKey, this.messageSoundDefaultValue);
+        this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
@@ -114,21 +118,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         if (this.enabled) {
 
-            if (this.hasSolidBlocksNearBuildLimit(chunk)) {
-
-                Text styledText = Text.empty()
-                        .append(Text.literal("[")
-                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                        .append(Text.literal("Stashwalker, ")
-                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
-                        .append(Text.literal("blockEntities")
-                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
-                        .append(Text.literal("]:\n")
-                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
-                        .append(Text.literal("Blocks found near (old) build limit")
-                                .setStyle(Style.EMPTY.withColor(Formatting.RED)));
-                Constants.MESSAGES_BUFFER.add(styledText);
-            }
+            this.checkChunkForBlockNearBuildLimit(chunk);
         }
     }
 
@@ -267,7 +257,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         }
     }
 
-    public boolean hasSolidBlocksNearBuildLimit (Chunk chunk) {
+    public void checkChunkForBlockNearBuildLimit(Chunk chunk) {
 
         if (chunk != null) {
 
@@ -279,37 +269,39 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 RegistryKey<World> dimensionKey = world.getRegistryKey();
                 if (World.OVERWORLD.equals(dimensionKey)) {
 
+                    boolean sentMessage = false;
                     int[] yLevels = new int[] {
                             319, 318, 255, 254
                     };
                     for (int yLevel : yLevels) {
 
                         for (BlockPos pos : BlockPos.iterate(
-                            chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
-                            chunkPos.getEndX(), yLevel, chunkPos.getEndZ())
-                        ) {
+                                chunkPos.getStartX(), yLevel, chunkPos.getStartZ(),
+                                chunkPos.getEndX(), yLevel, chunkPos.getEndZ())) {
 
                             BlockState blockState = Constants.MC_CLIENT_INSTANCE.world.getBlockState(pos);
-                            if (!blockState.isAir()) {
-                                
-                                return true;
+                            if (!blockState.isAir() && !sentMessage) {
+
+                                Text styledText = Text.empty()
+                                        .append(Text.literal("[")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal("Stashwalker, ")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.DARK_GRAY)))
+                                        .append(Text.literal("blockEntities")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.BLUE)))
+                                        .append(Text.literal("]:\n")
+                                                .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
+                                        .append(Text.literal(String.format("Blocks found near (old) build limit: %s", pos.toShortString()))
+                                                .setStyle(Style.EMPTY.withColor(Formatting.RED)));
+                                Constants.MESSAGES_BUFFER.add(new Pair<>(styledText, this.featureConfig.getBooleanConfigs().get(this.messageSoundKey)));
+
+                                sentMessage = true;
                             }
                         }
                     }
 
-                    return false;
-                } else {
-
-                    return false;
-                }         
-            } else {
-
-                return false;
+                }
             }
-
-        } else {
-
-            return false;
         }
     }
 }

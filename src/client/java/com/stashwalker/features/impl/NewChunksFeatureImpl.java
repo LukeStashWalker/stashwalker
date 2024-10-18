@@ -2,10 +2,9 @@ package com.stashwalker.features.impl;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
@@ -29,7 +28,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
-    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = new ConcurrentHashMap<>();
 
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
@@ -42,9 +41,9 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
         this.featureName = FEATURE_NAME_NEW_CHUNKS;
 
-        this.defaultIntegerMap.put(newChunksColorKey, newChunksColorDefaultValue.getRGB());
+        this.defaultIntegerMap.put(this.newChunksColorKey, this.newChunksColorDefaultValue.getRGB());
 
-        this.defaultBooleanMap.put(fillInSquaresKey, fillInSequaresDefaultValue);
+        this.defaultBooleanMap.put(this.fillInSquaresKey, this.fillInSequaresDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
