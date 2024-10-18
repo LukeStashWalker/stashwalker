@@ -6,8 +6,6 @@ import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-import java.rmi.dgc.VMID;
-
 import com.stashwalker.constants.Constants;
 import com.stashwalker.utils.StringUtil;
 

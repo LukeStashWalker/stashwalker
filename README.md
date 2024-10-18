@@ -43,7 +43,7 @@ Renders rectangles around new chunks (based on copper ore in the Overworld and a
 
 ### Sign Reader 
 
-Posts text of signs you pass by in the chat HUD
+Posts text of signs you pass by in the chat HUD. An word ignore list can be configured
 
 ### Altered Dungeons 
 

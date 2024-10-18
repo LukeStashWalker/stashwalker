@@ -42,8 +42,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final Boolean fillInBoxesDefaultValue = true;
     private final String closeProximityMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
     private final Integer closeProximityMinecartsMinimumAmountDefaultValue = 10;
-    private final String closeProximityMinecartsBlockDistanceKey = "closeProximityChestMinecartsBlockDistance";
-    private final Integer closeProximityMinecartsBlockDistanceDefaultValue = 20;
+    private final String closeProximityMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
+    private final Integer closeProximityMinecartsMaximumBlockDistanceDefaultValue = 20;
 
     public EntityTracersFeatureImpl () {
 
@@ -53,7 +53,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
         this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
         this.defaultIntegerMap.put(this.closeProximityMinecartsMinimumAmountKey, this.closeProximityMinecartsMinimumAmountDefaultValue);
-        this.defaultIntegerMap.put(this.closeProximityMinecartsBlockDistanceKey, this.closeProximityMinecartsBlockDistanceDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityMinecartsMaximumBlockDistanceKey, this.closeProximityMinecartsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
@@ -199,7 +199,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             this.findCloseProximityMinecartChests(
                 chestMinecartEntities, 
                 this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMinimumAmountKey), 
-                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsBlockDistanceKey) 
+                this.featureConfig.getIntegerConfigs().get(this.closeProximityMinecartsMaximumBlockDistanceKey) 
             )
         );
 
