@@ -138,12 +138,12 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    void update () {
+    public void update () {
 
     } 
 
     @Override
-    void processChunkUnload (Chunk chunk) {
+    public void processChunkUnload (Chunk chunk) {
 
     }
 
