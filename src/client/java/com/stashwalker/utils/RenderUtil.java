@@ -18,7 +18,6 @@ import net.minecraft.sound.SoundEvents;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.ConcurrentBoundedSet;
 
 import org.joml.Matrix4f;
 import org.lwjgl.opengl.GL11;
@@ -80,7 +79,7 @@ public class RenderUtil {
 
     public static void drawChunkSquares (
             WorldRenderContext context,
-            ConcurrentBoundedSet<ChunkPos> chunkPositions,
+            List<ChunkPos> chunkPositions,
             int squareLevel,
             int r,
             int g,

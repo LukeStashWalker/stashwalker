@@ -3,14 +3,11 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.ConcurrentBoundedSet;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
@@ -27,9 +24,9 @@ import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 
 
-public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
+public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkProcessor, Renderable  {
 
-    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = Collections.synchronizedMap(new HashMap<>());
+    private final List<ChunkPos> buffer = Collections.synchronizedList(new ArrayList<>());
 
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
@@ -52,23 +49,30 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
     }
 
     @Override
-    public void processLoadedChunk (Chunk chunk) {
+    public void processChunkLoad (Chunk chunk) {
 
         if (this.enabled) {
 
             if (this.isNewChunk(chunk)) {
 
-                long threadId = Thread.currentThread().threadId();
-                if (!buffer.containsKey(threadId)) {
+                    buffer.add(chunk.getPos());
+            }
+        }
+    }
 
-                    ConcurrentBoundedSet<ChunkPos> set = new ConcurrentBoundedSet<>(1000);
-                    set.add(chunk.getPos());
-                    buffer.put(threadId, set);
-                } else {
+    @Override
+    public void update () {
 
-                    ConcurrentBoundedSet<ChunkPos> set = buffer.get(threadId);
-                    set.add(chunk.getPos());
-                }
+    }
+
+    @Override
+    public void processChunkUnload(Chunk chunk) {
+
+        if (this.enabled) {
+
+            if (this.buffer.contains(chunk.getPos())) {
+
+                    buffer.remove(chunk.getPos());
             }
         }
     }
@@ -80,12 +84,10 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
 
             Color color = new Color(this.featureConfig.getIntegerConfigs().get(this.newChunksColorKey));
 
-            for (ConcurrentBoundedSet<ChunkPos> set: this.buffer.values()) {
-
-                RenderUtil
+            RenderUtil
                     .drawChunkSquares(
                             context,
-                            set,
+                            this.buffer,
                             63,
                             color.getRed(),
                             color.getGreen(),
@@ -93,7 +95,6 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
                             50,
                             this.featureConfig.getBooleanConfigs().get(this.fillInSquaresKey)
                     );
-            }
         }
     }
 

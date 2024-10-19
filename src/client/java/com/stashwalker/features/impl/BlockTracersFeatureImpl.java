@@ -6,7 +6,7 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.FinderUtil;
@@ -37,9 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.jetbrains.annotations.ApiStatus.OverrideOnly;
+
 import java.util.ArrayList;
 
-public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkLoadProcessor, Renderable  {
+public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
     private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
@@ -126,12 +129,22 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    public void processLoadedChunk (Chunk chunk) {
+    public void processChunkLoad (Chunk chunk) {
 
         if (this.enabled) {
 
             this.checkChunkForBlockNearBuildLimit(chunk);
         }
+    }
+
+    @Override
+    void update () {
+
+    } 
+
+    @Override
+    void processChunkUnload (Chunk chunk) {
+
     }
 
     @Override

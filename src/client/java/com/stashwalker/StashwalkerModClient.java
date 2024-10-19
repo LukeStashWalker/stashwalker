@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
@@ -41,7 +42,7 @@ import net.minecraft.client.world.ClientWorld;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.Pair;
-import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Processor;
@@ -56,6 +57,8 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 300;
     private static final int CHAT_INTERVAL = 5000;
+    private static final int CHUNK_BUFFER_POSITIONS_UPDATE_INTERVAL = 1000;
+
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
@@ -73,6 +76,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean wasInGame = false;
     private long lastTimeClientTickUpdate = 0;
     private long lastTimeChatAnnouce = 0;
+    private long lastTimeChunkBufferPositionsUpdate = 0;
     private RegistryKey<World> previousWorld = null;
 
     @Override
@@ -85,6 +89,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStartEvent);
         ClientChunkEvents.CHUNK_LOAD.register(this::onClientChunkLoadEvent);
+        ClientChunkEvents.CHUNK_UNLOAD.register(this::onClientChunkUnloadEvent);
         WorldRenderEvents.LAST.register(this::onWorldRenderEventLast);
         HudRenderCallback.EVENT.register(onHubRenderEvent());
         ClientTickEvents.END_CLIENT_TICK.register(onClientTickEndEvent());
@@ -174,6 +179,19 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             lastTimeClientTickUpdate = currentTime;
         }
+
+        if (currentTime - lastTimeChunkBufferPositionsUpdate >= CHUNK_BUFFER_POSITIONS_UPDATE_INTERVAL) {
+
+            Constants.FEATURES.forEach(f -> {
+
+                if (f instanceof ChunkProcessor) {
+
+                    ((ChunkProcessor) f).update();
+                }
+            });
+
+            lastTimeChunkBufferPositionsUpdate = currentTime;
+        }
     }
 
     private void onClientChunkLoadEvent (ClientWorld world, WorldChunk chunk) {
@@ -182,9 +200,24 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             Constants.FEATURES.forEach(f -> {
 
-                if (f instanceof ChunkLoadProcessor) {
+                if (f instanceof ChunkProcessor) {
 
-                    ((ChunkLoadProcessor) f).processLoadedChunk(chunk);
+                    ((ChunkProcessor) f).processChunkLoad(chunk);
+                }
+            });
+
+        });
+    }
+
+    private void onClientChunkUnloadEvent (ClientWorld clientworld, WorldChunk chunk) {
+
+        this.chunkLoadThreadPool.submit(() -> {
+
+            Constants.FEATURES.forEach(f -> {
+
+                if (f instanceof ChunkProcessor) {
+
+                    ((ChunkProcessor) f).processChunkUnload(chunk);
                 }
             });
 

@@ -5,7 +5,7 @@ import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.SignTextExtractor;
 
@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor  {
+public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkProcessor  {
 
 
     private final String signTextColorKey = "signTextColor";
@@ -55,7 +55,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
     }
 
     @Override
-    public void processLoadedChunk (Chunk chunk) {
+    public void processChunkLoad (Chunk chunk) {
 
         if (enabled) {
 
@@ -112,5 +112,14 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                 }
             }
         }
+    }
+
+    @Override
+    public void update () {
+
+    }
+
+    @Override
+    public void processChunkUnload(Chunk chunk) {
     }
 }
