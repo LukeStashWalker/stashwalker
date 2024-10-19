@@ -2,9 +2,10 @@ package com.stashwalker.features.impl;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.ConcurrentBoundedSet;
@@ -28,7 +29,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLoadProcessor, Renderable  {
 
-    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = new ConcurrentHashMap<>();
+    private final Map<Long, ConcurrentBoundedSet<ChunkPos>> buffer = Collections.synchronizedMap(new HashMap<>());
 
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
@@ -58,8 +59,16 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkLo
             if (this.isNewChunk(chunk)) {
 
                 long threadId = Thread.currentThread().threadId();
-                ConcurrentBoundedSet<ChunkPos> set = buffer.computeIfAbsent(threadId, c -> new ConcurrentBoundedSet<>(1000));
-                set.add(chunk.getPos());
+                if (!buffer.containsKey(threadId)) {
+
+                    ConcurrentBoundedSet<ChunkPos> set = new ConcurrentBoundedSet<>(1000);
+                    set.add(chunk.getPos());
+                    buffer.put(threadId, set);
+                } else {
+
+                    ConcurrentBoundedSet<ChunkPos> set = buffer.get(threadId);
+                    set.add(chunk.getPos());
+                }
             }
         }
     }
