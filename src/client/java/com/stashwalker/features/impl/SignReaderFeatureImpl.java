@@ -33,8 +33,8 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
 
     private final String messageSoundKey = "messageSound";
     private final Boolean messageSoundDefaultValue = true;
-    private final String postMessagesInChatKey = "postMessagesInChat";
-    private final Boolean postMessagesInChatDefaultValue = false;
+    private final String announceMessagesInChatKey = "announceMessagesInChat";
+    private final Boolean announceMessagesInChatDefaultValue = false;
 
     public SignReaderFeatureImpl () {
 
@@ -47,7 +47,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
         this.defaultStringMap.put(this.ignoreWordListKey, this.ignoreWordListDefaultValue);
 
         this.defaultBooleanMap.put(this.messageSoundKey, this.messageSoundDefaultValue);
-        this.defaultBooleanMap.put(this.postMessagesInChatKey, this.postMessagesInChatDefaultValue);
+        this.defaultBooleanMap.put(this.announceMessagesInChatKey, this.announceMessagesInChatDefaultValue);
 
         this.featureConfig.setIntegerConfigs(MapUtil.deepCopy(this.defaultIntegerMap));
         this.featureConfig.setBooleanConfigs(MapUtil.deepCopy(this.defaultBooleanMap));
@@ -85,7 +85,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                         ) {
 
                             Boolean sound = this.featureConfig.getBooleanConfigs().get(this.messageSoundKey);
-                            if (this.featureConfig.getBooleanConfigs().get(this.postMessagesInChatKey)) {
+                            if (this.featureConfig.getBooleanConfigs().get(this.announceMessagesInChatKey)) {
 
                                 Constants.CHAT_BUFFER.add(new Pair<>("I just found a sign that says: " + signText, sound));
                             } else {
