@@ -103,8 +103,7 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkL
                                                 .setStyle(Style.EMPTY.withColor(this.featureConfig.getIntegerConfigs()
                                                         .get(this.signTextColorKey))));
 
-                                Constants.MESSAGES_BUFFER.add(new Pair<>(styledText,
-                                        sound));
+                                Constants.MESSAGES_BUFFER.add(new Pair<>(styledText, sound));
 
                                 signCount++;
                             }

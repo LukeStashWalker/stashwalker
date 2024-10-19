@@ -55,6 +55,7 @@ import com.stashwalker.utils.RenderUtil;
 public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 300;
+    private static final int CHAT_INTERVAL = 5000;
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
@@ -70,7 +71,8 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean signReaderWasPressed;
     private boolean alteredDungeonsWasPressed;
     private boolean wasInGame = false;
-    private long lastTime = 0;
+    private long lastTimeClientTickUpdate = 0;
+    private long lastTimeChatAnnouce = 0;
     private RegistryKey<World> previousWorld = null;
 
     @Override
@@ -99,7 +101,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         handleKeyInputs();
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= SCAN_INTERVAL) {
+        if (currentTime - lastTimeClientTickUpdate >= SCAN_INTERVAL) {
 
             // Clear all when switching between worlds
             RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
@@ -170,7 +172,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 });
             });
 
-            lastTime = currentTime;
+            lastTimeClientTickUpdate = currentTime;
         }
     }
 
@@ -204,11 +206,20 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
         Constants.MESSAGES_BUFFER.clear();
 
-        Constants.CHAT_BUFFER.forEach(m -> {
 
-            RenderUtil.sendChatMessage(m.getKey(), m.getValue());
-        });
-        Constants.CHAT_BUFFER.clear();
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTimeChatAnnouce >= CHAT_INTERVAL) { // Don't send messages too ofted to avoid getting kicked for spamming 
+
+            Constants.CHAT_BUFFER.stream()
+                    .findFirst() // Only send the first message to avoid getting kicked for spamming
+                    .ifPresent(m -> {
+
+                        RenderUtil.sendChatMessage(m.getKey(), m.getValue());
+                        Constants.CHAT_BUFFER.clear();
+                    });
+
+            lastTimeChatAnnouce = currentTime;
+        }
 
         Constants.FEATURES.forEach(f -> {
 
