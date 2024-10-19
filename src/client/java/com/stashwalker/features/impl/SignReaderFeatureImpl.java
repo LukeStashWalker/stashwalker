@@ -115,11 +115,6 @@ public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkP
     }
 
     @Override
-    public void update () {
-
-    }
-
-    @Override
     public void processChunkUnload(Chunk chunk) {
     }
 }

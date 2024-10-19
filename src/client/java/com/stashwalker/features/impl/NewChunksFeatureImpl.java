@@ -61,11 +61,6 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkPr
     }
 
     @Override
-    public void update () {
-
-    }
-
-    @Override
     public void processChunkUnload(Chunk chunk) {
 
         if (this.enabled) {

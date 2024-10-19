@@ -23,7 +23,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
@@ -57,7 +56,6 @@ public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 300;
     private static final int CHAT_INTERVAL = 5000;
-    private static final int CHUNK_BUFFER_POSITIONS_UPDATE_INTERVAL = 1000;
 
     private final ExecutorService processThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
@@ -76,7 +74,6 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean wasInGame = false;
     private long lastTimeClientTickUpdate = 0;
     private long lastTimeChatAnnouce = 0;
-    private long lastTimeChunkBufferPositionsUpdate = 0;
     private RegistryKey<World> previousWorld = null;
 
     @Override
@@ -178,19 +175,6 @@ public class StashwalkerModClient implements ClientModInitializer {
             });
 
             lastTimeClientTickUpdate = currentTime;
-        }
-
-        if (currentTime - lastTimeChunkBufferPositionsUpdate >= CHUNK_BUFFER_POSITIONS_UPDATE_INTERVAL) {
-
-            Constants.FEATURES.forEach(f -> {
-
-                if (f instanceof ChunkProcessor) {
-
-                    ((ChunkProcessor) f).update();
-                }
-            });
-
-            lastTimeChunkBufferPositionsUpdate = currentTime;
         }
     }
 
