@@ -38,8 +38,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.jetbrains.annotations.ApiStatus.OverrideOnly;
-
 import java.util.ArrayList;
 
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
