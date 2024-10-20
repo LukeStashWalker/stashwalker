@@ -19,7 +19,7 @@ import java.util.UUID;
 public abstract class BossBarHudMixin implements IBossBarHudMixin {
 
     @Shadow
-    private Map<UUID, ClientBossBar> bossBars; // Shadow the bossBars field
+    private Map<UUID, ClientBossBar> bossBars;
 
     @Shadow
     private static int WIDTH;
@@ -27,7 +27,7 @@ public abstract class BossBarHudMixin implements IBossBarHudMixin {
     @Override
     public Map<UUID, ClientBossBar> getBossBars () {
 
-        return bossBars; // Access the shadowed bossBars field
+        return bossBars;
     }
 
     @OverrideOnly

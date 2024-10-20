@@ -28,6 +28,7 @@ Different colored tracers to interesting blocks:
 - containers
     - shulkerboxes
     - double chests (that are not in a dungeon)
+    - if a lot of single chests are in close proximity of each other (the amount and distance can be configured)
     - barrels
     - hoppers
     - droppers
@@ -43,11 +44,11 @@ Renders rectangles around new chunks (based on copper ore in the Overworld and a
 
 ### Sign Reader 
 
-Posts text of signs you pass by in the chat HUD. An word ignore list can be configured
+Posts text of signs you pass by in the chat HUD. A word ignore list can be configured
 
-### Altered Dungeons 
+### Altered Structures 
 
-A common way people try to hide small stashes is in dungeon chests. This feature will show if a pillar of blocks above the dungeon has been altered
+A common way people try to hide small stashes is in dungeon chests or chest minecarts. This feature will show if a pillar of blocks above the dungeon or mine has been altered
 
 ### Keybindings
 
@@ -55,7 +56,7 @@ Configure the keybindings in the options menu
 
 ### Mod Configuration
 
-Configure mod configudation in the mod menu
+Configure mod configuration in the mod menu
 
 ![alt text](screenshots/1.png)
 
@@ -76,6 +77,8 @@ Configure mod configudation in the mod menu
 ![alt text](screenshots/12.png)
 
 ![alt text](screenshots/14.png)
+
+![alt text](screenshots/15.png)
 
 ![alt text](screenshots/13.png)
 

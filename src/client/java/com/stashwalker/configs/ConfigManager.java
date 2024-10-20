@@ -12,10 +12,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v122.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v124.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public void loadConfig () {
@@ -36,9 +37,9 @@ public class ConfigManager {
                     if (featureConfigDisk != null) {
 
                         f.setEnabled(featureConfigDisk.getBooleanConfigs().get("enabled"));
-                        Map<String, Boolean> booleanMapDisk = featureConfigDisk.getBooleanConfigs();    
-                        Map<String, Integer> integerMapDisk = featureConfigDisk.getIntegerConfigs();    
-                        Map<String, String> stringMapDisk = featureConfigDisk.getStringConfigs();    
+                        Map<String, Boolean> booleanMapDisk = new TreeMap<>(featureConfigDisk.getBooleanConfigs());    
+                        Map<String, Integer> integerMapDisk = new TreeMap<>(featureConfigDisk.getIntegerConfigs());    
+                        Map<String, String> stringMapDisk = new TreeMap<>(featureConfigDisk.getStringConfigs());    
                         if (booleanMapDisk != null) {
 
                             booleanMapDisk.entrySet().forEach(e -> {
@@ -94,9 +95,9 @@ public class ConfigManager {
                 configData.getFeatureConfigs().put(getFeatureNameKey(f), f.getFeatureConfig());
             });
 
-            Files.createDirectories(CONFIG_PATH.getParent()); // Ensure the directory exists
+            Files.createDirectories(CONFIG_PATH.getParent());
             String json = GSON.toJson(configData);
-            Files.writeString(CONFIG_PATH, json); // Write the JSON string to the file
+            Files.writeString(CONFIG_PATH, json);
         } catch (IOException e) {
 
             e.printStackTrace();

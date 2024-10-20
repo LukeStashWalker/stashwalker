@@ -6,7 +6,7 @@ import net.minecraft.util.math.BlockPos;
 
 public interface PositionProcessor {
     
-    void process (BlockPos pos, UUID callIdentifier);
+    void processBlockPos (UUID callIdentifier, BlockPos pos);
 
-    void update (UUID callIdentifier);
+    void updateBlockPos (UUID callIdentifier);
 }

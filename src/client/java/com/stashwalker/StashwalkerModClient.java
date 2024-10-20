@@ -41,10 +41,10 @@ import net.minecraft.client.world.ClientWorld;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.Pair;
-import com.stashwalker.features.ChunkLoadProcessor;
+import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
-import com.stashwalker.features.Processor;
+import com.stashwalker.features.EntityProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
@@ -55,8 +55,10 @@ import com.stashwalker.utils.RenderUtil;
 public class StashwalkerModClient implements ClientModInitializer {
 
     private static final int SCAN_INTERVAL = 300;
-    private final ExecutorService processThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
-    private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private static final int CHAT_INTERVAL = 5000;
+
+    private final ExecutorService entitiesProcessThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
@@ -70,7 +72,8 @@ public class StashwalkerModClient implements ClientModInitializer {
     private boolean signReaderWasPressed;
     private boolean alteredDungeonsWasPressed;
     private boolean wasInGame = false;
-    private long lastTime = 0;
+    private long lastTimeClientTickUpdate = 0;
+    private long lastTimeChatAnnouce = 0;
     private RegistryKey<World> previousWorld = null;
 
     @Override
@@ -83,6 +86,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStartEvent);
         ClientChunkEvents.CHUNK_LOAD.register(this::onClientChunkLoadEvent);
+        ClientChunkEvents.CHUNK_UNLOAD.register(this::onClientChunkUnloadEvent);
         WorldRenderEvents.LAST.register(this::onWorldRenderEventLast);
         HudRenderCallback.EVENT.register(onHubRenderEvent());
         ClientTickEvents.END_CLIENT_TICK.register(onClientTickEndEvent());
@@ -99,7 +103,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         handleKeyInputs();
 
         long currentTime = System.currentTimeMillis();
-        if (currentTime - lastTime >= SCAN_INTERVAL) {
+        if (currentTime - lastTimeClientTickUpdate >= SCAN_INTERVAL) {
 
             // Clear all when switching between worlds
             RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
@@ -109,13 +113,23 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
             previousWorld = dimensionKey;
 
-            this.processThreadPool.submit(() -> {
+            this.entitiesProcessThreadPool.submit(() -> {
 
+                final UUID callIdentifier = UUID.randomUUID();
+                Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
+                    Constants.FEATURES.forEach(f -> {
+
+                        if (f instanceof EntityProcessor) {
+
+                            ((EntityProcessor) f).processEntity(callIdentifier, e);
+                        }
+                    });
+                });
                 Constants.FEATURES.forEach(f -> {
 
-                    if (f instanceof Processor) {
+                    if (f instanceof EntityProcessor) {
 
-                        ((Processor) f).process();
+                        ((EntityProcessor) f).updateEntity(callIdentifier);
                     }
                 });
             });
@@ -152,7 +166,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                                         if (f instanceof PositionProcessor) {
 
-                                            ((PositionProcessor) f).process(pos, callIdentifier);
+                                            ((PositionProcessor) f).processBlockPos(callIdentifier, pos);
                                         }
                                     });
                                 }
@@ -165,12 +179,12 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                     if (f instanceof PositionProcessor) {
 
-                        ((PositionProcessor) f).update(callIdentifier);
+                        ((PositionProcessor) f).updateBlockPos(callIdentifier);
                     }
                 });
             });
 
-            lastTime = currentTime;
+            lastTimeClientTickUpdate = currentTime;
         }
     }
 
@@ -180,16 +194,30 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             Constants.FEATURES.forEach(f -> {
 
-                if (f instanceof ChunkLoadProcessor) {
+                if (f instanceof ChunkProcessor) {
 
-                    ((ChunkLoadProcessor) f).processLoadedChunk(chunk);
+                    ((ChunkProcessor) f).processChunkLoad(chunk);
                 }
             });
 
         });
     }
 
-    // Event callback method to render lines in the world
+    private void onClientChunkUnloadEvent (ClientWorld clientworld, WorldChunk chunk) {
+
+        this.chunkLoadThreadPool.submit(() -> {
+
+            Constants.FEATURES.forEach(f -> {
+
+                if (f instanceof ChunkProcessor) {
+
+                    ((ChunkProcessor) f).processChunkUnload(chunk);
+                }
+            });
+
+        });
+    }
+
     private void onWorldRenderEventLast (WorldRenderContext context) {
 
         PlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
@@ -203,6 +231,21 @@ public class StashwalkerModClient implements ClientModInitializer {
             RenderUtil.sendClientSideMessage(m.getKey(), m.getValue());
         });
         Constants.MESSAGES_BUFFER.clear();
+
+
+        long currentTime = System.currentTimeMillis();
+        if (currentTime - lastTimeChatAnnouce >= CHAT_INTERVAL) { // Don't send messages too ofted to avoid getting kicked for spamming 
+
+            Constants.CHAT_BUFFER.stream()
+                    .findFirst() // Only send the first message to avoid getting kicked for spamming
+                    .ifPresent(m -> {
+
+                        RenderUtil.sendChatMessage(m.getKey(), m.getValue());
+                        Constants.CHAT_BUFFER.clear();
+                    });
+
+            lastTimeChatAnnouce = currentTime;
+        }
 
         Constants.FEATURES.forEach(f -> {
 
@@ -271,17 +314,16 @@ public class StashwalkerModClient implements ClientModInitializer {
         return client -> {
 
             // Check if the player was in the game and is now in the title screen
-            if (wasInGame && client.currentScreen instanceof TitleScreen) {
+            if (this.wasInGame && client.currentScreen instanceof TitleScreen) {
 
-                // clearAll();
                 Constants.FEATURES.forEach(f -> f.clear());
 
-                wasInGame = false;
+                this.wasInGame = false;
             }
 
             // Check if the player is in a world
             if (client.world != null) {
-                wasInGame = true;
+                this.wasInGame = true;
             }
         };
     }
@@ -360,7 +402,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             if (!alteredDungeonsWasPressed) {
 
-                this.handleKeyInputsHelper(Feature.FEATURE_NAME_ALTERED_DUNGEONS);
+                this.handleKeyInputsHelper(Feature.FEATURE_NAME_ALTERED_STRUCTURES);
             }
 
             alteredDungeonsWasPressed = true;
@@ -397,7 +439,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                 "category.stashwalker.keys"
         ));
         this.keyBindingAlteredDungeons = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "key.stashwalker.altered_dungeons",
+                "key.stashwalker.altered_structures",
                 InputUtil.Type.KEYSYM,
                 GLFW.GLFW_KEY_0,
                 "category.stashwalker.keys"
