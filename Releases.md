@@ -1,6 +1,13 @@
 Releases
 ===
 
+Version 1.2.4-fabric-0.103.0+-mc1.21.1
+---
+- multiple performance improvements
+- changed Altered Dungeons feature to Altered Structures
+- Added Altered Mines to Altered Structures feature (see README)
+- added multi configuration options to the mod menu
+
 Version 1.2.3-fabric-0.103.0+-mc1.21.1
 ---
 - added multi configuration options to the mod menu
