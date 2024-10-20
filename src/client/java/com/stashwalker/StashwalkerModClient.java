@@ -323,25 +323,10 @@ public class StashwalkerModClient implements ClientModInitializer {
 
             // Check if the player is in a world
             if (client.world != null) {
+
                 this.wasInGame = true;
             }
         };
-    }
-
-    private void handleKeyInputsHelper (String featureName) {
-
-        Constants.FEATURES.forEach(f -> {
-
-            if (f.getFeatureName().equals(featureName)) {
-
-                boolean state = !f.isEnabled();
-                f.setEnabled(state);
-                f.clear();
-
-                Constants.MESSAGES_BUFFER
-                        .add(new Pair<>(this.createStyledTextForFeature(featureName, state), true));
-            }
-        });
     }
 
     private void handleKeyInputs () {
@@ -459,5 +444,21 @@ public class StashwalkerModClient implements ClientModInitializer {
                                 .setStyle(Style.EMPTY.withColor(Formatting.GRAY)))
                         .append(Text.literal(featureToggle ? " enabled" : " disabled")
                                 .setStyle(Style.EMPTY.withColor(featureToggle ? Formatting.GREEN : Formatting.RED)));
+    }
+
+    private void handleKeyInputsHelper (String featureName) {
+
+        Constants.FEATURES.forEach(f -> {
+
+            if (f.getFeatureName().equals(featureName)) {
+
+                boolean state = !f.isEnabled();
+                f.setEnabled(state);
+                f.clear();
+
+                Constants.MESSAGES_BUFFER
+                        .add(new Pair<>(this.createStyledTextForFeature(featureName, state), true));
+            }
+        });
     }
 }
