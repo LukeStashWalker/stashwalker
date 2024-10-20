@@ -1,9 +1,8 @@
 package com.stashwalker.features.impl;
 
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import com.stashwalker.constants.Constants;
 import com.stashwalker.features.AbstractBaseFeature;
@@ -20,14 +19,12 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.World;
-import net.minecraft.world.biome.Biome;
 import net.minecraft.world.chunk.Chunk;
 
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkProcessor, Renderable  {
 
-    private final List<ChunkPos> buffer = Collections.synchronizedList(new ArrayList<>());
-
+    private final List<ChunkPos> buffer = new CopyOnWriteArrayList<>();
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;
     private final String fillInSquaresKey = "fillInSquares";
@@ -176,44 +173,5 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkPr
 
             return false;
         }
-    }
-
-    public boolean hasNewBiome (Chunk chunk) {
-
-        List<BlockPos> checkPositions = getBiomeCheckPositions(chunk.getPos());
-
-        for (BlockPos pos : checkPositions) {
-
-            RegistryKey<Biome> biome = Constants.MC_CLIENT_INSTANCE.world.getBiome(pos).getKey().get();
-            if (Constants.NEW_BIOMES.contains(biome)) {
-
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private List<BlockPos> getBiomeCheckPositions (ChunkPos chunkPos) {
-
-        int chunkXStart = chunkPos.getStartX();
-        int chunkZStart = chunkPos.getStartZ();
-        int[] yLevels = {64, 0}; // Sample at multiple Y levels
-        List<BlockPos> checkPositions = new ArrayList<>();
-
-        // Loop over all 4x4 grid points in the chunk (0, 4, 8, 12 in both X and Z
-        // directions)
-        for (int yLevel : yLevels) {
-
-            for (int xOffset = 0; xOffset <= 12; xOffset += 4) {
-
-                for (int zOffset = 0; zOffset <= 12; zOffset += 4) {
-
-                    checkPositions.add(new BlockPos(chunkXStart + xOffset, yLevel, chunkZStart + zOffset));
-                }
-            }
-        }
-
-        return checkPositions;
     }
 }

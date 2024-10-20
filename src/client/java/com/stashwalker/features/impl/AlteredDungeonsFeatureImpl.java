@@ -3,6 +3,7 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
+import com.stashwalker.containers.BoundedMap;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
@@ -32,10 +33,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Renderable  {
 
+    private final Map<BlockPos, AlteredDungeon> dungeonsCache = new BoundedMap<>(100);
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<AlteredDungeon> buffer = new DoubleListBuffer<>();
 
@@ -92,23 +94,28 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     @Override
     public void process (BlockPos pos, UUID callIdentifier) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             if (!this.dungeonsTempMap.containsKey(callIdentifier)) {
 
-                this.dungeonsTempMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
+                this.dungeonsTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
             } 
 
             RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
             if (World.OVERWORLD.equals(dimensionKey)) {
 
-                if (
-                    this.isSpawnerInDungeonWithChest(pos)
-                    && this.isHiddenAlteredDungeon(pos)
-                ) {
+                if (this.dungeonsCache.containsKey(pos)) {
 
-                    AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
-                    this.dungeonsTempMap.get(callIdentifier).add(result);
+                    this.dungeonsTempMap.get(callIdentifier).add(this.dungeonsCache.get(pos));
+                } else {
+
+                    if (this.isSpawnerInDungeonWithChest(pos)
+                            && this.isHiddenAlteredDungeon(pos)) {
+
+                        AlteredDungeon result = this.getAlteredDungeonsBlocksWithPillars(pos);
+                        this.dungeonsCache.put(pos, result);
+                        this.dungeonsTempMap.get(callIdentifier).add(result);
+                    }
                 }
             }
         }
@@ -117,8 +124,11 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
     @Override
     public void update (UUID callIdentifier) {
 
-        this.buffer.updateBuffer(this.dungeonsTempMap.get(callIdentifier));
-        this.dungeonsTempMap.remove(callIdentifier);
+        if (this.enabled) {
+
+            this.buffer.updateBuffer(this.dungeonsTempMap.get(callIdentifier));
+            this.dungeonsTempMap.remove(callIdentifier);
+        }
     }
 
     @Override
@@ -243,7 +253,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
                 BlockPos topPos = new BlockPos(x, topY, z);
-                List<BlockPos> result = new ArrayList<>();
+                List<BlockPos> result = new CopyOnWriteArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
@@ -270,7 +280,6 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
 
     public AlteredDungeon getAlteredDungeonsBlocksWithPillars (BlockPos pos) {
 
-        // Add the pillar positions
         final AlteredDungeon alteredDungeon = new AlteredDungeon();
         final int minimumPillarHeight = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
         final int horizontalSearchRadius = this.featureConfig.getIntegerConfigs().get(this.minimumPillarHeightKey);
@@ -281,7 +290,7 @@ public class AlteredDungeonsFeatureImpl extends AbstractBaseFeature implements P
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
                 BlockPos topPos = new BlockPos(x, topY, z);
-                List<BlockPos> result = new ArrayList<>();
+                List<BlockPos> result = new CopyOnWriteArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);

@@ -24,7 +24,6 @@ import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
@@ -37,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-
-import java.util.ArrayList;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
@@ -104,11 +102,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     @Override
     public void process (BlockPos pos, UUID callIdentifier) {
 
-        if (enabled) {
+        if (this.enabled) {
 
             if (!this.positionsTempMap.containsKey(callIdentifier)) {
 
-                this.positionsTempMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
+                this.positionsTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
             } 
 
             this.isInterestingBlockPosition(pos).ifPresent(c -> {
@@ -122,8 +120,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     @Override
     public void update (UUID callIdentifier) {
 
-        this.buffer.updateBuffer(this.positionsTempMap.get(callIdentifier));
-        this.positionsTempMap.remove(callIdentifier);
+        if (this.enabled) {
+
+            this.buffer.updateBuffer(this.positionsTempMap.get(callIdentifier));
+            this.positionsTempMap.remove(callIdentifier);
+        }
     }
 
     @Override
@@ -172,7 +173,6 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
     private Optional<Color> isInterestingBlockPosition (BlockPos pos) {
 
-        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
         Map<String, Integer> integerMap = this.featureConfig.getIntegerConfigs();
         if (FinderUtil.isBlockType(pos, Blocks.BARREL)) {
 
@@ -184,8 +184,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 this.isDoubleChest(pos)
                 && (
                     // Not a Dungeon
-                    !this.isBlockInHorizontalRadius(world, pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
-                    && !this.isBlockInHorizontalRadius(world, pos, 5, Blocks.SPAWNER))
+                    !this.isBlockInHorizontalRadius(pos.down(), 5, Blocks.MOSSY_COBBLESTONE)
+                    && !this.isBlockInHorizontalRadius(pos, 5, Blocks.SPAWNER))
                 )
             )
 
@@ -438,12 +438,22 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         return false;
     }
 
-    private boolean isBlockInHorizontalRadius (World world, BlockPos pos, int radius, Block block) {
+    private boolean isBlockInHorizontalRadius (BlockPos pos, int radius, Block block) {
 
-        Box searchBox = new Box(pos).expand(radius, 0, radius);
 
-        return BlockPos.stream(searchBox).anyMatch(bp -> {
-            return world.getBlockState(bp).getBlock() == block && !bp.equals(pos);
-        });
+            BlockPos startPos = new BlockPos(pos.getX() - radius, pos.getY(), pos.getZ() - radius);
+            BlockPos endPos = new BlockPos(pos.getX() + radius, pos.getY(), pos.getZ() + radius);
+            for (BlockPos p : BlockPos.iterate(startPos, endPos)) {
+
+                if (
+                    !p.equals(pos)
+                    && FinderUtil.isBlockType(p, block)
+                ) {
+                    
+                    return true;
+                }
+            }
+
+            return false;
     }
 }

@@ -188,7 +188,6 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                     return false;
                 });
 
-        // Get all MinecartChests within the calculated radius
         List<ChestMinecartEntity> chestMinecartEntities = Constants.MC_CLIENT_INSTANCE.player.getWorld()
                 .getEntitiesByClass(ChestMinecartEntity.class,
                         boundingBox, e -> true);
@@ -297,6 +296,4 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
         return new ArrayList<>(closeProximityMinecarts);
     }
-
-
 }

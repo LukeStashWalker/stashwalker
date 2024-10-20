@@ -208,7 +208,6 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
     }
 
-    // Event callback method to render lines in the world
     private void onWorldRenderEventLast (WorldRenderContext context) {
 
         PlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
@@ -305,17 +304,16 @@ public class StashwalkerModClient implements ClientModInitializer {
         return client -> {
 
             // Check if the player was in the game and is now in the title screen
-            if (wasInGame && client.currentScreen instanceof TitleScreen) {
+            if (this.wasInGame && client.currentScreen instanceof TitleScreen) {
 
-                // clearAll();
                 Constants.FEATURES.forEach(f -> f.clear());
 
-                wasInGame = false;
+                this.wasInGame = false;
             }
 
             // Check if the player is in a world
             if (client.world != null) {
-                wasInGame = true;
+                this.wasInGame = true;
             }
         };
     }

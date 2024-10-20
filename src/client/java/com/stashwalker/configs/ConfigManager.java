@@ -95,9 +95,9 @@ public class ConfigManager {
                 configData.getFeatureConfigs().put(getFeatureNameKey(f), f.getFeatureConfig());
             });
 
-            Files.createDirectories(CONFIG_PATH.getParent()); // Ensure the directory exists
+            Files.createDirectories(CONFIG_PATH.getParent());
             String json = GSON.toJson(configData);
-            Files.writeString(CONFIG_PATH, json); // Write the JSON string to the file
+            Files.writeString(CONFIG_PATH, json);
         } catch (IOException e) {
 
             e.printStackTrace();

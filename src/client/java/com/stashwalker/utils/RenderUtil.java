@@ -39,10 +39,9 @@ public class RenderUtil {
         Matrix4f matrix4f = context.matrixStack().peek().getPositionMatrix();
         Vector3f pos = new Vector3f(0, 0, 1);
 
-        // Use a single shared MatrixStack instance if applicable
         if (Constants.MC_CLIENT_INSTANCE.options.getBobView().getValue()) {
 
-            MatrixStack bobViewMatrices = new MatrixStack(); // Consider reusing or managing a pool of these
+            MatrixStack bobViewMatrices = new MatrixStack();
             bobView(bobViewMatrices);
             pos.mulPosition(bobViewMatrices.peek().getPositionMatrix().invert());
         }
@@ -55,7 +54,7 @@ public class RenderUtil {
 
         Vec3d relativeEnd = end.subtract(cameraPos);
 
-        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f); // Normalize colors
+        RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f, color.getAlpha() / 255.0f);
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -93,7 +92,7 @@ public class RenderUtil {
         Matrix4f matrix = matrixStack.peek().getPositionMatrix();
 
         // Step 1: Draw the outline (opaque)
-        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); // Opaque color
+        RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, 1.0f); 
 
         GL11.glEnable(GL11.GL_BLEND);
         GL11.glDisable(GL11.GL_DEPTH_TEST);
@@ -115,7 +114,6 @@ public class RenderUtil {
             double endZ = pos.getEndZ() + 1 - cameraPos.z;
             double bottomHeight = squareLevel - cameraPos.y;
 
-            // Draw the base square outline around the chunk (opaque)
             bufferBuilder
                     .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
                     .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
@@ -134,9 +132,8 @@ public class RenderUtil {
         if (fill) {
 
             // Step 2: Draw the fill
-            RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, fillInAlpha / 255.0f); // Use alpha for
-                                                                                                   // transparency
-            GL11.glDisable(GL11.GL_CULL_FACE); // Disable face culling to ensure both sides of the fill are rendered
+            RenderSystem.setShaderColor(r / 255.0f, g / 255.0f, b / 255.0f, fillInAlpha / 255.0f); 
+            GL11.glDisable(GL11.GL_CULL_FACE);
             bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
 
             for (ChunkPos pos : chunkPositions) {
@@ -149,7 +146,6 @@ public class RenderUtil {
                 double endZ = pos.getEndZ() + 1 - cameraPos.z;
                 double bottomHeight = squareLevel - cameraPos.y;
 
-                // Draw the filled square inside the chunk (50% transparent)
                 bufferBuilder
                         .vertex(matrix, (float) startX, (float) bottomHeight, (float) startZ)
                         .vertex(matrix, (float) endX, (float) bottomHeight, (float) startZ)
@@ -252,8 +248,7 @@ public class RenderUtil {
 
             // Second pass: Fill the sides with 20% alpha transparency
             RenderSystem.setShaderColor(color.getRed() / 255.0f, color.getGreen() / 255.0f, color.getBlue() / 255.0f,
-                    0.2f); // 20%
-                           // alpha
+                    0.2f);
             GL11.glDisable(GL11.GL_CULL_FACE); // Render both sides of the quads
             bufferBuilder = tessellator.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION);
 
@@ -326,11 +321,7 @@ public class RenderUtil {
 
         if (sound) {
 
-            Constants.MC_CLIENT_INSTANCE.player.playSound(
-                SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
-                1.0F, // Volume
-                1.0F  // Pitch
-            );
+            playSound();
         }
 
         Constants.MC_CLIENT_INSTANCE.inGameHud.getChatHud().addMessage(text);
@@ -340,11 +331,7 @@ public class RenderUtil {
 
         if (sound) {
 
-            Constants.MC_CLIENT_INSTANCE.player.playSound(
-                SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, // The sound event to play
-                1.0F, // Volume
-                1.0F  // Pitch
-            );
+            playSound();
         }
 
         ClientPlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
@@ -374,5 +361,14 @@ public class RenderUtil {
     public static Vec3d toVec3d (BlockPos pos) {
 
         return new Vec3d(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+    }
+
+    private static void playSound () {
+
+        Constants.MC_CLIENT_INSTANCE.player.playSound(
+            SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP,
+            1.0F,
+            1.0F
+        );
     }
 }

@@ -10,8 +10,8 @@ public class MapUtil {
         return new TreeMap<>(
             original.entrySet().stream()
             .collect(Collectors.toMap(
-                Map.Entry::getKey,   // Copy the key directly
-                Map.Entry::getValue  // Copy the value directly (since String, Integer, and Boolean are immutable)
+                Map.Entry::getKey,
+                Map.Entry::getValue
             ))
         );
     }

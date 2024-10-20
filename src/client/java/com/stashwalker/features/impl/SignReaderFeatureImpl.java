@@ -24,7 +24,6 @@ import java.util.Set;
 
 public class SignReaderFeatureImpl extends AbstractBaseFeature implements ChunkProcessor  {
 
-
     private final String signTextColorKey = "signTextColor";
     private final Color signTextColorDefaultValue = Color.CYAN;
 
