@@ -46,9 +46,9 @@ Renders rectangles around new chunks (based on copper ore in the Overworld and a
 
 Posts text of signs you pass by in the chat HUD. A word ignore list can be configured
 
-### Altered Dungeons 
+### Altered Structures 
 
-A common way people try to hide small stashes is in dungeon chests. This feature will show if a pillar of blocks above the dungeon has been altered
+A common way people try to hide small stashes is in dungeon chests or chest minecarts. This feature will show if a pillar of blocks above the dungeon or mine has been altered
 
 ### Keybindings
 
@@ -77,6 +77,8 @@ Configure mod configuration in the mod menu
 ![alt text](screenshots/12.png)
 
 ![alt text](screenshots/14.png)
+
+![alt text](screenshots/15.png)
 
 ![alt text](screenshots/13.png)
 

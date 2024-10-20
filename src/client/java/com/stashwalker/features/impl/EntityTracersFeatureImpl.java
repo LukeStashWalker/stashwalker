@@ -2,10 +2,9 @@ package com.stashwalker.features.impl;
 
 import java.awt.Color;
 
-import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.Processor;
+import com.stashwalker.features.EntityProcessor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -28,12 +27,19 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CopyOnWriteArrayList;
 
-public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
+public class EntityTracersFeatureImpl extends AbstractBaseFeature implements EntityProcessor, Renderable {
 
+    private final Map<UUID, List<Entity>> entitiesTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, List<ChestMinecartEntity>> chestMinecartEntitiesMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
 
     private final String entityColorKey = "entityColor";
@@ -63,11 +69,54 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     }
 
     @Override
-    public void process () {
+    public void processEntity (UUID callIdentifier, Entity entity) {
 
         if (this.enabled) {
 
-            this.buffer.updateBuffer(this.findEntities());
+            if (!this.entitiesTempMap.containsKey(callIdentifier)) {
+
+                this.entitiesTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+            } 
+
+            this.isInterestingEntity(entity).ifPresent(e -> {
+
+                this.entitiesTempMap.get(callIdentifier).add(e);
+            });
+
+            if (entity instanceof ChestMinecartEntity) {
+
+                if (!this.chestMinecartEntitiesMap.containsKey(callIdentifier)) {
+
+                    this.chestMinecartEntitiesMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
+                }
+
+                this.chestMinecartEntitiesMap.get(callIdentifier).add((ChestMinecartEntity) entity);
+            }
+        }
+    }
+
+    @Override
+    public void updateEntity (UUID callIdentifier) {
+
+        if (this.enabled) {
+
+            List<Entity> entities = this.entitiesTempMap.get(callIdentifier);
+
+            List<ChestMinecartEntity> chestMinecartEntities = this.chestMinecartEntitiesMap.get(callIdentifier);
+            entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
+            entities.addAll(
+                    this.findCloseProximityMinecartChests(
+                        chestMinecartEntities,
+                        this.featureConfig.getIntegerConfigs()
+                            .get(this.closeProximityChestMinecartsMinimumAmountKey),
+                        this.featureConfig.getIntegerConfigs()
+                            .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+                    )
+            );
+
+            this.buffer.updateBuffer(entities);
+            this.entitiesTempMap.remove(callIdentifier);
+            this.chestMinecartEntitiesMap.remove(callIdentifier);
         }
     }
 
@@ -110,99 +159,65 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    public List<Entity> findEntities () {
+    private Optional<Entity> isInterestingEntity (Entity entity) {
 
-        int playerRenderDistance = Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-        double renderDistanceInBlocks = playerRenderDistance * 16; // Convert render distance to blocks
-        Vec3d playerPos = Constants.MC_CLIENT_INSTANCE.player.getPos();
+        if (entity instanceof ItemEntity) {
 
-        Box boundingBox = new Box(
-                playerPos.x - renderDistanceInBlocks, // X min
-                -64, // Y min (lowest level)
-                playerPos.z - renderDistanceInBlocks, // Z min
-                playerPos.x + renderDistanceInBlocks, // X max
-                320, // Y max (build limit)
-                playerPos.z + renderDistanceInBlocks // Z max
-        );
+            ItemEntity itemEntity = (ItemEntity) entity;
+            ItemStack itemStack = itemEntity.getStack();
 
-        List<Entity> entities = Constants.MC_CLIENT_INSTANCE.world.getEntitiesByClass(
-                Entity.class,
-                boundingBox, e -> {
+            if (isEnchantedDiamondOrNetherite(itemStack)
 
-                    if (e instanceof ItemEntity) {
+                    || itemStack.getItem() == Items.ELYTRA
+                    || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+                    || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+                    || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+                    || itemStack.getItem() == Items.END_CRYSTAL
 
-                        ItemEntity itemEntity = (ItemEntity) e;
-                        ItemStack itemStack = itemEntity.getStack();
+                    || itemStack.getItem() == Items.SHULKER_BOX
+                    || itemStack.getItem() == Items.WHITE_SHULKER_BOX
+                    || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
+                    || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
+                    || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
+                    || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
+                    || itemStack.getItem() == Items.LIME_SHULKER_BOX
+                    || itemStack.getItem() == Items.PINK_SHULKER_BOX
+                    || itemStack.getItem() == Items.GRAY_SHULKER_BOX
+                    || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
+                    || itemStack.getItem() == Items.CYAN_SHULKER_BOX
+                    || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
+                    || itemStack.getItem() == Items.BLUE_SHULKER_BOX
+                    || itemStack.getItem() == Items.BROWN_SHULKER_BOX
+                    || itemStack.getItem() == Items.GREEN_SHULKER_BOX
+                    || itemStack.getItem() == Items.RED_SHULKER_BOX
+                    || itemStack.getItem() == Items.BLACK_SHULKER_BOX) {
 
-                        if (isEnchantedDiamondOrNetherite(itemStack)
+                return Optional.of(entity);
+            }
 
-                                || itemStack.getItem() == Items.ELYTRA
-                                || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
-                                || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
-                                || itemStack.getItem() == Items.TOTEM_OF_UNDYING
-                                || itemStack.getItem() == Items.END_CRYSTAL
+        } else if ((entity instanceof AbstractDonkeyEntity
+                && ((AbstractDonkeyEntity) entity).hasChest()
+                && !((AbstractDonkeyEntity) entity).hasPlayerRider())
 
-                                || itemStack.getItem() == Items.SHULKER_BOX
-                                || itemStack.getItem() == Items.WHITE_SHULKER_BOX
-                                || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
-                                || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
-                                || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
-                                || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
-                                || itemStack.getItem() == Items.LIME_SHULKER_BOX
-                                || itemStack.getItem() == Items.PINK_SHULKER_BOX
-                                || itemStack.getItem() == Items.GRAY_SHULKER_BOX
-                                || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
-                                || itemStack.getItem() == Items.CYAN_SHULKER_BOX
-                                || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
-                                || itemStack.getItem() == Items.BLUE_SHULKER_BOX
-                                || itemStack.getItem() == Items.BROWN_SHULKER_BOX
-                                || itemStack.getItem() == Items.GREEN_SHULKER_BOX
-                                || itemStack.getItem() == Items.RED_SHULKER_BOX
-                                || itemStack.getItem() == Items.BLACK_SHULKER_BOX) {
+                ||
 
-                            return true;
-                        }
+                (entity instanceof LlamaEntity
+                        && ((LlamaEntity) entity).hasChest()
+                        && !((LlamaEntity) entity).hasPlayerRider())
 
-                    } else if ((e instanceof AbstractDonkeyEntity
-                            && ((AbstractDonkeyEntity) e).hasChest()
-                            && !((AbstractDonkeyEntity) e).hasPlayerRider())
+                ||
 
-                            ||
+                (entity instanceof ChestBoatEntity
+                        && !((ChestBoatEntity) entity).hasPlayerRider())
 
-                            (e instanceof LlamaEntity
-                                    && ((LlamaEntity) e).hasChest()
-                                    && !((LlamaEntity) e).hasPlayerRider())
+                ||
 
-                            ||
+                (entity instanceof ItemFrameEntity)) {
 
-                            (e instanceof ChestBoatEntity
-                                    && !((ChestBoatEntity) e).hasPlayerRider())
+            return Optional.of(entity);
+        }
 
-                            ||
-
-                            (e instanceof ItemFrameEntity)) {
-
-                        return true;
-                    }
-
-                    return false;
-                });
-
-        List<ChestMinecartEntity> chestMinecartEntities = Constants.MC_CLIENT_INSTANCE.player.getWorld()
-                .getEntitiesByClass(ChestMinecartEntity.class,
-                        boundingBox, e -> true);
-
-        entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
-
-        entities.addAll(
-            this.findCloseProximityMinecartChests(
-                chestMinecartEntities, 
-                this.featureConfig.getIntegerConfigs().get(this.closeProximityChestMinecartsMinimumAmountKey), 
-                this.featureConfig.getIntegerConfigs().get(this.closeProximityChestMinecartsMaximumBlockDistanceKey) 
-            )
-        );
-
-        return entities;
+        return Optional.empty();
     }
 
     private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {

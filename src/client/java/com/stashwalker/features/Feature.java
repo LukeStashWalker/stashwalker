@@ -10,7 +10,7 @@ public interface Feature {
     public static final String FEATURE_NAME_ENTITY_TRACER = "EntityTracers";
     public static final String FEATURE_NAME_NEW_CHUNKS = "NewChunks";
     public static final String FEATURE_NAME_SIGN_READER = "SignReader";
-    public static final String FEATURE_NAME_ALTERED_DUNGEONS = "AlteredDungeons";
+    public static final String FEATURE_NAME_ALTERED_STRUCTURES = "AlteredStructures";
 
     boolean isEnabled ();
     void setEnabled (boolean enabled);

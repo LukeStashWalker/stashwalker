@@ -100,7 +100,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    public void process (BlockPos pos, UUID callIdentifier) {
+    public void processBlockPos (UUID callIdentifier, BlockPos pos) {
 
         if (this.enabled) {
 
@@ -118,7 +118,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    public void update (UUID callIdentifier) {
+    public void updateBlockPos (UUID callIdentifier) {
 
         if (this.enabled) {
 

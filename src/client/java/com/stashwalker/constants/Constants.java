@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import com.stashwalker.configs.ConfigManager;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.Feature;
-import com.stashwalker.features.impl.AlteredDungeonsFeatureImpl;
+import com.stashwalker.features.impl.AlteredStructuresFeatureImpl;
 import com.stashwalker.features.impl.BlockTracersFeatureImpl;
 import com.stashwalker.features.impl.EntityTracersFeatureImpl;
 import com.stashwalker.features.impl.NewChunksFeatureImpl;
@@ -27,7 +27,7 @@ public class Constants {
             new BlockTracersFeatureImpl(),
             new NewChunksFeatureImpl(),
             new SignReaderFeatureImpl(),
-            new AlteredDungeonsFeatureImpl()
+            new AlteredStructuresFeatureImpl()
         )
     );
 
