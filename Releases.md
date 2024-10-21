@@ -1,6 +1,10 @@
 Releases
 ===
 
+Version 1.2.5-fabric-0.103.0+-mc1.21.1
+---
+- bug fix: opening the mod menu would change the feature enabled/disabled status
+
 Version 1.2.4-fabric-0.103.0+-mc1.21.1
 ---
 - multiple performance improvements
