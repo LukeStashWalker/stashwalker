@@ -26,7 +26,7 @@ public abstract class AbstractBaseFeature implements Feature {
     @Override
     public boolean isEnabled () {
 
-        return enabled;
+        return this.enabled;
     }
 
     @Override
@@ -38,7 +38,7 @@ public abstract class AbstractBaseFeature implements Feature {
     @Override
     public String getFeatureName () {
 
-        return featureName;
+        return this.featureName;
     }
 
     @Override

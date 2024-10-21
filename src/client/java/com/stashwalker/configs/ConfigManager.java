@@ -91,8 +91,8 @@ public class ConfigManager {
             StashwalkerConfig configData = new StashwalkerConfig();
             Constants.FEATURES.forEach(f -> {
 
-                f.getFeatureConfig().getBooleanConfigs().put("enabled", f.isEnabled());
                 configData.getFeatureConfigs().put(getFeatureNameKey(f), f.getFeatureConfig());
+                f.getFeatureConfig().getBooleanConfigs().put("enabled", f.isEnabled());
             });
 
             Files.createDirectories(CONFIG_PATH.getParent());
