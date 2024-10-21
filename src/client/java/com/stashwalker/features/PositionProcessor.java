@@ -8,5 +8,5 @@ public interface PositionProcessor {
     
     void processBlockPos (UUID callIdentifier, BlockPos pos);
 
-    void updateBlockPos (UUID callIdentifier);
+    void updateBlockPositions (UUID callIdentifier);
 }

@@ -129,7 +129,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                     if (f instanceof EntityProcessor) {
 
-                        ((EntityProcessor) f).updateEntity(callIdentifier);
+                        ((EntityProcessor) f).updateEntities(callIdentifier);
                     }
                 });
             });
@@ -179,7 +179,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                     if (f instanceof PositionProcessor) {
 
-                        ((PositionProcessor) f).updateBlockPos(callIdentifier);
+                        ((PositionProcessor) f).updateBlockPositions(callIdentifier);
                     }
                 });
             });
