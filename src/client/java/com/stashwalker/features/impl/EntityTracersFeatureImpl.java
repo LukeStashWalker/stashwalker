@@ -96,7 +96,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
     }
 
     @Override
-    public void updateEntity (UUID callIdentifier) {
+    public void updateEntities (UUID callIdentifier) {
 
         if (this.enabled) {
 

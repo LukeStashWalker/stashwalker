@@ -16,7 +16,7 @@ import java.util.TreeMap;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v124.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v125.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public void loadConfig () {
@@ -91,8 +91,8 @@ public class ConfigManager {
             StashwalkerConfig configData = new StashwalkerConfig();
             Constants.FEATURES.forEach(f -> {
 
-                f.getFeatureConfig().getBooleanConfigs().put("enabled", f.isEnabled());
                 configData.getFeatureConfigs().put(getFeatureNameKey(f), f.getFeatureConfig());
+                f.getFeatureConfig().getBooleanConfigs().put("enabled", f.isEnabled());
             });
 
             Files.createDirectories(CONFIG_PATH.getParent());

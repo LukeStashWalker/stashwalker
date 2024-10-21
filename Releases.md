@@ -1,9 +1,21 @@
 Releases
 ===
 
+Version 1.2.5-fabric-0.103.0+-mc1.21.1
+---
+- bug fix: opening the mod menu would change the feature enabled/disabled status
+
+Version 1.2.4-fabric-0.103.0+-mc1.21.1
+---
+- multiple performance improvements
+- changed Altered Dungeons feature to Altered Structures
+- added Altered Mines to Altered Structures feature (see README)
+- added proximity single chests search to block tracers (see README)
+- added multiple configuration options to the mod menu
+
 Version 1.2.3-fabric-0.103.0+-mc1.21.1
 ---
-- added multi configuration options to the mod menu
+- added multiple configuration options to the mod menu
 - added ignore word list to the sign reader
 - added proximity chest minecarts search to entity tracers (see README)
 

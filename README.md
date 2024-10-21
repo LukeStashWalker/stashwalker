@@ -48,7 +48,7 @@ Posts text of signs you pass by in the chat HUD. A word ignore list can be confi
 
 ### Altered Structures 
 
-A common way people try to hide small stashes is in dungeon chests or chest minecarts. This feature will show if a pillar of blocks above the dungeon or mine has been altered
+A common way people try to hide small stashes is in dungeon chests or chest minecarts. This feature will show if a pillar of blocks above the dungeon or mine has been altered. Can give some false positives, but by looking at the block colors of the pillar and the biome you should be able the judge if it is or not
 
 ### Keybindings
 

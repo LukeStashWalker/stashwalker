@@ -196,7 +196,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     }
 
     @Override
-    public void updateEntity (UUID callIdentifier) {
+    public void updateEntities (UUID callIdentifier) {
 
         if (this.enabled) {
 
@@ -206,7 +206,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     }
 
     @Override
-    public void updateBlockPos (UUID callIdentifier) {
+    public void updateBlockPositions (UUID callIdentifier) {
 
         if (this.enabled) {
 

@@ -118,7 +118,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     }
 
     @Override
-    public void updateBlockPos (UUID callIdentifier) {
+    public void updateBlockPositions (UUID callIdentifier) {
 
         if (this.enabled) {
 
