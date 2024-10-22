@@ -104,13 +104,13 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
             List<ChestMinecartEntity> chestMinecartEntities = this.chestMinecartEntitiesMap.get(callIdentifier);
             entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
             entities.addAll(
-                    this.findCloseProximityMinecartChests(
-                        chestMinecartEntities,
-                        this.featureConfig.getIntegerConfigs()
-                            .get(this.closeProximityChestMinecartsMinimumAmountKey),
-                        this.featureConfig.getIntegerConfigs()
-                            .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
-                    )
+                this.findCloseProximityMinecartChests(
+                    chestMinecartEntities,
+                    this.featureConfig.getIntegerConfigs()
+                        .get(this.closeProximityChestMinecartsMinimumAmountKey),
+                    this.featureConfig.getIntegerConfigs()
+                        .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+                )
             );
 
             this.buffer.updateBuffer(entities);
@@ -133,15 +133,17 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
                     if (entity instanceof ItemFrameEntity) {
 
                         entityPos = new Vec3d(
-                                entity.getPos().getX(),
-                                entity.getPos().getY(),
-                                entity.getPos().getZ());
+                            entity.getPos().getX(),
+                            entity.getPos().getY(),
+                            entity.getPos().getZ()
+                        );
                     } else {
 
                         entityPos = new Vec3d(
-                                entity.getPos().getX(),
-                                entity.getPos().getY() + 0.5D,
-                                entity.getPos().getZ());
+                            entity.getPos().getX(),
+                            entity.getPos().getY() + 0.5D,
+                            entity.getPos().getZ()
+                        );
                     }
 
                     Color color = new Color(this.getFeatureConfig().getIntegerConfigs().get(this.entityColorKey));
@@ -165,53 +167,63 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
             ItemEntity itemEntity = (ItemEntity) entity;
             ItemStack itemStack = itemEntity.getStack();
 
-            if (isEnchantedDiamondOrNetherite(itemStack)
+            if (
+                isEnchantedDiamondOrNetherite(itemStack)
 
-                    || itemStack.getItem() == Items.ELYTRA
-                    || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
-                    || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
-                    || itemStack.getItem() == Items.TOTEM_OF_UNDYING
-                    || itemStack.getItem() == Items.END_CRYSTAL
+                || itemStack.getItem() == Items.ELYTRA
+                || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
+                || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
+                || itemStack.getItem() == Items.TOTEM_OF_UNDYING
+                || itemStack.getItem() == Items.END_CRYSTAL
 
-                    || itemStack.getItem() == Items.SHULKER_BOX
-                    || itemStack.getItem() == Items.WHITE_SHULKER_BOX
-                    || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
-                    || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
-                    || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIME_SHULKER_BOX
-                    || itemStack.getItem() == Items.PINK_SHULKER_BOX
-                    || itemStack.getItem() == Items.GRAY_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
-                    || itemStack.getItem() == Items.CYAN_SHULKER_BOX
-                    || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
-                    || itemStack.getItem() == Items.BLUE_SHULKER_BOX
-                    || itemStack.getItem() == Items.BROWN_SHULKER_BOX
-                    || itemStack.getItem() == Items.GREEN_SHULKER_BOX
-                    || itemStack.getItem() == Items.RED_SHULKER_BOX
-                    || itemStack.getItem() == Items.BLACK_SHULKER_BOX) {
+                || itemStack.getItem() == Items.SHULKER_BOX
+                || itemStack.getItem() == Items.WHITE_SHULKER_BOX
+                || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
+                || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
+                || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
+                || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
+                || itemStack.getItem() == Items.LIME_SHULKER_BOX
+                || itemStack.getItem() == Items.PINK_SHULKER_BOX
+                || itemStack.getItem() == Items.GRAY_SHULKER_BOX
+                || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
+                || itemStack.getItem() == Items.CYAN_SHULKER_BOX
+                || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
+                || itemStack.getItem() == Items.BLUE_SHULKER_BOX
+                || itemStack.getItem() == Items.BROWN_SHULKER_BOX
+                || itemStack.getItem() == Items.GREEN_SHULKER_BOX
+                || itemStack.getItem() == Items.RED_SHULKER_BOX
+                || itemStack.getItem() == Items.BLACK_SHULKER_BOX
+            ) {
 
                 return Optional.of(entity);
             }
 
-        } else if ((entity instanceof AbstractDonkeyEntity
+        } else if (
+            (
+                entity instanceof AbstractDonkeyEntity
                 && ((AbstractDonkeyEntity) entity).hasChest()
-                && !((AbstractDonkeyEntity) entity).hasPlayerRider())
+                && !((AbstractDonkeyEntity) entity).hasPlayerRider()
+            )
 
-                ||
+            ||
 
-                (entity instanceof LlamaEntity
-                        && ((LlamaEntity) entity).hasChest()
-                        && !((LlamaEntity) entity).hasPlayerRider())
+            (
+                entity instanceof LlamaEntity
+                && ((LlamaEntity) entity).hasChest()
+                && !((LlamaEntity) entity).hasPlayerRider()
+            )
 
-                ||
+            ||
 
-                (entity instanceof ChestBoatEntity
-                        && !((ChestBoatEntity) entity).hasPlayerRider())
+            (
+                entity instanceof ChestBoatEntity
+                && !((ChestBoatEntity) entity).hasPlayerRider()
+            )
 
-                ||
+            ||
 
-                (entity instanceof ItemFrameEntity)) {
+            (entity instanceof ItemFrameEntity)
+        ) {
 
             return Optional.of(entity);
         }
@@ -225,14 +237,14 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
             if (itemStack.getItem() instanceof ArmorItem) {
 
-                return (itemStack.getItem() == Items.DIAMOND_BOOTS ||
-                        itemStack.getItem() == Items.DIAMOND_CHESTPLATE ||
-                        itemStack.getItem() == Items.DIAMOND_HELMET ||
-                        itemStack.getItem() == Items.DIAMOND_LEGGINGS) ||
-                        (itemStack.getItem() == Items.NETHERITE_BOOTS ||
-                                itemStack.getItem() == Items.NETHERITE_CHESTPLATE ||
-                                itemStack.getItem() == Items.NETHERITE_HELMET ||
-                                itemStack.getItem() == Items.NETHERITE_LEGGINGS);
+                return (itemStack.getItem() == Items.DIAMOND_BOOTS
+                        || itemStack.getItem() == Items.DIAMOND_CHESTPLATE
+                        || itemStack.getItem() == Items.DIAMOND_HELMET
+                        || itemStack.getItem() == Items.DIAMOND_LEGGINGS)
+                        || (itemStack.getItem() == Items.NETHERITE_BOOTS
+                                || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
+                                || itemStack.getItem() == Items.NETHERITE_HELMET
+                                || itemStack.getItem() == Items.NETHERITE_LEGGINGS);
             } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
 
                 return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||

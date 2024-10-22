@@ -24,6 +24,7 @@ import net.minecraft.world.chunk.Chunk;
 
 public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkProcessor, Renderable  {
 
+    // This List implementation is optimized for fast interation and slow add and remove, so rendering will be fast
     private final List<ChunkPos> buffer = new CopyOnWriteArrayList<>();
     private final String newChunksColorKey = "newChunksColor";
     private final Color newChunksColorDefaultValue = Color.RED;

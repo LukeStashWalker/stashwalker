@@ -40,12 +40,14 @@ import java.util.UUID;
 
 public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, EntityProcessor, Renderable  {
 
+    // Cache dungeon when found
     private final Map<BlockPos, AlteredDungeon> dungeonsCache = new BoundedMap<>(100);
+    // Every call has it's own List to reduce contention between writing threads
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
 
     private final Map<BlockPos, AlteredMine> minesCache = new BoundedMap<>(100);
     private final Map<UUID, List<AlteredMine>> minesTempMap = Collections.synchronizedMap(new HashMap<>());
-
+    // Use double buffer for fast rendering
     private final DoubleListBuffer<AlteredDungeon> dungeonsBuffer = new DoubleListBuffer<>();
     private final DoubleListBuffer<AlteredMine> minesBuffer = new DoubleListBuffer<>();
 
