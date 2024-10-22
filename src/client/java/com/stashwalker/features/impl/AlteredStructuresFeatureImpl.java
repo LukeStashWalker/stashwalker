@@ -7,8 +7,8 @@ import com.stashwalker.containers.BoundedMap;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.EntityProcessor;
 import com.stashwalker.features.PositionProcessor;
+import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.models.AlteredDungeon;
 import com.stashwalker.models.AlteredMine;
@@ -20,7 +20,6 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.entity.mob.ZombieEntity;
@@ -38,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, EntityProcessor, Renderable  {
+public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Processor, Renderable  {
 
     // Cache dungeon when found
     private final Map<BlockPos, AlteredDungeon> dungeonsCache = new BoundedMap<>(100);
@@ -154,55 +153,45 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     }
 
     @Override
-    public void processEntity (UUID callIdentifier, Entity entity) {
+    public void process () {
 
         if (this.enabled) {
 
-            if (!this.minesTempMap.containsKey(callIdentifier)) {
-
-                this.minesTempMap.put(callIdentifier, new ArrayList<>());
-            }
-
-            if (entity instanceof ChestMinecartEntity) {
-
-                BlockPos pos = new BlockPos(entity.getBlockPos());
-
-                if (this.minesCache.containsKey(pos)) {
-
-                    this.minesTempMap.get(callIdentifier).add(this.minesCache.get(pos));
-                } else {
-
+            List<AlteredMine> mines = Collections.synchronizedList(new ArrayList<>());
+            Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
+            
+                if (e instanceof ChestMinecartEntity) {
+            
+                    BlockPos pos = new BlockPos(e.getBlockPos());
+                    if (this.minesCache.containsKey(pos)) {
+            
+                        mines.add(this.minesCache.get(pos));
+            
+                        return; // Skip this iteration
+                    }
+            
                     Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
                     Integer horizontalSearchRadius = integerConfigs.get(this.alteredMinePillarSearchRadiusKey);
                     Integer minimumPillarHeight = integerConfigs.get(this.alteredMineMinimumPillarHeightKey);
                     if (
-                        this.hasPillar(
-                            pos,
-                            horizontalSearchRadius,
-                            minimumPillarHeight
-                        )
-                    ) {
-
-                        final AlteredMine alteredMine = new AlteredMine();
-                        List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
-                        addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight, pillarPositions);
-
-                        alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
-                        this.minesTempMap.get(callIdentifier).add(alteredMine);
-                        this.minesCache.put(pos, alteredMine);
+                            this.hasPillar(
+                                pos,
+                                horizontalSearchRadius,
+                                minimumPillarHeight
+                            )
+                        ) {
+            
+                            final AlteredMine alteredMine = new AlteredMine();
+                            List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
+                            addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight, pillarPositions);
+            
+                            alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
+                            mines.add(alteredMine);
+                            this.minesCache.put(pos, alteredMine);
                     }
                 }
-            }
-        }
-    }
-
-    @Override
-    public void updateEntities (UUID callIdentifier) {
-
-        if (this.enabled) {
-
-            this.minesBuffer.updateBuffer(this.minesTempMap.get(callIdentifier));
-            this.minesTempMap.remove(callIdentifier);
+            });
+            this.minesBuffer.updateBuffer(mines);
         }
     }
 
