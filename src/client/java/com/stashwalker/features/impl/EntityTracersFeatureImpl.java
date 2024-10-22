@@ -1,10 +1,10 @@
 package com.stashwalker.features.impl;
 
 import java.awt.Color;
-
+import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.EntityProcessor;
+import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -24,23 +24,19 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.UUID;
 
-public class EntityTracersFeatureImpl extends AbstractBaseFeature implements EntityProcessor, Renderable {
+public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
 
-    private final Map<UUID, List<Vec3d>> entitiesTempMap = Collections.synchronizedMap(new HashMap<>());
-    private final Map<UUID, List<Vec3d>> chestMinecartEntitiesMap = Collections.synchronizedMap(new HashMap<>());
-    private final DoubleListBuffer<Vec3d> buffer = new DoubleListBuffer<>();
+    private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
 
     private final String entityColorKey = "entityColor";
     private final Color entityColorDefaultValue = Color.RED;
@@ -68,55 +64,12 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
         this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
-    @Override
-    public void processEntity (UUID callIdentifier, Entity entity) {
+ @Override
+    public void process () {
 
         if (this.enabled) {
 
-            if (!this.entitiesTempMap.containsKey(callIdentifier)) {
-
-                this.entitiesTempMap.put(callIdentifier, new ArrayList<>());
-            } 
-
-            this.isInterestingEntity(entity).ifPresent(v -> {
-
-                this.entitiesTempMap.get(callIdentifier).add(v);
-            });
-
-            if (entity instanceof ChestMinecartEntity) {
-
-                if (!this.chestMinecartEntitiesMap.containsKey(callIdentifier)) {
-
-                    this.chestMinecartEntitiesMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
-                }
-
-                this.chestMinecartEntitiesMap.get(callIdentifier).add(this.copyVec3d(entity.getPos()));
-            }
-        }
-    }
-
-    @Override
-    public void updateEntities (UUID callIdentifier) {
-
-        if (this.enabled) {
-
-            List<Vec3d> entityVecs = this.entitiesTempMap.get(callIdentifier);
-
-            List<Vec3d> chestMinecartVecs = this.chestMinecartEntitiesMap.get(callIdentifier);
-            entityVecs.addAll(this.findOverlappingMinecartChests(chestMinecartVecs));
-            entityVecs.addAll(
-                this.findCloseProximityMinecartChests(
-                    chestMinecartVecs,
-                    this.featureConfig.getIntegerConfigs()
-                        .get(this.closeProximityChestMinecartsMinimumAmountKey),
-                    this.featureConfig.getIntegerConfigs()
-                        .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
-                )
-            );
-
-            this.buffer.updateBuffer(entityVecs);
-            this.entitiesTempMap.remove(callIdentifier);
-            this.chestMinecartEntitiesMap.remove(callIdentifier);
+            this.buffer.updateBuffer(this.findEntities());
         }
     }
 
@@ -125,14 +78,33 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
         if (this.enabled) {
 
-            List<Vec3d> entityVecs = this.buffer.readBuffer();
-            if (!entityVecs.isEmpty()) {
+            List<Entity> entities = this.buffer.readBuffer();
+            if (!entities.isEmpty()) {
 
-                for (Vec3d vec3d: entityVecs) {
+                for (Entity entity : entities) {
 
-                    Color color = new Color(this.getFeatureConfig().getIntegerConfigs().get(this.entityColorKey));
-                    RenderUtil.drawLine(context, vec3d, color, true,
-                        this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
+                    Vec3d vecEnd;
+                    if (entity instanceof ItemFrameEntity) {
+
+                        vecEnd = new Vec3d(
+                                entity.getPos().getX(),
+                                entity.getPos().getY(),
+                                entity.getPos().getZ());
+                    } else {
+
+                        vecEnd = new Vec3d(
+                                entity.getPos().getX(),
+                                entity.getPos().getY() + 0.5D,
+                                entity.getPos().getZ());
+                    }
+
+                    RenderUtil.drawLine(
+                        context, 
+                        vecEnd, 
+                        new Color(this.featureConfig.getIntegerConfigs().get(this.entityColorKey)), 
+                        true,
+                        this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey)
+                    );
                 }
             }
         }
@@ -144,27 +116,38 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    private Optional<Vec3d> isInterestingEntity (Entity entity) {
+    private List<Entity> findEntities () {
 
-        if (
-            isInterestingItem(entity)
-            || isArmorStandWithEnchantedDiamondOrNetheriteArmor(entity)
-            || isChestAnimal(entity)
-            || isChestBoat(entity)
-            || entity instanceof ItemFrameEntity
-        ) {
+        List<ChestMinecartEntity> chestMinecartEntities = Collections.synchronizedList(new ArrayList<>());
+        List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
+        Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
 
-            if (entity instanceof ItemFrameEntity) {
+            if (e instanceof ChestMinecartEntity) {
+                
+                chestMinecartEntities.add((ChestMinecartEntity) e);
+            } else if (
+                this.isInterestingItem(e)
+                || this.isArmorStandWithEnchantedDiamondOrNetheriteArmor(e)
+                || this.isChestAnimal(e)
+                || this.isChestBoat(e)
+                || e instanceof ItemFrameEntity
+            ) {
 
-                return Optional.of(this.copyVec3d(entity.getPos()));
-            } else {
-
-                return Optional.of(new Vec3d(entity.getX(), entity.getY() + 0.5D, entity.getZ()));
+                entities.add(e);
             }
-        } else {
+        });
 
-            return Optional.empty();
-        }
+        entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
+        Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+        entities.addAll(
+            this.findCloseProximityMinecartChests(
+                chestMinecartEntities,
+                integerConfigs.get(this.closeProximityChestMinecartsMinimumAmountKey),
+                integerConfigs.get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+            )
+        );
+
+        return entities;
     }
 
     private boolean isInterestingItem (Entity entity) {
@@ -321,73 +304,65 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
         }
     }
 
-    private List<Vec3d> findOverlappingMinecartChests (List<Vec3d> vecs) {
+    private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
 
-        List<Vec3d> overlappingVecs = new ArrayList<>();
+        Set<ChestMinecartEntity> minecartChests = new HashSet<>();
 
-        double overlapThreshold = 1.0;
-        for (int i = 0; i < vecs.size(); i++) {
+        Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
 
-            Vec3d vec1 = vecs.get(i);
-            boolean isOverlapping = false;
+        for (ChestMinecartEntity minecart : entities) {
 
-            for (int j = i + 1; j < vecs.size(); j++) {
-                Vec3d vec2 = vecs.get(j);
+            Box minecartBox = minecart.getBoundingBox();
 
-                if (vec1.distanceTo(vec2) < overlapThreshold) {
+            // Check for overlaps with existing minecarts
+            for (ChestMinecartEntity otherMinecart : minecartChests) {
 
-                    isOverlapping = true;
+                if (minecart != otherMinecart && minecartBox.intersects(otherMinecart.getBoundingBox())) {
 
-                    break;
+                    foundChestMinecastEntities.add(minecart);
+                    foundChestMinecastEntities.add(otherMinecart);
                 }
             }
 
-            if (isOverlapping) {
-
-                overlappingVecs.add(vec1);
-            }
+            minecartChests.add(minecart);
         }
 
-        return overlappingVecs;
+        return new ArrayList<>(foundChestMinecastEntities);
     }
 
-    private List<Vec3d> findCloseProximityMinecartChests (
-        List<Vec3d> vecs, 
+    private List<Entity> findCloseProximityMinecartChests (
+        List<ChestMinecartEntity> entities, 
         int chestMinecartAmount,
         int blocksProximity
     ) {
 
-        Set<Vec3d> closeProximityMinecartVecs = new HashSet<>();
-        for (int i = 0; i < vecs.size(); i++) {
+        Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
 
-            Vec3d currentVec = vecs.get(i);
-            Set<Vec3d> nearbyVecs = new HashSet<>();
+        for (int i = 0; i < entities.size(); i++) {
 
-            for (int j = 0; j < vecs.size(); j++) {
+            ChestMinecartEntity currentMinecart = entities.get(i);
+            Set<ChestMinecartEntity> nearbyMinecarts = new HashSet<>();
+
+            for (int j = 0; j < entities.size(); j++) {
 
                 if (i != j) {
 
-                    Vec3d otherVec = vecs.get(j);
-                    double distance = currentVec.squaredDistanceTo(otherVec);
+                    ChestMinecartEntity otherMinecart = entities.get(j);
+                    double distance = currentMinecart.squaredDistanceTo(otherMinecart);
 
                     if (distance <= blocksProximity * blocksProximity) {
                         
-                        nearbyVecs.add(otherVec);
+                        nearbyMinecarts.add(otherMinecart);
                     }
                 }
             }
 
-            if (nearbyVecs.size() >= chestMinecartAmount) {
+            if (nearbyMinecarts.size() >= chestMinecartAmount) {
 
-                closeProximityMinecartVecs.addAll(nearbyVecs);
+                closeProximityMinecarts.addAll(nearbyMinecarts);
             }
         }
 
-        return new ArrayList<>(closeProximityMinecartVecs);
-    }
-
-    private Vec3d copyVec3d (Vec3d vec3d) {
-
-        return new Vec3d(vec3d.x, vec3d.y, vec3d.z);
+        return new ArrayList<>(closeProximityMinecarts);
     }
 }

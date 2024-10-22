@@ -11,15 +11,12 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.math.Vec3d;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -46,7 +43,7 @@ import com.stashwalker.containers.Pair;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
-import com.stashwalker.features.EntityProcessor;
+import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
 import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
@@ -59,9 +56,9 @@ public class StashwalkerModClient implements ClientModInitializer {
     private static final int SCAN_INTERVAL = 300;
     private static final int CHAT_INTERVAL = 5000;
 
-    private final ExecutorService entitiesProcessThreadPool = Executors.newFixedThreadPool(1, new DaemonThreadFactory());
+    private final ExecutorService processThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
-    private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(5, new DaemonThreadFactory());
+    private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
 
     private KeyBinding keyBindingEntityTracers;
     private KeyBinding keyBindingBlockTracers;
@@ -115,39 +112,13 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
             previousWorld = dimensionKey;
 
-            this.entitiesProcessThreadPool.submit(() -> {
+            this.processThreadPool.submit(() -> {
 
-                final UUID callIdentifier = UUID.randomUUID();
-
-                int playerRenderDistance =
-                        Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
-                double renderDistanceInBlocks = playerRenderDistance * 16; // Convert render
-                                                                           // distance to blocks
-                Vec3d playerVec = Constants.MC_CLIENT_INSTANCE.player.getPos();
-
-                Box box = new Box(
-                    playerVec.x - renderDistanceInBlocks,
-                    -64,
-                    playerVec.z - renderDistanceInBlocks,
-                    playerVec.x + renderDistanceInBlocks,
-                    320,
-                    playerVec.z + renderDistanceInBlocks
-                );
-                Constants.MC_CLIENT_INSTANCE.world.getEntitiesByClass(Entity.class, box, e -> true).forEach(e -> {
-
-                    Constants.FEATURES.forEach(f -> {
-
-                        if (f instanceof EntityProcessor) {
-
-                            ((EntityProcessor) f).processEntity(callIdentifier, e);
-                        }
-                    });
-                });
                 Constants.FEATURES.forEach(f -> {
 
-                    if (f instanceof EntityProcessor) {
+                    if (f instanceof Processor) {
 
-                        ((EntityProcessor) f).updateEntities(callIdentifier);
+                        ((Processor) f).process();
                     }
                 });
             });
