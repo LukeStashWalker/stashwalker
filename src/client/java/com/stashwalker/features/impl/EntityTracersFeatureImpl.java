@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EntityTracersFeatureImpl extends AbstractBaseFeature implements EntityProcessor, Renderable {
 
@@ -75,7 +74,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
             if (!this.entitiesTempMap.containsKey(callIdentifier)) {
 
-                this.entitiesTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.entitiesTempMap.put(callIdentifier, new ArrayList<>());
             } 
 
             this.isInterestingEntity(entity).ifPresent(e -> {

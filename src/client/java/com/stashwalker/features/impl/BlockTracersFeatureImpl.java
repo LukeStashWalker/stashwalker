@@ -29,14 +29,13 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
@@ -106,7 +105,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
             if (!this.positionsTempMap.containsKey(callIdentifier)) {
 
-                this.positionsTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.positionsTempMap.put(callIdentifier, new ArrayList<>());
             } 
 
             this.isInterestingBlockPosition(pos).ifPresent(c -> {
