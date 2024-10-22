@@ -126,12 +126,12 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Vec3d playerVec = Constants.MC_CLIENT_INSTANCE.player.getPos();
 
                 Box box = new Box(
-                        playerVec.x - renderDistanceInBlocks,
-                        -64,
-                        playerVec.z - renderDistanceInBlocks,
-                        playerVec.x + renderDistanceInBlocks,
-                        320,
-                        playerVec.z + renderDistanceInBlocks
+                    playerVec.x - renderDistanceInBlocks,
+                    -64,
+                    playerVec.z - renderDistanceInBlocks,
+                    playerVec.x + renderDistanceInBlocks,
+                    320,
+                    playerVec.z + renderDistanceInBlocks
                 );
                 Constants.MC_CLIENT_INSTANCE.world.getEntitiesByClass(Entity.class, box, e -> true).forEach(e -> {
 
