@@ -1,6 +1,10 @@
 Releases
 ===
 
+Version 1.2.6-fabric-0.103.0+-mc1.21.1
+---
+- bug fix: for some reason on 2b2t getEntities() does not work, but getting entities by class with bounding box does 
+
 Version 1.2.5-fabric-0.103.0+-mc1.21.1
 ---
 - bug fix: opening the mod menu would change the feature enabled/disabled status
