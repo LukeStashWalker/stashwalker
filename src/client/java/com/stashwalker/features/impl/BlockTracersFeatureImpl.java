@@ -29,14 +29,13 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
@@ -106,7 +105,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
             if (!this.positionsTempMap.containsKey(callIdentifier)) {
 
-                this.positionsTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.positionsTempMap.put(callIdentifier, new ArrayList<>());
             } 
 
             this.isInterestingBlockPosition(pos).ifPresent(c -> {
@@ -197,7 +196,7 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
             return Optional.of(new Color(integerMap.get(this.chestColorKey)));
         } else if (
 
-        FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
+            FinderUtil.isBlockType(pos, Blocks.SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.WHITE_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.ORANGE_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.MAGENTA_SHULKER_BOX)
@@ -213,7 +212,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 || FinderUtil.isBlockType(pos, Blocks.BROWN_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.GREEN_SHULKER_BOX)
                 || FinderUtil.isBlockType(pos, Blocks.RED_SHULKER_BOX)
-                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)) {
+                || FinderUtil.isBlockType(pos, Blocks.BLACK_SHULKER_BOX)
+        ) {
 
             return Optional.of(new Color(integerMap.get(this.shulkerColorKey)));
         } else if (
@@ -241,41 +241,42 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
         FinderUtil.isBlockType(pos, Blocks.FURNACE)) {
 
             return Optional.of(new Color(integerMap.get(this.furnaceColorKey)));
-        } else if (FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CHERRY_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.WARPED_SIGN)
+        } else if (
+            FinderUtil.isBlockType(pos, Blocks.OAK_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.SPRUCE_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BIRCH_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.ACACIA_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CHERRY_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.JUNGLE_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CRIMSON_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.MANGROVE_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BAMBOO_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.WARPED_SIGN)
 
-                || FinderUtil.isBlockType(pos, Blocks.OAK_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BIRCH_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.ACACIA_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CHERRY_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.WARPED_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.OAK_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.SPRUCE_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BIRCH_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.ACACIA_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CHERRY_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.JUNGLE_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CRIMSON_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.MANGROVE_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BAMBOO_WALL_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.WARPED_WALL_SIGN)
 
-                || FinderUtil.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BIRCH_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.ACACIA_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CHERRY_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.JUNGLE_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
-                || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)) {
+            || FinderUtil.isBlockType(pos, Blocks.OAK_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.SPRUCE_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BIRCH_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.ACACIA_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CHERRY_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.JUNGLE_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.DARK_OAK_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.CRIMSON_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.MANGROVE_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.BAMBOO_HANGING_SIGN)
+            || FinderUtil.isBlockType(pos, Blocks.WARPED_HANGING_SIGN)) {
 
             return Optional.of(new Color(integerMap.get(this.signColorKey)));
         } else {
@@ -392,12 +393,15 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 : new Direction[] { Direction.NORTH, Direction.SOUTH };
 
         for (Direction direction : relevantSides) {
+
             BlockPos adjacentPos = pos.offset(direction);
             BlockState adjacentState = world.getBlockState(adjacentPos);
             Block adjacentBlock = adjacentState.getBlock();
 
-            if ((adjacentBlock == Blocks.CHEST || adjacentBlock == Blocks.TRAPPED_CHEST)
-                    && adjacentState.get(Properties.HORIZONTAL_FACING) == facing) {
+            if (
+                (adjacentBlock == Blocks.CHEST || adjacentBlock == Blocks.TRAPPED_CHEST)
+                && adjacentState.get(Properties.HORIZONTAL_FACING) == facing
+            ) {
 
                 return false;
             }

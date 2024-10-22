@@ -31,22 +31,23 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import net.minecraft.world.Heightmap;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, EntityProcessor, Renderable  {
 
+    // Cache dungeon when found
     private final Map<BlockPos, AlteredDungeon> dungeonsCache = new BoundedMap<>(100);
+    // Every call has it's own List to reduce contention between writing threads
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
 
     private final Map<BlockPos, AlteredMine> minesCache = new BoundedMap<>(100);
     private final Map<UUID, List<AlteredMine>> minesTempMap = Collections.synchronizedMap(new HashMap<>());
-
+    // Use double buffer for fast rendering
     private final DoubleListBuffer<AlteredDungeon> dungeonsBuffer = new DoubleListBuffer<>();
     private final DoubleListBuffer<AlteredMine> minesBuffer = new DoubleListBuffer<>();
 
@@ -123,7 +124,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
 
             if (!this.dungeonsTempMap.containsKey(callIdentifier)) {
 
-                this.dungeonsTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.dungeonsTempMap.put(callIdentifier, new ArrayList<>());
             } 
 
             RegistryKey<World> dimensionKey = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey();
@@ -159,7 +160,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
 
             if (!this.minesTempMap.containsKey(callIdentifier)) {
 
-                this.minesTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.minesTempMap.put(callIdentifier, new ArrayList<>());
             }
 
             if (entity instanceof ChestMinecartEntity) {
@@ -357,7 +358,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
                 BlockPos topPos = new BlockPos(x, topY, z);
-                List<BlockPos> result = new CopyOnWriteArrayList<>();
+                List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);
@@ -470,7 +471,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                 int topY = Constants.MC_CLIENT_INSTANCE.world.getTopY(Heightmap.Type.MOTION_BLOCKING, x, z) - 1;
                 BlockPos bottomPos = new BlockPos(x, pos.getY(), z);
                 BlockPos topPos = new BlockPos(x, topY, z);
-                List<BlockPos> result = new CopyOnWriteArrayList<>();
+                List<BlockPos> result = new ArrayList<>();
                 for (BlockPos pillarPos : BlockPos.iterate(bottomPos, topPos)) {
 
                     BlockPos pillarPosCopy = new BlockPos(pillarPos);

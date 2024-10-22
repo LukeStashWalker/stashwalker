@@ -12,17 +12,18 @@ import com.stashwalker.utils.RenderUtil;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
@@ -34,13 +35,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 public class EntityTracersFeatureImpl extends AbstractBaseFeature implements EntityProcessor, Renderable {
 
-    private final Map<UUID, List<Entity>> entitiesTempMap = Collections.synchronizedMap(new HashMap<>());
-    private final Map<UUID, List<ChestMinecartEntity>> chestMinecartEntitiesMap = Collections.synchronizedMap(new HashMap<>());
-    private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
+    private final Map<UUID, List<Vec3d>> entitiesTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, List<Vec3d>> chestMinecartEntitiesMap = Collections.synchronizedMap(new HashMap<>());
+    private final DoubleListBuffer<Vec3d> buffer = new DoubleListBuffer<>();
 
     private final String entityColorKey = "entityColor";
     private final Color entityColorDefaultValue = Color.RED;
@@ -75,12 +75,12 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
             if (!this.entitiesTempMap.containsKey(callIdentifier)) {
 
-                this.entitiesTempMap.put(callIdentifier, new CopyOnWriteArrayList<>());
+                this.entitiesTempMap.put(callIdentifier, new ArrayList<>());
             } 
 
-            this.isInterestingEntity(entity).ifPresent(e -> {
+            this.isInterestingEntity(entity).ifPresent(v -> {
 
-                this.entitiesTempMap.get(callIdentifier).add(e);
+                this.entitiesTempMap.get(callIdentifier).add(v);
             });
 
             if (entity instanceof ChestMinecartEntity) {
@@ -90,7 +90,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
                     this.chestMinecartEntitiesMap.put(callIdentifier, Collections.synchronizedList(new ArrayList<>()));
                 }
 
-                this.chestMinecartEntitiesMap.get(callIdentifier).add((ChestMinecartEntity) entity);
+                this.chestMinecartEntitiesMap.get(callIdentifier).add(this.copyVec3d(entity.getPos()));
             }
         }
     }
@@ -100,21 +100,21 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
         if (this.enabled) {
 
-            List<Entity> entities = this.entitiesTempMap.get(callIdentifier);
+            List<Vec3d> entityVecs = this.entitiesTempMap.get(callIdentifier);
 
-            List<ChestMinecartEntity> chestMinecartEntities = this.chestMinecartEntitiesMap.get(callIdentifier);
-            entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
-            entities.addAll(
-                    this.findCloseProximityMinecartChests(
-                        chestMinecartEntities,
-                        this.featureConfig.getIntegerConfigs()
-                            .get(this.closeProximityChestMinecartsMinimumAmountKey),
-                        this.featureConfig.getIntegerConfigs()
-                            .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
-                    )
+            List<Vec3d> chestMinecartVecs = this.chestMinecartEntitiesMap.get(callIdentifier);
+            entityVecs.addAll(this.findOverlappingMinecartChests(chestMinecartVecs));
+            entityVecs.addAll(
+                this.findCloseProximityMinecartChests(
+                    chestMinecartVecs,
+                    this.featureConfig.getIntegerConfigs()
+                        .get(this.closeProximityChestMinecartsMinimumAmountKey),
+                    this.featureConfig.getIntegerConfigs()
+                        .get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+                )
             );
 
-            this.buffer.updateBuffer(entities);
+            this.buffer.updateBuffer(entityVecs);
             this.entitiesTempMap.remove(callIdentifier);
             this.chestMinecartEntitiesMap.remove(callIdentifier);
         }
@@ -125,29 +125,14 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
         if (this.enabled) {
 
-            List<Entity> entities = this.buffer.readBuffer();
-            if (!entities.isEmpty()) {
+            List<Vec3d> entityVecs = this.buffer.readBuffer();
+            if (!entityVecs.isEmpty()) {
 
-                for (Entity entity : entities) {
-
-                    Vec3d entityPos;
-                    if (entity instanceof ItemFrameEntity) {
-
-                        entityPos = new Vec3d(
-                                entity.getPos().getX(),
-                                entity.getPos().getY(),
-                                entity.getPos().getZ());
-                    } else {
-
-                        entityPos = new Vec3d(
-                                entity.getPos().getX(),
-                                entity.getPos().getY() + 0.5D,
-                                entity.getPos().getZ());
-                    }
+                for (Vec3d vec3d: entityVecs) {
 
                     Color color = new Color(this.getFeatureConfig().getIntegerConfigs().get(this.entityColorKey));
-                    RenderUtil.drawLine(context, entityPos, color, true,
-                            this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
+                    RenderUtil.drawLine(context, vec3d, color, true,
+                        this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
                 }
             }
         }
@@ -159,156 +144,250 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
         this.buffer.updateBuffer(Collections.emptyList());
     }
 
-    private Optional<Entity> isInterestingEntity (Entity entity) {
+    private Optional<Vec3d> isInterestingEntity (Entity entity) {
+
+        if (
+            isInterestingItem(entity)
+            || isArmorStandWithEnchantedDiamondOrNetheriteArmor(entity)
+            || isChestAnimal(entity)
+            || isChestBoat(entity)
+            || entity instanceof ItemFrameEntity
+        ) {
+
+            if (entity instanceof ItemFrameEntity) {
+
+                return Optional.of(this.copyVec3d(entity.getPos()));
+            } else {
+
+                return Optional.of(new Vec3d(entity.getX(), entity.getY() + 0.5D, entity.getZ()));
+            }
+        } else {
+
+            return Optional.empty();
+        }
+    }
+
+    private boolean isInterestingItem (Entity entity) {
 
         if (entity instanceof ItemEntity) {
 
             ItemEntity itemEntity = (ItemEntity) entity;
             ItemStack itemStack = itemEntity.getStack();
 
-            if (isEnchantedDiamondOrNetherite(itemStack)
+            Item item = itemStack.getItem();
+            if (
+                isEnchantedDiamondOrNetheriteArmor(itemStack)
+                || isEnchantedDiamondOrNetheriteTool(itemStack)
+                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
 
-                    || itemStack.getItem() == Items.ELYTRA
-                    || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
-                    || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
-                    || itemStack.getItem() == Items.TOTEM_OF_UNDYING
-                    || itemStack.getItem() == Items.END_CRYSTAL
+                || isShulkerBox(item)
 
-                    || itemStack.getItem() == Items.SHULKER_BOX
-                    || itemStack.getItem() == Items.WHITE_SHULKER_BOX
-                    || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
-                    || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
-                    || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIME_SHULKER_BOX
-                    || itemStack.getItem() == Items.PINK_SHULKER_BOX
-                    || itemStack.getItem() == Items.GRAY_SHULKER_BOX
-                    || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
-                    || itemStack.getItem() == Items.CYAN_SHULKER_BOX
-                    || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
-                    || itemStack.getItem() == Items.BLUE_SHULKER_BOX
-                    || itemStack.getItem() == Items.BROWN_SHULKER_BOX
-                    || itemStack.getItem() == Items.GREEN_SHULKER_BOX
-                    || itemStack.getItem() == Items.RED_SHULKER_BOX
-                    || itemStack.getItem() == Items.BLACK_SHULKER_BOX) {
+                || item == Items.ELYTRA 
+                || item == Items.EXPERIENCE_BOTTLE
+                || item == Items.ENCHANTED_GOLDEN_APPLE 
+                || item == Items.TOTEM_OF_UNDYING
+                || item == Items.END_CRYSTAL
+            ) {
 
-                return Optional.of(entity);
+                return true;
+            } else {
+
+                return false;
             }
 
-        } else if ((entity instanceof AbstractDonkeyEntity
-                && ((AbstractDonkeyEntity) entity).hasChest()
-                && !((AbstractDonkeyEntity) entity).hasPlayerRider())
+        } else {
 
-                ||
-
-                (entity instanceof LlamaEntity
-                        && ((LlamaEntity) entity).hasChest()
-                        && !((LlamaEntity) entity).hasPlayerRider())
-
-                ||
-
-                (entity instanceof ChestBoatEntity
-                        && !((ChestBoatEntity) entity).hasPlayerRider())
-
-                ||
-
-                (entity instanceof ItemFrameEntity)) {
-
-            return Optional.of(entity);
+            return false;
         }
-
-        return Optional.empty();
     }
 
-    private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
+    private boolean isArmorStandWithEnchantedDiamondOrNetheriteArmor (Entity entity) {
 
-        if (itemStack.hasEnchantments()) {
+        if (entity instanceof ArmorStandEntity) {
 
-            if (itemStack.getItem() instanceof ArmorItem) {
+            ArmorStandEntity armorStand = (ArmorStandEntity) entity;
+            for (ItemStack itemStack : armorStand.getArmorItems()) {
 
-                return (itemStack.getItem() == Items.DIAMOND_BOOTS ||
-                        itemStack.getItem() == Items.DIAMOND_CHESTPLATE ||
-                        itemStack.getItem() == Items.DIAMOND_HELMET ||
-                        itemStack.getItem() == Items.DIAMOND_LEGGINGS) ||
-                        (itemStack.getItem() == Items.NETHERITE_BOOTS ||
-                                itemStack.getItem() == Items.NETHERITE_CHESTPLATE ||
-                                itemStack.getItem() == Items.NETHERITE_HELMET ||
-                                itemStack.getItem() == Items.NETHERITE_LEGGINGS);
-            } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
+                if (isEnchantedDiamondOrNetheriteArmor(itemStack)) {
 
-                return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||
-                        itemStack.getItem() == Items.DIAMOND_AXE ||
-                        itemStack.getItem() == Items.DIAMOND_SHOVEL ||
-                        itemStack.getItem() == Items.DIAMOND_SWORD) ||
-                        (itemStack.getItem() == Items.NETHERITE_PICKAXE ||
-                                itemStack.getItem() == Items.NETHERITE_AXE ||
-                                itemStack.getItem() == Items.NETHERITE_SHOVEL ||
-                                itemStack.getItem() == Items.NETHERITE_SWORD);
-            }
-        }
-
-        return false;
-    }
-
-    private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
-
-        Set<ChestMinecartEntity> minecartChests = new HashSet<>();
-
-        Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
-
-        for (ChestMinecartEntity minecart : entities) {
-
-            Box minecartBox = minecart.getBoundingBox();
-
-            // Check for overlaps with existing minecarts
-            for (ChestMinecartEntity otherMinecart : minecartChests) {
-
-                if (minecart != otherMinecart && minecartBox.intersects(otherMinecart.getBoundingBox())) {
-
-                    foundChestMinecastEntities.add(minecart);
-                    foundChestMinecastEntities.add(otherMinecart);
+                    return true;
                 }
             }
 
-            minecartChests.add(minecart);
-        }
+            return false;
+        } else {
 
-        return new ArrayList<>(foundChestMinecastEntities);
+            return false;
+        }
     }
 
-    private List<Entity> findCloseProximityMinecartChests (
-        List<ChestMinecartEntity> entities, 
+    private boolean isChestBoat (Entity entity) {
+
+        return (
+            entity instanceof ChestBoatEntity
+            && !((ChestBoatEntity) entity).hasPlayerRider()
+        );
+    }
+
+    private boolean isChestAnimal (Entity entity) {
+
+        return (
+            entity instanceof AbstractDonkeyEntity
+            && ((AbstractDonkeyEntity) entity).hasChest()
+            && !((AbstractDonkeyEntity) entity).hasPlayerRider()
+        )
+        
+        ||
+
+        (
+            entity instanceof LlamaEntity
+            && ((LlamaEntity) entity).hasChest()
+            && !((LlamaEntity) entity).hasPlayerRider()
+        );
+    }
+
+    private boolean isShulkerBox (Item item) {
+
+        return (
+            item == Items.SHULKER_BOX 
+            || item == Items.WHITE_SHULKER_BOX
+            || item == Items.ORANGE_SHULKER_BOX 
+            || item == Items.MAGENTA_SHULKER_BOX
+            || item == Items.LIGHT_BLUE_SHULKER_BOX 
+            || item == Items.YELLOW_SHULKER_BOX
+            || item == Items.LIME_SHULKER_BOX 
+            || item == Items.PINK_SHULKER_BOX
+            || item == Items.GRAY_SHULKER_BOX 
+            || item == Items.LIGHT_GRAY_SHULKER_BOX
+            || item == Items.CYAN_SHULKER_BOX 
+            || item == Items.PURPLE_SHULKER_BOX
+            || item == Items.BLUE_SHULKER_BOX 
+            || item == Items.BROWN_SHULKER_BOX
+            || item == Items.GREEN_SHULKER_BOX 
+            || item == Items.RED_SHULKER_BOX
+            || item == Items.BLACK_SHULKER_BOX
+        );
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof ArmorItem) {
+
+            return 
+                item == Items.DIAMOND_BOOTS
+                || item == Items.DIAMOND_CHESTPLATE
+                || item == Items.DIAMOND_HELMET
+                || item == Items.DIAMOND_LEGGINGS
+                || item == Items.NETHERITE_BOOTS
+                || item == Items.NETHERITE_CHESTPLATE
+                || item == Items.NETHERITE_HELMET
+                || item == Items.NETHERITE_LEGGINGS;
+        } else {
+
+            return false;
+        }
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof ToolItem) {
+
+            return 
+                item == Items.DIAMOND_PICKAXE
+                || item == Items.DIAMOND_AXE
+                || item == Items.DIAMOND_SHOVEL
+                || item == Items.NETHERITE_PICKAXE
+                || item == Items.NETHERITE_AXE
+                || item == Items.NETHERITE_SHOVEL;
+        } else {
+
+            return false;
+        }
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof SwordItem) {
+
+            return 
+                item == Items.DIAMOND_SWORD
+                || item == Items.NETHERITE_SWORD;
+        } else {
+
+            return false;
+        }
+    }
+
+    private List<Vec3d> findOverlappingMinecartChests (List<Vec3d> vecs) {
+
+        List<Vec3d> overlappingVecs = new ArrayList<>();
+
+        double overlapThreshold = 1.0;
+        for (int i = 0; i < vecs.size(); i++) {
+
+            Vec3d vec1 = vecs.get(i);
+            boolean isOverlapping = false;
+
+            for (int j = i + 1; j < vecs.size(); j++) {
+                Vec3d vec2 = vecs.get(j);
+
+                if (vec1.distanceTo(vec2) < overlapThreshold) {
+
+                    isOverlapping = true;
+
+                    break;
+                }
+            }
+
+            if (isOverlapping) {
+
+                overlappingVecs.add(vec1);
+            }
+        }
+
+        return overlappingVecs;
+    }
+
+    private List<Vec3d> findCloseProximityMinecartChests (
+        List<Vec3d> vecs, 
         int chestMinecartAmount,
         int blocksProximity
     ) {
 
-        Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
+        Set<Vec3d> closeProximityMinecartVecs = new HashSet<>();
+        for (int i = 0; i < vecs.size(); i++) {
 
-        for (int i = 0; i < entities.size(); i++) {
+            Vec3d currentVec = vecs.get(i);
+            Set<Vec3d> nearbyVecs = new HashSet<>();
 
-            ChestMinecartEntity currentMinecart = entities.get(i);
-            Set<ChestMinecartEntity> nearbyMinecarts = new HashSet<>();
-
-            for (int j = 0; j < entities.size(); j++) {
+            for (int j = 0; j < vecs.size(); j++) {
 
                 if (i != j) {
 
-                    ChestMinecartEntity otherMinecart = entities.get(j);
-                    double distance = currentMinecart.squaredDistanceTo(otherMinecart);
+                    Vec3d otherVec = vecs.get(j);
+                    double distance = currentVec.squaredDistanceTo(otherVec);
 
                     if (distance <= blocksProximity * blocksProximity) {
                         
-                        nearbyMinecarts.add(otherMinecart);
+                        nearbyVecs.add(otherVec);
                     }
                 }
             }
 
-            if (nearbyMinecarts.size() >= chestMinecartAmount) {
+            if (nearbyVecs.size() >= chestMinecartAmount) {
 
-                closeProximityMinecarts.addAll(nearbyMinecarts);
+                closeProximityMinecartVecs.addAll(nearbyVecs);
             }
         }
 
-        return new ArrayList<>(closeProximityMinecarts);
+        return new ArrayList<>(closeProximityMinecartVecs);
+    }
+
+    private Vec3d copyVec3d (Vec3d vec3d) {
+
+        return new Vec3d(vec3d.x, vec3d.y, vec3d.z);
     }
 }

@@ -11,13 +11,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.math.BlockPos;
-
+import net.minecraft.util.math.Box;
+import net.minecraft.util.math.Vec3d;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -116,7 +118,23 @@ public class StashwalkerModClient implements ClientModInitializer {
             this.entitiesProcessThreadPool.submit(() -> {
 
                 final UUID callIdentifier = UUID.randomUUID();
-                Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
+
+                int playerRenderDistance =
+                        Constants.MC_CLIENT_INSTANCE.options.getClampedViewDistance();
+                double renderDistanceInBlocks = playerRenderDistance * 16; // Convert render
+                                                                           // distance to blocks
+                Vec3d playerVec = Constants.MC_CLIENT_INSTANCE.player.getPos();
+
+                Box box = new Box(
+                    playerVec.x - renderDistanceInBlocks,
+                    -64,
+                    playerVec.z - renderDistanceInBlocks,
+                    playerVec.x + renderDistanceInBlocks,
+                    320,
+                    playerVec.z + renderDistanceInBlocks
+                );
+                Constants.MC_CLIENT_INSTANCE.world.getEntitiesByClass(Entity.class, box, e -> true).forEach(e -> {
+
                     Constants.FEATURES.forEach(f -> {
 
                         if (f instanceof EntityProcessor) {
