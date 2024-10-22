@@ -12,12 +12,14 @@ import com.stashwalker.utils.RenderUtil;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.ItemEntity;
+import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.item.ArmorItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
@@ -162,103 +164,173 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Ent
 
     private Optional<Entity> isInterestingEntity (Entity entity) {
 
+        if (
+            isInterestingItem(entity)
+            || isArmorStandWithEnchantedDiamondOrNetheriteArmor(entity)
+            || isChestAnimal(entity)
+            || isChestBoat(entity)
+            || entity instanceof ItemFrameEntity
+        ) {
+
+            return Optional.of(entity);
+        } else {
+
+            return Optional.empty();
+        }
+    }
+
+    private boolean isInterestingItem (Entity entity) {
+
         if (entity instanceof ItemEntity) {
 
             ItemEntity itemEntity = (ItemEntity) entity;
             ItemStack itemStack = itemEntity.getStack();
 
+            Item item = itemStack.getItem();
             if (
-                isEnchantedDiamondOrNetherite(itemStack)
+                isEnchantedDiamondOrNetheriteArmor(itemStack)
+                || isEnchantedDiamondOrNetheriteTool(itemStack)
+                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
 
-                || itemStack.getItem() == Items.ELYTRA
-                || itemStack.getItem() == Items.EXPERIENCE_BOTTLE
-                || itemStack.getItem() == Items.ENCHANTED_GOLDEN_APPLE
-                || itemStack.getItem() == Items.TOTEM_OF_UNDYING
-                || itemStack.getItem() == Items.END_CRYSTAL
+                || isShulkerBox(item)
 
-                || itemStack.getItem() == Items.SHULKER_BOX
-                || itemStack.getItem() == Items.WHITE_SHULKER_BOX
-                || itemStack.getItem() == Items.ORANGE_SHULKER_BOX
-                || itemStack.getItem() == Items.MAGENTA_SHULKER_BOX
-                || itemStack.getItem() == Items.LIGHT_BLUE_SHULKER_BOX
-                || itemStack.getItem() == Items.YELLOW_SHULKER_BOX
-                || itemStack.getItem() == Items.LIME_SHULKER_BOX
-                || itemStack.getItem() == Items.PINK_SHULKER_BOX
-                || itemStack.getItem() == Items.GRAY_SHULKER_BOX
-                || itemStack.getItem() == Items.LIGHT_GRAY_SHULKER_BOX
-                || itemStack.getItem() == Items.CYAN_SHULKER_BOX
-                || itemStack.getItem() == Items.PURPLE_SHULKER_BOX
-                || itemStack.getItem() == Items.BLUE_SHULKER_BOX
-                || itemStack.getItem() == Items.BROWN_SHULKER_BOX
-                || itemStack.getItem() == Items.GREEN_SHULKER_BOX
-                || itemStack.getItem() == Items.RED_SHULKER_BOX
-                || itemStack.getItem() == Items.BLACK_SHULKER_BOX
+                || item == Items.ELYTRA 
+                || item == Items.EXPERIENCE_BOTTLE
+                || item == Items.ENCHANTED_GOLDEN_APPLE 
+                || item == Items.TOTEM_OF_UNDYING
+                || item == Items.END_CRYSTAL
             ) {
 
-                return Optional.of(entity);
+                return true;
+            } else {
+
+                return false;
             }
 
-        } else if (
-            (
-                entity instanceof AbstractDonkeyEntity
-                && ((AbstractDonkeyEntity) entity).hasChest()
-                && !((AbstractDonkeyEntity) entity).hasPlayerRider()
-            )
+        } else {
 
-            ||
-
-            (
-                entity instanceof LlamaEntity
-                && ((LlamaEntity) entity).hasChest()
-                && !((LlamaEntity) entity).hasPlayerRider()
-            )
-
-            ||
-
-            (
-                entity instanceof ChestBoatEntity
-                && !((ChestBoatEntity) entity).hasPlayerRider()
-            )
-
-            ||
-
-            (entity instanceof ItemFrameEntity)
-        ) {
-
-            return Optional.of(entity);
+            return false;
         }
-
-        return Optional.empty();
     }
 
-    private boolean isEnchantedDiamondOrNetherite (ItemStack itemStack) {
+    private boolean isArmorStandWithEnchantedDiamondOrNetheriteArmor (Entity entity) {
 
-        if (itemStack.hasEnchantments()) {
+        if (entity instanceof ArmorStandEntity) {
 
-            if (itemStack.getItem() instanceof ArmorItem) {
+            ArmorStandEntity armorStand = (ArmorStandEntity) entity;
+            for (ItemStack itemStack : armorStand.getArmorItems()) {
 
-                return (itemStack.getItem() == Items.DIAMOND_BOOTS
-                        || itemStack.getItem() == Items.DIAMOND_CHESTPLATE
-                        || itemStack.getItem() == Items.DIAMOND_HELMET
-                        || itemStack.getItem() == Items.DIAMOND_LEGGINGS)
-                        || (itemStack.getItem() == Items.NETHERITE_BOOTS
-                                || itemStack.getItem() == Items.NETHERITE_CHESTPLATE
-                                || itemStack.getItem() == Items.NETHERITE_HELMET
-                                || itemStack.getItem() == Items.NETHERITE_LEGGINGS);
-            } else if (itemStack.getItem() instanceof ToolItem || itemStack.getItem() instanceof SwordItem) {
+                if (isEnchantedDiamondOrNetheriteArmor(itemStack)) {
 
-                return (itemStack.getItem() == Items.DIAMOND_PICKAXE ||
-                        itemStack.getItem() == Items.DIAMOND_AXE ||
-                        itemStack.getItem() == Items.DIAMOND_SHOVEL ||
-                        itemStack.getItem() == Items.DIAMOND_SWORD) ||
-                        (itemStack.getItem() == Items.NETHERITE_PICKAXE ||
-                                itemStack.getItem() == Items.NETHERITE_AXE ||
-                                itemStack.getItem() == Items.NETHERITE_SHOVEL ||
-                                itemStack.getItem() == Items.NETHERITE_SWORD);
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        } else {
+
+            return false;
+        }
+    }
+
+    private boolean isChestBoat (Entity entity) {
+
+        return (
+            entity instanceof ChestBoatEntity
+            && !((ChestBoatEntity) entity).hasPlayerRider()
+        );
+    }
+
+    private boolean isChestAnimal (Entity entity) {
+
+        return (
+            entity instanceof AbstractDonkeyEntity
+            && ((AbstractDonkeyEntity) entity).hasChest()
+            && !((AbstractDonkeyEntity) entity).hasPlayerRider()
+        )
+        
+        ||
+
+        (
+            entity instanceof LlamaEntity
+            && ((LlamaEntity) entity).hasChest()
+            && !((LlamaEntity) entity).hasPlayerRider()
+        );
+    }
+
+    private boolean isShulkerBox (Item item) {
+
+        return (
+            item == Items.SHULKER_BOX 
+            || item == Items.WHITE_SHULKER_BOX
+            || item == Items.ORANGE_SHULKER_BOX 
+            || item == Items.MAGENTA_SHULKER_BOX
+            || item == Items.LIGHT_BLUE_SHULKER_BOX 
+            || item == Items.YELLOW_SHULKER_BOX
+            || item == Items.LIME_SHULKER_BOX 
+            || item == Items.PINK_SHULKER_BOX
+            || item == Items.GRAY_SHULKER_BOX 
+            || item == Items.LIGHT_GRAY_SHULKER_BOX
+            || item == Items.CYAN_SHULKER_BOX 
+            || item == Items.PURPLE_SHULKER_BOX
+            || item == Items.BLUE_SHULKER_BOX 
+            || item == Items.BROWN_SHULKER_BOX
+            || item == Items.GREEN_SHULKER_BOX 
+            || item == Items.RED_SHULKER_BOX
+            || item == Items.BLACK_SHULKER_BOX
+        );
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof ArmorItem) {
+
+            return 
+                item == Items.DIAMOND_BOOTS
+                || item == Items.DIAMOND_CHESTPLATE
+                || item == Items.DIAMOND_HELMET
+                || item == Items.DIAMOND_LEGGINGS
+                || item == Items.NETHERITE_BOOTS
+                || item == Items.NETHERITE_CHESTPLATE
+                || item == Items.NETHERITE_HELMET
+                || item == Items.NETHERITE_LEGGINGS;
+        } else {
+
+            return false;
+        }
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof ToolItem) {
+
+            return 
+                item == Items.DIAMOND_PICKAXE
+                || item == Items.DIAMOND_AXE
+                || item == Items.DIAMOND_SHOVEL
+                || item == Items.NETHERITE_PICKAXE
+                || item == Items.NETHERITE_AXE
+                || item == Items.NETHERITE_SHOVEL;
+        } else {
+
+            return false;
+        }
+    }
+
+    private boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (item instanceof SwordItem) {
+
+            return 
+                item == Items.DIAMOND_SWORD
+                || item == Items.NETHERITE_SWORD;
+        } else {
+
+            return false;
+        }
     }
 
     private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
