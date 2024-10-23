@@ -1,7 +1,9 @@
 package com.stashwalker.containers;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import net.minecraft.util.math.BlockPos;
 
@@ -83,16 +85,15 @@ public class KDTree<T> {
         return node;
     }
 
-    public List<T> rangeSearch (BlockPos targetPos, double radius) {
+    public Set<T> rangeSearch (BlockPos targetPos, double radius) {
 
-        List<T> result = new ArrayList<>();
+        Set<T> result = new HashSet<>();
         rangeSearchRec(root, targetPos, radius, 0, result);
 
         return result;
     }
 
-    private void rangeSearchRec (Node<T> node, BlockPos targetPos, double radius, int depth,
-            List<T> result) {
+    private void rangeSearchRec (Node<T> node, BlockPos targetPos, double radius, int depth, Set<T> result) {
 
         if (node == null) {
 

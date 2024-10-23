@@ -82,11 +82,11 @@ public class FinderUtil {
                 continue;
             }
 
-            List<T> nearbyPositionObjects =
+            Set<T> nearbyPositionObjects =
                     kdTree.rangeSearch(positionExtractor.apply(current), proximity);
 
             if (nearbyPositionObjects.size() >= amount) {
-                
+
                 closeProximityPositionObjects.addAll(nearbyPositionObjects);
             }
         }
