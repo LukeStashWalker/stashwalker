@@ -261,8 +261,9 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     private boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
 
+        
         Item item = itemStack.getItem();
-        if (item instanceof ArmorItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ArmorItem) {
 
             return 
                 item == Items.DIAMOND_BOOTS
@@ -282,7 +283,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
 
         Item item = itemStack.getItem();
-        if (item instanceof ToolItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ToolItem) {
 
             return 
                 item == Items.DIAMOND_PICKAXE
@@ -300,7 +301,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
 
         Item item = itemStack.getItem();
-        if (item instanceof SwordItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof SwordItem) {
 
             return 
                 item == Items.DIAMOND_SWORD
