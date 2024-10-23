@@ -83,7 +83,7 @@ public class FinderUtil {
             }
 
             Set<T> nearbyPositionObjects =
-                    kdTree.rangeSearch(positionExtractor.apply(current), proximity);
+                kdTree.rangeSearch(positionExtractor.apply(current), proximity);
 
             if (nearbyPositionObjects.size() >= amount) {
 
