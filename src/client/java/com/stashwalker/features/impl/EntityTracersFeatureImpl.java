@@ -3,9 +3,11 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
+import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
+import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -17,22 +19,21 @@ import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
-import net.minecraft.entity.vehicle.ChestMinecartEntity;
+import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
-import net.minecraft.util.math.Box;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.function.Function;
 
 public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
 
@@ -42,10 +43,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
-    private final String closeProximityChestMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
-    private final Integer closeProximityChestMinecartsMinimumAmountDefaultValue = 10;
-    private final String closeProximityChestMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
-    private final Integer closeProximityChestMinecartsMaximumBlockDistanceDefaultValue = 20;
+    private final String closeProximityStorageMinecartsMinimumAmountKey = "closeProximityStorageMinecartsMinimumAmount";
+    private final Integer closeProximityStorageMinecartsMinimumAmountDefaultValue = 10;
+    private final String closeProximityStorageMinecartsMaximumBlockDistanceKey = "closeProximityStorageMinecartsMaximumBlockDistance";
+    private final Integer closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue = 20;
 
     public EntityTracersFeatureImpl () {
 
@@ -54,8 +55,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
 
         this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMinimumAmountKey, this.closeProximityChestMinecartsMinimumAmountDefaultValue);
-        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMaximumBlockDistanceKey, this.closeProximityChestMinecartsMaximumBlockDistanceDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMinimumAmountKey, this.closeProximityStorageMinecartsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMaximumBlockDistanceKey, this.closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
@@ -118,75 +119,76 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     private List<Entity> findEntities () {
 
-        List<ChestMinecartEntity> chestMinecartEntities = Collections.synchronizedList(new ArrayList<>());
+        List<StorageMinecartEntity> storageMinecartEntities = Collections.synchronizedList(new ArrayList<>());
+        Function<StorageMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
+        KDTree<StorageMinecartEntity> kdTree = new KDTree<>(positionExtractor);
         List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
+
         Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
 
-            if (e instanceof ChestMinecartEntity) {
+            if (e instanceof StorageMinecartEntity) {
                 
-                chestMinecartEntities.add((ChestMinecartEntity) e);
+                StorageMinecartEntity sme = (StorageMinecartEntity) e;
+                storageMinecartEntities.add(sme);
+                kdTree.insert(sme);
             } else if (
-                this.isInterestingItem(e)
-                || this.isArmorStandWithEnchantedDiamondOrNetheriteArmor(e)
+                this.isInterestingItemStackEntity(e)
                 || this.isChestAnimal(e)
                 || this.isChestBoat(e)
-                || e instanceof ItemFrameEntity
             ) {
 
                 entities.add(e);
             }
         });
 
-        entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
+        // Check for overlapping storage minecarts with a minimum of three, because sometimes two generated minecarts will overlap, creating a false positive
+        entities.addAll(
+            FinderUtil.findCloseProximityBlockPositionObjects(
+                storageMinecartEntities,
+                kdTree,
+                positionExtractor,
+               3,
+               1 
+            )
+        );
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
-            this.findCloseProximityMinecartChests(
-                chestMinecartEntities,
-                integerConfigs.get(this.closeProximityChestMinecartsMinimumAmountKey),
-                integerConfigs.get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+            FinderUtil.findCloseProximityBlockPositionObjects(
+                storageMinecartEntities,
+                kdTree,
+                positionExtractor,
+                integerConfigs.get(this.closeProximityStorageMinecartsMinimumAmountKey),
+                integerConfigs.get(this.closeProximityStorageMinecartsMaximumBlockDistanceKey)
             )
         );
 
         return entities;
     }
 
-    private boolean isInterestingItem (Entity entity) {
+    private boolean isInterestingItemStackEntity (Entity entity) {
 
         if (entity instanceof ItemEntity) {
 
             ItemEntity itemEntity = (ItemEntity) entity;
             ItemStack itemStack = itemEntity.getStack();
-
             Item item = itemStack.getItem();
+
             if (
                 isEnchantedDiamondOrNetheriteArmor(itemStack)
                 || isEnchantedDiamondOrNetheriteTool(itemStack)
                 || isEnchantedDiamondOrNetheriteWeapon(itemStack)
-
                 || isShulkerBox(item)
-
-                || item == Items.ELYTRA 
+                || item == Items.ELYTRA
                 || item == Items.EXPERIENCE_BOTTLE
-                || item == Items.ENCHANTED_GOLDEN_APPLE 
+                || item == Items.ENCHANTED_GOLDEN_APPLE
                 || item == Items.TOTEM_OF_UNDYING
                 || item == Items.END_CRYSTAL
             ) {
 
                 return true;
-            } else {
-
-                return false;
             }
 
-        } else {
-
-            return false;
-        }
-    }
-
-    private boolean isArmorStandWithEnchantedDiamondOrNetheriteArmor (Entity entity) {
-
-        if (entity instanceof ArmorStandEntity) {
+        } else if (entity instanceof ArmorStandEntity) {
 
             ArmorStandEntity armorStand = (ArmorStandEntity) entity;
             for (ItemStack itemStack : armorStand.getArmorItems()) {
@@ -197,12 +199,32 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                 }
             }
 
-            return false;
-        } else {
+        } else if (entity instanceof ItemFrameEntity) {
 
-            return false;
+            ItemFrameEntity itemFrame = (ItemFrameEntity) entity;
+            ItemStack itemStack = itemFrame.getHeldItemStack();
+            Item item = itemStack.getItem();
+
+            if (
+                isEnchantedDiamondOrNetheriteArmor(itemStack)
+                || isEnchantedDiamondOrNetheriteTool(itemStack)
+                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
+                || isShulkerBox(item)
+                || item == Items.ELYTRA
+                || item == Items.EXPERIENCE_BOTTLE
+                || item == Items.ENCHANTED_GOLDEN_APPLE
+                || item == Items.TOTEM_OF_UNDYING
+                || item == Items.END_CRYSTAL
+            ) {
+
+                return true;
+            }
         }
-    }
+
+    return false;
+}
+
+
 
     private boolean isChestBoat (Entity entity) {
 
@@ -254,8 +276,9 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     private boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
 
+        
         Item item = itemStack.getItem();
-        if (item instanceof ArmorItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ArmorItem) {
 
             return 
                 item == Items.DIAMOND_BOOTS
@@ -275,7 +298,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
 
         Item item = itemStack.getItem();
-        if (item instanceof ToolItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ToolItem) {
 
             return 
                 item == Items.DIAMOND_PICKAXE
@@ -293,7 +316,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
 
         Item item = itemStack.getItem();
-        if (item instanceof SwordItem) {
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof SwordItem) {
 
             return 
                 item == Items.DIAMOND_SWORD
@@ -302,67 +325,5 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
             return false;
         }
-    }
-
-    private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
-
-        Set<ChestMinecartEntity> minecartChests = new HashSet<>();
-
-        Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
-
-        for (ChestMinecartEntity minecart : entities) {
-
-            Box minecartBox = minecart.getBoundingBox();
-
-            // Check for overlaps with existing minecarts
-            for (ChestMinecartEntity otherMinecart : minecartChests) {
-
-                if (minecart != otherMinecart && minecartBox.intersects(otherMinecart.getBoundingBox())) {
-
-                    foundChestMinecastEntities.add(minecart);
-                    foundChestMinecastEntities.add(otherMinecart);
-                }
-            }
-
-            minecartChests.add(minecart);
-        }
-
-        return new ArrayList<>(foundChestMinecastEntities);
-    }
-
-    private List<Entity> findCloseProximityMinecartChests (
-        List<ChestMinecartEntity> entities, 
-        int chestMinecartAmount,
-        int blocksProximity
-    ) {
-
-        Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
-
-        for (int i = 0; i < entities.size(); i++) {
-
-            ChestMinecartEntity currentMinecart = entities.get(i);
-            Set<ChestMinecartEntity> nearbyMinecarts = new HashSet<>();
-
-            for (int j = 0; j < entities.size(); j++) {
-
-                if (i != j) {
-
-                    ChestMinecartEntity otherMinecart = entities.get(j);
-                    double distance = currentMinecart.squaredDistanceTo(otherMinecart);
-
-                    if (distance <= blocksProximity * blocksProximity) {
-                        
-                        nearbyMinecarts.add(otherMinecart);
-                    }
-                }
-            }
-
-            if (nearbyMinecarts.size() >= chestMinecartAmount) {
-
-                closeProximityMinecarts.addAll(nearbyMinecarts);
-            }
-        }
-
-        return new ArrayList<>(closeProximityMinecarts);
     }
 }

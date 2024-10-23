@@ -16,7 +16,7 @@ import java.util.TreeMap;
 
 public class ConfigManager {
 
-    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v125.json");
+    private static final Path CONFIG_PATH = Paths.get("config/stashwalker_v128.json");
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     public void loadConfig () {

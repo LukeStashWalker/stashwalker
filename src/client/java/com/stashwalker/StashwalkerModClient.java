@@ -16,6 +16,7 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import java.util.Map;
 import java.util.Set;
@@ -39,7 +40,6 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
@@ -217,7 +217,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         Constants.MESSAGES_BUFFER.forEach(m -> {
 
-            RenderUtil.sendClientSideMessage(m.getKey(), m.getValue());
+            RenderUtil.sendClientSideMessage(m.getLeft(), m.getRight());
         });
         Constants.MESSAGES_BUFFER.clear();
 
@@ -229,7 +229,7 @@ public class StashwalkerModClient implements ClientModInitializer {
                     .findFirst() // Only send the first message to avoid getting kicked for spamming
                     .ifPresent(m -> {
 
-                        RenderUtil.sendChatMessage(m.getKey(), m.getValue());
+                        RenderUtil.sendChatMessage(m.getLeft(), m.getRight());
                         Constants.CHAT_BUFFER.clear();
                     });
 

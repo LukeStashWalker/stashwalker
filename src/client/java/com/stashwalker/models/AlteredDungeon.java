@@ -1,11 +1,9 @@
 package com.stashwalker.models;
 
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.List;
-
-import com.stashwalker.containers.Pair;
-
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;

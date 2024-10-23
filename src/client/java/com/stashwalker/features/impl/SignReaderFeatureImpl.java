@@ -3,7 +3,6 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 
 import com.stashwalker.constants.Constants;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.utils.MapUtil;
@@ -15,6 +14,7 @@ import net.minecraft.block.entity.SignBlockEntity;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.chunk.Chunk;
 

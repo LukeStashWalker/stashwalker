@@ -1,10 +1,9 @@
 package com.stashwalker.features.impl;
 
 import java.awt.Color;
-
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.Pair;
+import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.PositionProcessor;
@@ -23,6 +22,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -40,6 +40,8 @@ import java.util.UUID;
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
     private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, List<BlockPos>> singleChestPositionsTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, KDTree<BlockPos>> singleChestKDTreeTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
 
     private final String chestColorKey = "chestColor";
@@ -107,6 +109,20 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
                 this.positionsTempMap.put(callIdentifier, new ArrayList<>());
             } 
+            if (!this.singleChestPositionsTempMap.containsKey(callIdentifier)) {
+
+                this.singleChestPositionsTempMap.put(callIdentifier, new ArrayList<>());
+            } 
+            if (!this.singleChestKDTreeTempMap.containsKey(callIdentifier)) {
+
+                this.singleChestKDTreeTempMap.put(callIdentifier, new KDTree<>(p -> p));
+            } 
+
+            if (this.isSingleChest(pos)) {
+
+                this.singleChestPositionsTempMap.get(callIdentifier).add(pos);
+                this.singleChestKDTreeTempMap.get(callIdentifier).insert(pos);
+            }
 
             this.isInterestingBlockPosition(pos).ifPresent(c -> {
 
@@ -121,6 +137,21 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         if (this.enabled) {
 
+            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+            this.positionsTempMap.get(callIdentifier)
+                .addAll(
+                    FinderUtil
+                        .findCloseProximityBlockPositionObjects(
+                            this.singleChestPositionsTempMap.get(callIdentifier), 
+                            this.singleChestKDTreeTempMap.get(callIdentifier),
+                            p -> p, 
+                            integerConfigs.get(this.closeProximitySingleChestsMinimumAmountKey), 
+                            integerConfigs.get(this.closeProximitySingleChestsMaximumBlockDistanceKey) 
+                        )
+                        .stream()
+                        .map(s -> new Pair<>(s, new Color(this.featureConfig.getIntegerConfigs().get(this.chestColorKey))))
+                        .toList()
+                );
             this.buffer.updateBuffer(this.positionsTempMap.get(callIdentifier));
             this.positionsTempMap.remove(callIdentifier);
         }
@@ -150,8 +181,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
                 for (Pair<BlockPos, Color> pair : blockpositions) {
 
-                    BlockPos blockPos = pair.getKey();
-                    Color color = pair.getValue();
+                    BlockPos blockPos = pair.getLeft();
+                    Color color = pair.getRight();
                     Vec3d newBlockPos = new Vec3d(
                             blockPos.getX() + 0.5D,
                             blockPos.getY() + 0.5D,
@@ -168,6 +199,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     public void clear () {
         
         this.buffer.updateBuffer(Collections.emptyList());
+        this.positionsTempMap.clear();
+        this.singleChestPositionsTempMap.clear();
     }
 
     private Optional<Color> isInterestingBlockPosition (BlockPos pos) {
@@ -187,10 +220,6 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                     && !this.isBlockInHorizontalRadius(pos, 5, Blocks.SPAWNER))
                 )
             )
-
-            ||
-
-            this.isProximitySingleChest(pos)
         ) {
 
             return Optional.of(new Color(integerMap.get(this.chestColorKey)));
@@ -331,49 +360,6 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 }
             }
         }
-    }
-
-    private boolean isProximitySingleChest (BlockPos pos) {
-
-        pos = new BlockPos(pos);
-
-        if (!this.isSingleChest(pos)) {
-
-            return false;
-        }
-
-        int distance = this.featureConfig.getIntegerConfigs().get(this.closeProximitySingleChestsMaximumBlockDistanceKey);
-        int amount = this.featureConfig.getIntegerConfigs().get(this.closeProximitySingleChestsMinimumAmountKey);
-
-        int x = pos.getX();
-        int y = pos.getY();
-        int z = pos.getZ();
-        int count = 0;
-        for (int i = x - distance; i < x + distance + 1; i++) {
-
-            for (int j = y - distance; j < y + distance + 1; j++) {
-
-                for (int k = z - distance; k < z + distance + 1; k++) {
-
-                    BlockPos p = new BlockPos(i, j, k);
-                    if (
-                        !p.equals(pos)
-                        && isSingleChest(p)
-                    ) {
-
-                        count++;
-
-                        if (1 + count >= amount) { // The count is not including the pos itself
-
-                            return true;
-                        }
-                    }
-
-                }
-            }
-        }
-
-        return false;
     }
 
     private boolean isSingleChest (BlockPos pos) {

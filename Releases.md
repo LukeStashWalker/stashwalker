@@ -1,6 +1,11 @@
 Releases
 ===
 
+Version 1.2.8-fabric-0.103.0+-mc1.21.1
+---
+- check content of item frames for valuable items
+- optimized range search for single chests and storage minecarts using KDTree
+
 Version 1.2.7-fabric-0.103.0+-mc1.21.1
 ---
 - bug fix: thread issue

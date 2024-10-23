@@ -78,7 +78,7 @@ public class StashwalkerConfigScreen {
                                     .setDefaultValue(
                                             f.getDefaultIntegerMap().get(k))
                                     .setTooltip(Text.translatable(
-                                            "Hex color value format: #<opaqueness><red><green><blue>,\nfor every part the values go from 00 to ff,\nfor example: #ffff0000 = red"))
+                                            "Hex color value format: #<opacity><red><green><blue>,\nfor every part the values go from 00 to ff,\nfor example: #ffff0000 = red"))
                                     .setSaveConsumer(newValue -> {
                                         integerConfigs.put(k, newValue);
                                     })
