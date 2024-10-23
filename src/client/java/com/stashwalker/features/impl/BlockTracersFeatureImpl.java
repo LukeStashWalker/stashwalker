@@ -356,14 +356,11 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
                 for (int k = z - distance; k < z + distance + 1; k++) {
 
                     BlockPos p = new BlockPos(i, j, k);
-                    if (
-                        !p.equals(pos)
-                        && isSingleChest(p)
-                    ) {
+                    if (isSingleChest(p)) {
 
                         count++;
 
-                        if (1 + count >= amount) { // The count is not including the pos itself
+                        if (count >= amount) { // Count including itself
 
                             return true;
                         }

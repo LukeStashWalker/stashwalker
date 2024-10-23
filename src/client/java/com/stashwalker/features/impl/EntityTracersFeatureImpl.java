@@ -29,6 +29,7 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -138,16 +139,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
-        entities.addAll(
-            this.findCloseProximityMinecartChests(
-                chestMinecartEntities,
-               3,
-               1 
-            )
-        );
+        entities.addAll(this.findOverlappingChestMinecarts(chestMinecartEntities));
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
-            this.findCloseProximityMinecartChests(
+            this.findCloseProximityChestMinecarts(
                 chestMinecartEntities,
                 integerConfigs.get(this.closeProximityChestMinecartsMinimumAmountKey),
                 integerConfigs.get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
@@ -311,7 +306,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         }
     }
 
-    private List<Entity> findCloseProximityMinecartChests (
+    private List<Entity> findCloseProximityChestMinecarts (
             List<ChestMinecartEntity> entities,
             int chestMinecartAmount,
             int blocksProximity
@@ -336,5 +331,30 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         }
 
         return new ArrayList<>(closeProximityMinecarts);
+    }
+
+    private List<Entity> findOverlappingChestMinecarts (List<ChestMinecartEntity> entities) {
+
+        List<Entity> result = new ArrayList<>();
+        Map<Vec3d, Set<Entity>> entityMap = new HashMap<>();
+        for (Entity entity: entities) {
+
+            if (entityMap.containsKey(entity.getPos())) {
+
+                Set<Entity> posEntities = entityMap.get(entity.getPos());
+                posEntities.add(entity);
+                if (posEntities.size() > 2) {
+
+                    result.add(entity);
+                } 
+            } else {
+
+                Set<Entity> es = new HashSet<>();
+                es.add(entity);
+                entityMap.put(entity.getPos(), es);
+            }
+        }
+
+        return result;
     }
 }
