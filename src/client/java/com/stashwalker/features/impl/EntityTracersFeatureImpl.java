@@ -319,7 +319,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     ) {
 
         Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
-        KDTree<ChestMinecartEntity> kdTree = new KDTree<>();
+        KDTree<ChestMinecartEntity> kdTree = new KDTree<>(e -> e.getBlockPos());
         kdTree.insertAll(entities);
         for (ChestMinecartEntity currentMinecart: entities) {
 
@@ -329,7 +329,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
 
             List<ChestMinecartEntity> nearbyMinecarts =
-                    kdTree.rangeSearch(currentMinecart, blocksProximity);
+                    kdTree.rangeSearch(currentMinecart.getBlockPos(), blocksProximity);
 
             if (nearbyMinecarts.size() >= chestMinecartAmount) {
                 closeProximityMinecarts.addAll(nearbyMinecarts);

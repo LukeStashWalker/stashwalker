@@ -4,9 +4,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import com.stashwalker.containers.Pair;
-
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.Vec3d;
 
 public class AlteredMine {

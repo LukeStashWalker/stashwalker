@@ -2,14 +2,12 @@ package com.stashwalker.constants;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import net.minecraft.util.Pair;
 import net.minecraft.world.chunk.ChunkStatus;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
-
 import com.stashwalker.configs.ConfigManager;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.impl.AlteredStructuresFeatureImpl;
 import com.stashwalker.features.impl.BlockTracersFeatureImpl;

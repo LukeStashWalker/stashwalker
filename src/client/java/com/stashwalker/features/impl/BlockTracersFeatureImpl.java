@@ -1,10 +1,9 @@
 package com.stashwalker.features.impl;
 
 import java.awt.Color;
-
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.Pair;
+import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.PositionProcessor;
@@ -23,6 +22,7 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.Direction;
@@ -40,6 +40,7 @@ import java.util.UUID;
 public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
 
     private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, List<BlockPos>> singleChestPositionsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final DoubleListBuffer<Pair<BlockPos, Color>> buffer = new DoubleListBuffer<>();
 
     private final String chestColorKey = "chestColor";
@@ -150,8 +151,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
                 for (Pair<BlockPos, Color> pair : blockpositions) {
 
-                    BlockPos blockPos = pair.getKey();
-                    Color color = pair.getValue();
+                    BlockPos blockPos = pair.getLeft();
+                    Color color = pair.getRight();
                     Vec3d newBlockPos = new Vec3d(
                             blockPos.getX() + 0.5D,
                             blockPos.getY() + 0.5D,
@@ -168,6 +169,8 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
     public void clear () {
         
         this.buffer.updateBuffer(Collections.emptyList());
+        this.positionsTempMap.clear();
+        this.singleChestPositionsTempMap.clear();
     }
 
     private Optional<Color> isInterestingBlockPosition (BlockPos pos) {

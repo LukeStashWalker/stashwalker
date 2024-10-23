@@ -1,11 +1,9 @@
 package com.stashwalker.features.impl;
 
 import java.awt.Color;
-
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.BoundedMap;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.Pair;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.Processor;
@@ -25,6 +23,7 @@ import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.entity.mob.ZombieEntity;
 import net.minecraft.entity.vehicle.ChestMinecartEntity;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -232,7 +231,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
 
                 for (Pair<Vec3d, Color> pair: alteredDungeon.getPillarPositions()) {
 
-                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false, fillBoxes);
+                    RenderUtil.drawBlockSquare(context, pair.getLeft(), pair.getRight(), false, fillBoxes);
                 }
 
                 RenderUtil.drawBlockSquares(
@@ -279,7 +278,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                 
                 for (Pair<Vec3d, Color> pair: alteredMine.getPillarPositions()) {
 
-                    RenderUtil.drawBlockSquare(context, pair.getKey(), pair.getValue(), false, fillBoxes);
+                    RenderUtil.drawBlockSquare(context, pair.getLeft(), pair.getRight(), false, fillBoxes);
                 }
 
                 RenderUtil.drawLine(

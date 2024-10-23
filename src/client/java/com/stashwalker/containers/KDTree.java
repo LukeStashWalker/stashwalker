@@ -2,70 +2,68 @@ package com.stashwalker.containers;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.entity.Entity;
+import java.util.function.Function;
+import net.minecraft.util.math.BlockPos;
 
-public class KDTree<T extends Entity> {
+public class KDTree<T> {
 
     private Node<T> root;
+    private final Function<T, BlockPos> positionExtractor; // Function to extract BlockPos from T
 
-    private static class Node<T extends Entity> {
+    // Constructor to accept the position extractor function
+    public KDTree(Function<T, BlockPos> positionExtractor) {
+        this.positionExtractor = positionExtractor;
+    }
 
+    private static class Node<T> {
         T point;
         Node<T> left;
         Node<T> right;
 
         Node(T point) {
-
             this.point = point;
         }
     }
 
-    public void insert (T point) {
-
+    // Insert a new point of type T
+    public void insert(T point) {
         root = insertRec(root, point, 0);
     }
 
-    public void insertAll (List<T> points) {
-
+    // Insert a list of points of type T
+    public void insertAll(List<T> points) {
         for (T point : points) {
-
             insert(point);
         }
     }
 
-    private Node<T> insertRec (Node<T> node, T point, int depth) {
-
+    // Recursively insert a point into the KDTree
+    private Node<T> insertRec(Node<T> node, T point, int depth) {
         if (node == null) {
-
             return new Node<>(point);
         }
 
+        BlockPos pos = positionExtractor.apply(point);
+        BlockPos nodePos = positionExtractor.apply(node.point);
+
+        // Compare based on the current depth and axis (x, y, or z)
         int axis = depth % 3;
-        if (axis == 0) {
-
-            if (point.getX() < node.point.getX()) {
-
+        if (axis == 0) { // Compare x-axis
+            if (pos.getX() < nodePos.getX()) {
                 node.left = insertRec(node.left, point, depth + 1);
             } else {
-
                 node.right = insertRec(node.right, point, depth + 1);
             }
-        } else if (axis == 1) {
-
-            if (point.getY() < node.point.getY()) {
-
+        } else if (axis == 1) { // Compare y-axis
+            if (pos.getY() < nodePos.getY()) {
                 node.left = insertRec(node.left, point, depth + 1);
             } else {
-
                 node.right = insertRec(node.right, point, depth + 1);
             }
-        } else {
-
-            if (point.getZ() < node.point.getZ()) {
-
+        } else { // Compare z-axis
+            if (pos.getZ() < nodePos.getZ()) {
                 node.left = insertRec(node.left, point, depth + 1);
             } else {
-
                 node.right = insertRec(node.right, point, depth + 1);
             }
         }
@@ -73,54 +71,47 @@ public class KDTree<T extends Entity> {
         return node;
     }
 
-    public List<T> rangeSearch (T point, double radius) {
-
+    // Range search to find points within a given radius of a target position
+    public List<T> rangeSearch(BlockPos targetPos, double radius) {
         List<T> result = new ArrayList<>();
-        rangeSearchRec(root, point, radius, 0, result);
-
+        rangeSearchRec(root, targetPos, radius, 0, result);
         return result;
     }
 
-    private void rangeSearchRec (Node<T> node, T point, double radius, int depth, List<T> result) {
-
+    // Recursively search within the radius from the target position
+    private void rangeSearchRec(Node<T> node, BlockPos targetPos, double radius, int depth, List<T> result) {
         if (node == null) {
-
             return;
         }
 
-        double distance = node.point.squaredDistanceTo(point);
+        BlockPos nodePos = positionExtractor.apply(node.point);
+        double distance = targetPos.getSquaredDistance(nodePos);
 
         if (distance <= radius * radius) {
-
             result.add(node.point);
         }
 
+        // Determine the axis and the difference between target and node position
         int axis = depth % 3;
         double diff;
         if (axis == 0) {
-
-            diff = point.getX() - node.point.getX();
+            diff = targetPos.getX() - nodePos.getX();
         } else if (axis == 1) {
-
-            diff = point.getY() - node.point.getY();
+            diff = targetPos.getY() - nodePos.getY();
         } else {
-
-            diff = point.getZ() - node.point.getZ();
+            diff = targetPos.getZ() - nodePos.getZ();
         }
 
+        // Recursively search left and right subtrees based on the difference
         if (diff < 0) {
-
-            rangeSearchRec(node.left, point, radius, depth + 1, result);
+            rangeSearchRec(node.left, targetPos, radius, depth + 1, result);
             if (diff * diff <= radius * radius) {
-
-                rangeSearchRec(node.right, point, radius, depth + 1, result);
+                rangeSearchRec(node.right, targetPos, radius, depth + 1, result);
             }
         } else {
-
-            rangeSearchRec(node.right, point, radius, depth + 1, result);
+            rangeSearchRec(node.right, targetPos, radius, depth + 1, result);
             if (diff * diff <= radius * radius) {
-
-                rangeSearchRec(node.left, point, radius, depth + 1, result);
+                rangeSearchRec(node.left, targetPos, radius, depth + 1, result);
             }
         }
     }
