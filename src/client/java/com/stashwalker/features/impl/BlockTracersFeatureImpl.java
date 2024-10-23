@@ -108,6 +108,15 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
                 this.positionsTempMap.put(callIdentifier, new ArrayList<>());
             } 
+            if (!this.singleChestPositionsTempMap.containsKey(callIdentifier)) {
+
+                this.singleChestPositionsTempMap.put(callIdentifier, new ArrayList<>());
+            } 
+
+            if (this.isSingleChest(pos)) {
+
+                this.singleChestPositionsTempMap.get(callIdentifier).add(pos);
+            }
 
             this.isInterestingBlockPosition(pos).ifPresent(c -> {
 
@@ -122,6 +131,20 @@ public class BlockTracersFeatureImpl extends AbstractBaseFeature implements Posi
 
         if (this.enabled) {
 
+            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+            this.positionsTempMap.get(callIdentifier)
+                .addAll(
+                    FinderUtil
+                        .findCloseProximityBlockPositionObjects(
+                            this.singleChestPositionsTempMap.get(callIdentifier), 
+                            p -> p, 
+                            integerConfigs.get(this.closeProximitySingleChestsMinimumAmountKey), 
+                            integerConfigs.get(this.closeProximitySingleChestsMaximumBlockDistanceKey) 
+                        )
+                        .stream()
+                        .map(s -> new Pair<>(s, new Color(this.featureConfig.getIntegerConfigs().get(this.chestColorKey))))
+                        .toList()
+                );
             this.buffer.updateBuffer(this.positionsTempMap.get(callIdentifier));
             this.positionsTempMap.remove(callIdentifier);
         }

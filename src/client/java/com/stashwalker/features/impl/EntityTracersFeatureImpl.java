@@ -7,6 +7,7 @@ import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
+import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
@@ -25,6 +26,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
@@ -33,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
 
@@ -138,17 +141,20 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
+        Function<ChestMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
         entities.addAll(
-            this.findCloseProximityChestMinecarts(
+            FinderUtil.findCloseProximityBlockPositionObjects(
                 chestMinecartEntities,
+                positionExtractor,
                3,
                1 
             )
         );
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
-            this.findCloseProximityChestMinecarts(
+            FinderUtil.findCloseProximityBlockPositionObjects(
                 chestMinecartEntities,
+                positionExtractor,
                 integerConfigs.get(this.closeProximityChestMinecartsMinimumAmountKey),
                 integerConfigs.get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
             )
@@ -310,32 +316,5 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
             return false;
         }
-    }
-
-    private List<Entity> findCloseProximityChestMinecarts (
-            List<ChestMinecartEntity> entities,
-            int chestMinecartAmount,
-            int blocksProximity
-    ) {
-
-        Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
-        KDTree<ChestMinecartEntity> kdTree = new KDTree<>(e -> e.getBlockPos());
-        kdTree.insertAll(entities);
-        for (ChestMinecartEntity currentMinecart: entities) {
-
-            if (closeProximityMinecarts.contains(currentMinecart)) {
-
-                continue;
-            }
-
-            List<ChestMinecartEntity> nearbyMinecarts =
-                    kdTree.rangeSearch(currentMinecart.getBlockPos(), blocksProximity);
-
-            if (nearbyMinecarts.size() >= chestMinecartAmount) {
-                closeProximityMinecarts.addAll(nearbyMinecarts);
-            }
-        }
-
-        return new ArrayList<>(closeProximityMinecarts);
     }
 }
