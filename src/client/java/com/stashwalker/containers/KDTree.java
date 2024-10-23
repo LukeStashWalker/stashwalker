@@ -40,10 +40,19 @@ public class KDTree<T extends Entity> {
             return new Node<>(point);
         }
 
-        int axis = depth % 2;
+        int axis = depth % 3;
         if (axis == 0) {
 
             if (point.getX() < node.point.getX()) {
+
+                node.left = insertRec(node.left, point, depth + 1);
+            } else {
+
+                node.right = insertRec(node.right, point, depth + 1);
+            }
+        } else if (axis == 1) {
+
+            if (point.getY() < node.point.getY()) {
 
                 node.left = insertRec(node.left, point, depth + 1);
             } else {
@@ -60,6 +69,7 @@ public class KDTree<T extends Entity> {
                 node.right = insertRec(node.right, point, depth + 1);
             }
         }
+
         return node;
     }
 
@@ -79,13 +89,24 @@ public class KDTree<T extends Entity> {
         }
 
         double distance = node.point.squaredDistanceTo(point);
+
         if (distance <= radius * radius) {
 
             result.add(node.point);
         }
 
-        int axis = depth % 2;
-        double diff = (axis == 0) ? point.getX() - node.point.getX() : point.getZ() - node.point.getZ();
+        int axis = depth % 3;
+        double diff;
+        if (axis == 0) {
+
+            diff = point.getX() - node.point.getX();
+        } else if (axis == 1) {
+
+            diff = point.getY() - node.point.getY();
+        } else {
+
+            diff = point.getZ() - node.point.getZ();
+        }
 
         if (diff < 0) {
 
