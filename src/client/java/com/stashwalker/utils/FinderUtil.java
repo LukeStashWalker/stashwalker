@@ -86,6 +86,7 @@ public class FinderUtil {
                     kdTree.rangeSearch(positionExtractor.apply(current), proximity);
 
             if (nearbyPositionObjects.size() >= amount) {
+                
                 closeProximityPositionObjects.addAll(nearbyPositionObjects);
             }
         }

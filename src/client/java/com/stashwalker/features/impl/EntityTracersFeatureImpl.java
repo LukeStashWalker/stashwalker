@@ -3,7 +3,6 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
@@ -31,10 +30,8 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 
 public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {

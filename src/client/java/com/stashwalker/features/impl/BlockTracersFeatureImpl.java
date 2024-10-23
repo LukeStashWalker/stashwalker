@@ -3,7 +3,6 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
-import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.PositionProcessor;
