@@ -63,10 +63,7 @@ public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkPr
 
         if (this.enabled) {
 
-            if (this.buffer.contains(chunk.getPos())) {
-
-                    buffer.remove(chunk.getPos());
-            }
+            buffer.remove(chunk.getPos());
         }
     }
 
