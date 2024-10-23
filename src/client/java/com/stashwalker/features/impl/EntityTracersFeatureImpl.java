@@ -132,11 +132,9 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                 storageMinecartEntities.add(sme);
                 kdTree.insert(sme);
             } else if (
-                this.isInterestingItem(e)
-                || this.isArmorStandWithEnchantedDiamondOrNetheriteArmor(e)
+                this.isInterestingItemStackEntity(e)
                 || this.isChestAnimal(e)
                 || this.isChestBoat(e)
-                || e instanceof ItemFrameEntity
             ) {
 
                 entities.add(e);
@@ -167,43 +165,30 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         return entities;
     }
 
-    private boolean isInterestingItem (Entity entity) {
+    private boolean isInterestingItemStackEntity (Entity entity) {
 
         if (entity instanceof ItemEntity) {
 
             ItemEntity itemEntity = (ItemEntity) entity;
             ItemStack itemStack = itemEntity.getStack();
-
             Item item = itemStack.getItem();
+
             if (
                 isEnchantedDiamondOrNetheriteArmor(itemStack)
                 || isEnchantedDiamondOrNetheriteTool(itemStack)
                 || isEnchantedDiamondOrNetheriteWeapon(itemStack)
-
                 || isShulkerBox(item)
-
-                || item == Items.ELYTRA 
+                || item == Items.ELYTRA
                 || item == Items.EXPERIENCE_BOTTLE
-                || item == Items.ENCHANTED_GOLDEN_APPLE 
+                || item == Items.ENCHANTED_GOLDEN_APPLE
                 || item == Items.TOTEM_OF_UNDYING
                 || item == Items.END_CRYSTAL
             ) {
 
                 return true;
-            } else {
-
-                return false;
             }
 
-        } else {
-
-            return false;
-        }
-    }
-
-    private boolean isArmorStandWithEnchantedDiamondOrNetheriteArmor (Entity entity) {
-
-        if (entity instanceof ArmorStandEntity) {
+        } else if (entity instanceof ArmorStandEntity) {
 
             ArmorStandEntity armorStand = (ArmorStandEntity) entity;
             for (ItemStack itemStack : armorStand.getArmorItems()) {
@@ -214,12 +199,32 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                 }
             }
 
-            return false;
-        } else {
+        } else if (entity instanceof ItemFrameEntity) {
 
-            return false;
+            ItemFrameEntity itemFrame = (ItemFrameEntity) entity;
+            ItemStack itemStack = itemFrame.getHeldItemStack();
+            Item item = itemStack.getItem();
+
+            if (
+                isEnchantedDiamondOrNetheriteArmor(itemStack)
+                || isEnchantedDiamondOrNetheriteTool(itemStack)
+                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
+                || isShulkerBox(item)
+                || item == Items.ELYTRA
+                || item == Items.EXPERIENCE_BOTTLE
+                || item == Items.ENCHANTED_GOLDEN_APPLE
+                || item == Items.TOTEM_OF_UNDYING
+                || item == Items.END_CRYSTAL
+            ) {
+
+                return true;
+            }
         }
-    }
+
+    return false;
+}
+
+
 
     private boolean isChestBoat (Entity entity) {
 
