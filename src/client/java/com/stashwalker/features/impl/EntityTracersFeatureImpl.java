@@ -138,6 +138,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
+        // Check for overlapping chest minecarts with a minimum of three, because sometimes two generated minecarts will overlap, creating a false positive
         Function<ChestMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
         entities.addAll(
             FinderUtil.findCloseProximityBlockPositionObjects(
