@@ -3,6 +3,7 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
+import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
@@ -24,7 +25,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.item.SwordItem;
 import net.minecraft.item.ToolItem;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
@@ -120,6 +120,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
         List<ChestMinecartEntity> chestMinecartEntities = Collections.synchronizedList(new ArrayList<>());
         List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
+
         Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
 
             if (e instanceof ChestMinecartEntity) {
@@ -137,7 +138,13 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
-        entities.addAll(this.findOverlappingMinecartChests(chestMinecartEntities));
+        entities.addAll(
+            this.findCloseProximityMinecartChests(
+                chestMinecartEntities,
+               3,
+               1 
+            )
+        );
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
             this.findCloseProximityMinecartChests(
@@ -304,61 +311,26 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         }
     }
 
-    private List<Entity> findOverlappingMinecartChests (List<ChestMinecartEntity> entities) {
-
-        Set<ChestMinecartEntity> minecartChests = new HashSet<>();
-
-        Set<ChestMinecartEntity> foundChestMinecastEntities = new HashSet<>();
-
-        for (ChestMinecartEntity minecart : entities) {
-
-            Box minecartBox = minecart.getBoundingBox();
-
-            // Check for overlaps with existing minecarts
-            for (ChestMinecartEntity otherMinecart : minecartChests) {
-
-                if (minecart != otherMinecart && minecartBox.intersects(otherMinecart.getBoundingBox())) {
-
-                    foundChestMinecastEntities.add(minecart);
-                    foundChestMinecastEntities.add(otherMinecart);
-                }
-            }
-
-            minecartChests.add(minecart);
-        }
-
-        return new ArrayList<>(foundChestMinecastEntities);
-    }
-
     private List<Entity> findCloseProximityMinecartChests (
-        List<ChestMinecartEntity> entities, 
-        int chestMinecartAmount,
-        int blocksProximity
+            List<ChestMinecartEntity> entities,
+            int chestMinecartAmount,
+            int blocksProximity
     ) {
 
         Set<ChestMinecartEntity> closeProximityMinecarts = new HashSet<>();
+        KDTree<ChestMinecartEntity> kdTree = new KDTree<>();
+        kdTree.insertAll(entities);
+        for (ChestMinecartEntity currentMinecart: entities) {
 
-        for (int i = 0; i < entities.size(); i++) {
+            if (closeProximityMinecarts.contains(currentMinecart)) {
 
-            ChestMinecartEntity currentMinecart = entities.get(i);
-            Set<ChestMinecartEntity> nearbyMinecarts = new HashSet<>();
-
-            for (int j = 0; j < entities.size(); j++) {
-
-                if (i != j) {
-
-                    ChestMinecartEntity otherMinecart = entities.get(j);
-                    double distance = currentMinecart.squaredDistanceTo(otherMinecart);
-
-                    if (distance <= blocksProximity * blocksProximity) {
-                        
-                        nearbyMinecarts.add(otherMinecart);
-                    }
-                }
+                continue;
             }
 
-            if (nearbyMinecarts.size() >= chestMinecartAmount) {
+            List<ChestMinecartEntity> nearbyMinecarts =
+                    kdTree.rangeSearch(currentMinecart, blocksProximity);
 
+            if (nearbyMinecarts.size() >= chestMinecartAmount) {
                 closeProximityMinecarts.addAll(nearbyMinecarts);
             }
         }
