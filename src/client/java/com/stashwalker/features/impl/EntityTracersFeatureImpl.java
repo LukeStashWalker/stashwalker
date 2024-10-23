@@ -18,7 +18,7 @@ import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
-import net.minecraft.entity.vehicle.ChestMinecartEntity;
+import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.item.ArmorItem;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -42,10 +42,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
-    private final String closeProximityChestMinecartsMinimumAmountKey = "closeProximityChestMinecartsMinimumAmount";
-    private final Integer closeProximityChestMinecartsMinimumAmountDefaultValue = 10;
-    private final String closeProximityChestMinecartsMaximumBlockDistanceKey = "closeProximityChestMinecartsMaximumBlockDistance";
-    private final Integer closeProximityChestMinecartsMaximumBlockDistanceDefaultValue = 20;
+    private final String closeProximityStorageMinecartsMinimumAmountKey = "closeProximityStorageMinecartsMinimumAmount";
+    private final Integer closeProximityStorageMinecartsMinimumAmountDefaultValue = 10;
+    private final String closeProximityStorageMinecartsMaximumBlockDistanceKey = "closeProximityStorageMinecartsMaximumBlockDistance";
+    private final Integer closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue = 20;
 
     public EntityTracersFeatureImpl () {
 
@@ -54,8 +54,8 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
 
         this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMinimumAmountKey, this.closeProximityChestMinecartsMinimumAmountDefaultValue);
-        this.defaultIntegerMap.put(this.closeProximityChestMinecartsMaximumBlockDistanceKey, this.closeProximityChestMinecartsMaximumBlockDistanceDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMinimumAmountKey, this.closeProximityStorageMinecartsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMaximumBlockDistanceKey, this.closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
@@ -118,14 +118,14 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
     private List<Entity> findEntities () {
 
-        List<ChestMinecartEntity> chestMinecartEntities = Collections.synchronizedList(new ArrayList<>());
+        List<StorageMinecartEntity> storageMinecartEntities = Collections.synchronizedList(new ArrayList<>());
         List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
 
         Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
 
-            if (e instanceof ChestMinecartEntity) {
+            if (e instanceof StorageMinecartEntity) {
                 
-                chestMinecartEntities.add((ChestMinecartEntity) e);
+                storageMinecartEntities.add((StorageMinecartEntity) e);
             } else if (
                 this.isInterestingItem(e)
                 || this.isArmorStandWithEnchantedDiamondOrNetheriteArmor(e)
@@ -138,11 +138,11 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
-        // Check for overlapping chest minecarts with a minimum of three, because sometimes two generated minecarts will overlap, creating a false positive
-        Function<ChestMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
+        // Check for overlapping storage minecarts with a minimum of three, because sometimes two generated minecarts will overlap, creating a false positive
+        Function<StorageMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
         entities.addAll(
             FinderUtil.findCloseProximityBlockPositionObjects(
-                chestMinecartEntities,
+                storageMinecartEntities,
                 positionExtractor,
                3,
                1 
@@ -151,10 +151,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
             FinderUtil.findCloseProximityBlockPositionObjects(
-                chestMinecartEntities,
+                storageMinecartEntities,
                 positionExtractor,
-                integerConfigs.get(this.closeProximityChestMinecartsMinimumAmountKey),
-                integerConfigs.get(this.closeProximityChestMinecartsMaximumBlockDistanceKey)
+                integerConfigs.get(this.closeProximityStorageMinecartsMinimumAmountKey),
+                integerConfigs.get(this.closeProximityStorageMinecartsMaximumBlockDistanceKey)
             )
         );
 
