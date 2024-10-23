@@ -285,7 +285,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                     context, 
                     alteredMine.getchestMinecartPosition(), 
                     new Color(this.featureConfig.getIntegerConfigs().get(this.alteredMineChestMinecartColorKey)), 
-                    false, 
+                    true, 
                     fillBoxes
                 );
             }
