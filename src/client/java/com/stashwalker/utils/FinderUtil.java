@@ -67,14 +67,13 @@ public class FinderUtil {
 
     public static<T> List<T> findCloseProximityBlockPositionObjects (
             List<T> positionObjects,
+            KDTree<T> kdTree,
             Function<T, BlockPos> positionExtractor,
             int amount,
             int proximity
     ) {
 
         Set<T> closeProximityPositionObjects = new HashSet<>();
-        KDTree<T> kdTree = new KDTree<>(positionExtractor);
-        kdTree.insertAll(positionObjects);
         for (T current: positionObjects) {
 
             if (closeProximityPositionObjects.contains(current)) {

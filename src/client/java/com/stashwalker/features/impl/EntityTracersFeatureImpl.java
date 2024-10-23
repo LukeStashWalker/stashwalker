@@ -3,6 +3,7 @@ package com.stashwalker.features.impl;
 import java.awt.Color;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
+import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.Processor;
 import com.stashwalker.features.Renderable;
@@ -119,13 +120,16 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private List<Entity> findEntities () {
 
         List<StorageMinecartEntity> storageMinecartEntities = Collections.synchronizedList(new ArrayList<>());
+        KDTree<StorageMinecartEntity> kdTree = new KDTree<>(s -> s.getBlockPos());
         List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
 
         Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
 
             if (e instanceof StorageMinecartEntity) {
                 
-                storageMinecartEntities.add((StorageMinecartEntity) e);
+                StorageMinecartEntity sme = (StorageMinecartEntity) e;
+                storageMinecartEntities.add(sme);
+                kdTree.insert(sme);
             } else if (
                 this.isInterestingItem(e)
                 || this.isArmorStandWithEnchantedDiamondOrNetheriteArmor(e)
@@ -143,6 +147,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         entities.addAll(
             FinderUtil.findCloseProximityBlockPositionObjects(
                 storageMinecartEntities,
+                kdTree,
                 positionExtractor,
                3,
                1 
@@ -152,6 +157,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         entities.addAll(
             FinderUtil.findCloseProximityBlockPositionObjects(
                 storageMinecartEntities,
+                kdTree,
                 positionExtractor,
                 integerConfigs.get(this.closeProximityStorageMinecartsMinimumAmountKey),
                 integerConfigs.get(this.closeProximityStorageMinecartsMaximumBlockDistanceKey)
