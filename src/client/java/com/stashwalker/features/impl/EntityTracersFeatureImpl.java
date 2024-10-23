@@ -29,7 +29,6 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -139,7 +138,13 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             }
         });
 
-        entities.addAll(this.findOverlappingChestMinecarts(chestMinecartEntities));
+        entities.addAll(
+            this.findCloseProximityChestMinecarts(
+                chestMinecartEntities,
+               3,
+               1 
+            )
+        );
         Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
         entities.addAll(
             this.findCloseProximityChestMinecarts(
@@ -331,30 +336,5 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         }
 
         return new ArrayList<>(closeProximityMinecarts);
-    }
-
-    private List<Entity> findOverlappingChestMinecarts (List<ChestMinecartEntity> entities) {
-
-        List<Entity> result = new ArrayList<>();
-        Map<Vec3d, Set<Entity>> entityMap = new HashMap<>();
-        for (Entity entity: entities) {
-
-            if (entityMap.containsKey(entity.getPos())) {
-
-                Set<Entity> posEntities = entityMap.get(entity.getPos());
-                posEntities.add(entity);
-                if (posEntities.size() > 2) {
-
-                    result.add(entity);
-                } 
-            } else {
-
-                Set<Entity> es = new HashSet<>();
-                es.add(entity);
-                entityMap.put(entity.getPos(), es);
-            }
-        }
-
-        return result;
     }
 }
