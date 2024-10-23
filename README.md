@@ -19,7 +19,7 @@ Draws a tracer to valuable items and entities that may contain items:
 - enchanted diamond/netherite weapons
 - xp bottles
 - totems
-- item frames
+- item frames if they contain a valuable item
 - end crystals
 
 ### Block Tracers 
