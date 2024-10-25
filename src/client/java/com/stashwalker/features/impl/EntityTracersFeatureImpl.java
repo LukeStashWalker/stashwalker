@@ -241,7 +241,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         return (
             entity instanceof AbstractDonkeyEntity donkey
             && donkey.hasChest()
-            && donkey.hasPlayerRider()
+            && !donkey.hasPlayerRider()
         );
     }
 
