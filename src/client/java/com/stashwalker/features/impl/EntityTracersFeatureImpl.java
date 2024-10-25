@@ -240,14 +240,6 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             entity instanceof AbstractDonkeyEntity
             && ((AbstractDonkeyEntity) entity).hasChest()
             && !((AbstractDonkeyEntity) entity).hasPlayerRider()
-        )
-        
-        ||
-
-        (
-            entity instanceof LlamaEntity
-            && ((LlamaEntity) entity).hasChest()
-            && !((LlamaEntity) entity).hasPlayerRider()
         );
     }
 
