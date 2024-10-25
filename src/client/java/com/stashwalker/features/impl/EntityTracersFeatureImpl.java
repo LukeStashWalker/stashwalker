@@ -17,7 +17,6 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
-import net.minecraft.entity.passive.LlamaEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.item.ArmorItem;
@@ -193,7 +192,10 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
             ArmorStandEntity armorStand = (ArmorStandEntity) entity;
             for (ItemStack itemStack : armorStand.getArmorItems()) {
 
-                if (isEnchantedDiamondOrNetheriteArmor(itemStack)) {
+                if (
+                    isEnchantedDiamondOrNetheriteArmor(itemStack)
+                    || itemStack.getItem() == Items.ELYTRA
+                ) {
 
                     return true;
                 }
