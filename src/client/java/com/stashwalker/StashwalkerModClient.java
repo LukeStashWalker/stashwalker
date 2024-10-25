@@ -11,7 +11,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.ChestBoatEntity;
+import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
@@ -21,8 +24,8 @@ import net.minecraft.util.math.BlockPos;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientChunkEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientEntityEvents;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.WorldChunk;
@@ -40,12 +43,16 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
+import com.stashwalker.events.AbstractDonkeyChestEvent;
+import com.stashwalker.events.ArmorStandEntityEvent;
+import com.stashwalker.events.ItemEntityEvent;
+import com.stashwalker.events.ItemFrameEntityEvent;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
-import com.stashwalker.features.Processor;
-import com.stashwalker.features.Renderable;
-import com.stashwalker.mixininterfaces.IBossBarHudMixin;
+import com.stashwalker.features.EntityProcessor;
+import com.stashwalker.features.RenderFeature;
+import com.stashwalker.mixininterfaces.BossBarHudMixinImpl;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -56,7 +63,7 @@ public class StashwalkerModClient implements ClientModInitializer {
     private static final int SCAN_INTERVAL = 300;
     private static final int CHAT_INTERVAL = 5000;
 
-    private final ExecutorService processThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
+    private final ExecutorService entityThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService positionsProcessThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
     private final ExecutorService chunkLoadThreadPool = Executors.newFixedThreadPool(2, new DaemonThreadFactory());
 
@@ -86,6 +93,33 @@ public class StashwalkerModClient implements ClientModInitializer {
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStartEvent);
         ClientChunkEvents.CHUNK_LOAD.register(this::onClientChunkLoadEvent);
         ClientChunkEvents.CHUNK_UNLOAD.register(this::onClientChunkUnloadEvent);
+        ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> {
+
+            if (
+                entity instanceof StorageMinecartEntity
+                || entity instanceof ChestBoatEntity
+            ) {
+
+                this.onClientEntityLoadEvent(entity, Constants.MC_CLIENT_INSTANCE.world);
+            }
+        });
+        AbstractDonkeyChestEvent.EVENT.register((donkeyEntity) -> {
+
+            this.onClientEntityLoadEvent(donkeyEntity, Constants.MC_CLIENT_INSTANCE.world);
+        });
+        ItemEntityEvent.EVENT.register((itemEntity) -> {
+
+            this.onClientEntityLoadEvent(itemEntity, Constants.MC_CLIENT_INSTANCE.world);
+        });
+        ArmorStandEntityEvent.EVENT.register((armorStandEntity) -> {
+
+            this.onClientEntityLoadEvent(armorStandEntity, Constants.MC_CLIENT_INSTANCE.world);
+        });
+        ItemFrameEntityEvent.EVENT.register((itemFrameEntity) -> {
+
+            this.onClientEntityLoadEvent(itemFrameEntity, Constants.MC_CLIENT_INSTANCE.world);
+        });
+        ClientEntityEvents.ENTITY_UNLOAD.register(this::onClientEntityUnloadEvent);
         WorldRenderEvents.LAST.register(this::onWorldRenderEventLast);
         HudRenderCallback.EVENT.register(onHubRenderEvent());
         ClientTickEvents.END_CLIENT_TICK.register(onClientTickEndEvent());
@@ -112,16 +146,16 @@ public class StashwalkerModClient implements ClientModInitializer {
             }
             previousWorld = dimensionKey;
 
-            this.processThreadPool.submit(() -> {
+            // this.processThreadPool.submit(() -> {
 
-                Constants.FEATURES.forEach(f -> {
+            //     Constants.FEATURES.forEach(f -> {
 
-                    if (f instanceof Processor) {
+            //         if (f instanceof Processor) {
 
-                        ((Processor) f).process();
-                    }
-                });
-            });
+            //             ((Processor) f).process();
+            //         }
+            //     });
+            // });
 
             this.positionsProcessThreadPool.submit(() -> {
 
@@ -207,6 +241,34 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
     }
 
+    private void onClientEntityLoadEvent (Entity entity, ClientWorld world) {
+
+        this.entityThreadPool.submit(() -> {
+
+            Constants.FEATURES.forEach(f -> {
+
+                if (f instanceof EntityProcessor) {
+
+                    ((EntityProcessor) f).loadEntity(entity);
+                }
+            });
+        });
+    }
+
+    private void onClientEntityUnloadEvent (Entity entity1, ClientWorld clientworld2) {
+
+        this.entityThreadPool.submit(() -> {
+
+            Constants.FEATURES.forEach(f -> {
+
+                if (f instanceof EntityProcessor) {
+
+                    ((EntityProcessor) f).unloadEntity(entity1);
+                }
+            });
+        });
+    }
+
     private void onWorldRenderEventLast (WorldRenderContext context) {
 
         PlayerEntity player = Constants.MC_CLIENT_INSTANCE.player;
@@ -238,9 +300,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
         Constants.FEATURES.forEach(f -> {
 
-            if (f instanceof Renderable) {
+            if (f instanceof RenderFeature) {
 
-                ((Renderable) f).render(context);
+                ((RenderFeature) f).render(context);
             }
         });
     }
@@ -275,9 +337,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                             int y = 2;
                             BossBarHud bossBarHud = Constants.MC_CLIENT_INSTANCE.inGameHud.getBossBarHud();
-                            if (bossBarHud instanceof IBossBarHudMixin) {
+                            if (bossBarHud instanceof BossBarHudMixinImpl) {
 
-                                IBossBarHudMixin bossBarHudMixin = (IBossBarHudMixin) bossBarHud;
+                                BossBarHudMixinImpl bossBarHudMixin = (BossBarHudMixinImpl) bossBarHud;
                                 Map<UUID, ClientBossBar> bossBars = bossBarHudMixin.getBossBars();
                                 // Split the HUD text so it doesn't overlap with the Boss bar HUD
                                 if (bossBarHudMixin != null && bossBars != null && bossBars.size() > 0) {

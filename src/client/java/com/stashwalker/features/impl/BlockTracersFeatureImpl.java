@@ -7,7 +7,7 @@ import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.PositionProcessor;
-import com.stashwalker.features.Renderable;
+import com.stashwalker.features.RenderFeature;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -37,7 +37,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, Renderable  {
+public class BlockTracersFeatureImpl extends AbstractBaseFeature implements PositionProcessor, ChunkProcessor, RenderFeature  {
 
     private final Map<UUID, List<Pair<BlockPos, Color>>> positionsTempMap = Collections.synchronizedMap(new HashMap<>());
     private final Map<UUID, List<BlockPos>> singleChestPositionsTempMap = Collections.synchronizedMap(new HashMap<>());

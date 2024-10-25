@@ -5,58 +5,58 @@ import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.containers.KDTree;
 import com.stashwalker.features.AbstractBaseFeature;
-import com.stashwalker.features.Processor;
-import com.stashwalker.features.Renderable;
+import com.stashwalker.features.EntityProcessor;
+import com.stashwalker.features.RenderFeature;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.ItemEntity;
-import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
-import net.minecraft.entity.passive.AbstractDonkeyEntity;
-import net.minecraft.entity.passive.LlamaEntity;
-import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.ToolItem;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Function;
 
-public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Processor, Renderable {
+public class EntityTracersFeatureImpl extends AbstractBaseFeature
+        implements EntityProcessor, RenderFeature {
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
+    private final Map<Integer, Set<Entity>> entitiesBuffer = new ConcurrentHashMap<>();
+    private final Function<Entity, BlockPos> positionExtractor = e -> e.getBlockPos();
+    private final KDTree<Entity> kdTree = new KDTree<>(positionExtractor);
 
     private final String entityColorKey = "entityColor";
     private final Color entityColorDefaultValue = Color.RED;
     private final String fillInBoxesKey = "fillInBoxes";
     private final Boolean fillInBoxesDefaultValue = true;
-    private final String closeProximityStorageMinecartsMinimumAmountKey = "closeProximityStorageMinecartsMinimumAmount";
+    private final String closeProximityStorageMinecartsMinimumAmountKey =
+            "closeProximityStorageMinecartsMinimumAmount";
     private final Integer closeProximityStorageMinecartsMinimumAmountDefaultValue = 10;
-    private final String closeProximityStorageMinecartsMaximumBlockDistanceKey = "closeProximityStorageMinecartsMaximumBlockDistance";
+    private final String closeProximityStorageMinecartsMaximumBlockDistanceKey =
+            "closeProximityStorageMinecartsMaximumBlockDistance";
     private final Integer closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue = 20;
 
-    public EntityTracersFeatureImpl () {
+    public EntityTracersFeatureImpl() {
 
         super();
 
         this.featureName = FEATURE_NAME_ENTITY_TRACER;
 
         this.defaultIntegerMap.put(this.entityColorKey, this.entityColorDefaultValue.getRGB());
-        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMinimumAmountKey, this.closeProximityStorageMinecartsMinimumAmountDefaultValue);
-        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMaximumBlockDistanceKey, this.closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMinimumAmountKey,
+                this.closeProximityStorageMinecartsMinimumAmountDefaultValue);
+        this.defaultIntegerMap.put(this.closeProximityStorageMinecartsMaximumBlockDistanceKey,
+                this.closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue);
 
         this.defaultBooleanMap.put(this.fillInBoxesKey, this.fillInBoxesDefaultValue);
 
@@ -65,13 +65,53 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
         this.featureConfig.setStringConfigs(MapUtil.deepCopy(this.defaultStringMap));
     }
 
- @Override
-    public void process () {
+    @Override
+    public void loadEntity (Entity entity) {
 
-        if (this.enabled) {
+        int dimensionHash =
+                Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
 
-            this.buffer.updateBuffer(this.findEntities());
+        if (!this.entitiesBuffer.containsKey(dimensionHash)) {
+
+            this.entitiesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
         }
+
+        Set<Entity> entities = this.entitiesBuffer.get(dimensionHash);
+        if (entity instanceof StorageMinecartEntity minecartEntity) {
+
+            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+            this.kdTree.insert(minecartEntity);
+            entities
+                    .addAll(
+                            FinderUtil
+                                    .findCloseProximityBlockPositionObjects(
+                                            List.of(minecartEntity),
+                                            kdTree,
+                                            positionExtractor,
+                                            3,
+                                            1));
+            entities
+                    .addAll(
+                            FinderUtil
+                                    .findCloseProximityBlockPositionObjects(
+                                            List.of(minecartEntity),
+                                            kdTree,
+                                            positionExtractor,
+                                            integerConfigs.get(
+                                                    this.closeProximityStorageMinecartsMinimumAmountKey),
+                                            integerConfigs.get(
+                                                    this.closeProximityStorageMinecartsMaximumBlockDistanceKey)));
+        } else {
+
+            entities.add(entity);
+        }
+    }
+
+    @Override
+    public void unloadEntity (Entity entity) {
+
+        this.kdTree.remove(entity);
+        this.entitiesBuffer.values().forEach(l -> l.remove(entity));
     }
 
     @Override
@@ -79,10 +119,18 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
 
         if (this.enabled) {
 
-            List<Entity> entities = this.buffer.readBuffer();
-            if (!entities.isEmpty()) {
+            ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
 
-                for (Entity entity : entities) {
+            if (world != null && world.getRegistryKey() != null) {
+
+                int dimensionHash =
+                        world.getRegistryKey().getRegistry().hashCode();
+
+                if (!this.entitiesBuffer.containsKey(dimensionHash)) {
+
+                    this.entitiesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
+                }
+                for (Entity entity : this.entitiesBuffer.get(dimensionHash)) {
 
                     Vec3d vecEnd;
                     if (entity instanceof ItemFrameEntity) {
@@ -100,12 +148,12 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
                     }
 
                     RenderUtil.drawLine(
-                        context, 
-                        vecEnd, 
-                        new Color(this.featureConfig.getIntegerConfigs().get(this.entityColorKey)), 
-                        true,
-                        this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey)
-                    );
+                            context,
+                            vecEnd,
+                            new Color(this.featureConfig.getIntegerConfigs()
+                                    .get(this.entityColorKey)),
+                            true,
+                            this.featureConfig.getBooleanConfigs().get(this.fillInBoxesKey));
                 }
             }
         }
@@ -115,215 +163,5 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     public void clear () {
 
         this.buffer.updateBuffer(Collections.emptyList());
-    }
-
-    private List<Entity> findEntities () {
-
-        List<StorageMinecartEntity> storageMinecartEntities = Collections.synchronizedList(new ArrayList<>());
-        Function<StorageMinecartEntity, BlockPos> positionExtractor = c -> c.getBlockPos();
-        KDTree<StorageMinecartEntity> kdTree = new KDTree<>(positionExtractor);
-        List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
-
-        Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
-
-            if (e instanceof StorageMinecartEntity) {
-                
-                StorageMinecartEntity sme = (StorageMinecartEntity) e;
-                storageMinecartEntities.add(sme);
-                kdTree.insert(sme);
-            } else if (
-                this.isInterestingItemStackEntity(e)
-                || this.isChestAnimal(e)
-                || this.isChestBoat(e)
-            ) {
-
-                entities.add(e);
-            }
-        });
-
-        // Check for overlapping storage minecarts with a minimum of three, because sometimes two generated minecarts will overlap, creating a false positive
-        entities.addAll(
-            FinderUtil.findCloseProximityBlockPositionObjects(
-                storageMinecartEntities,
-                kdTree,
-                positionExtractor,
-               3,
-               1 
-            )
-        );
-        Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
-        entities.addAll(
-            FinderUtil.findCloseProximityBlockPositionObjects(
-                storageMinecartEntities,
-                kdTree,
-                positionExtractor,
-                integerConfigs.get(this.closeProximityStorageMinecartsMinimumAmountKey),
-                integerConfigs.get(this.closeProximityStorageMinecartsMaximumBlockDistanceKey)
-            )
-        );
-
-        return entities;
-    }
-
-    private boolean isInterestingItemStackEntity (Entity entity) {
-
-        if (entity instanceof ItemEntity) {
-
-            ItemEntity itemEntity = (ItemEntity) entity;
-            ItemStack itemStack = itemEntity.getStack();
-            Item item = itemStack.getItem();
-
-            if (
-                isEnchantedDiamondOrNetheriteArmor(itemStack)
-                || isEnchantedDiamondOrNetheriteTool(itemStack)
-                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
-                || isShulkerBox(item)
-                || item == Items.ELYTRA
-                || item == Items.EXPERIENCE_BOTTLE
-                || item == Items.ENCHANTED_GOLDEN_APPLE
-                || item == Items.TOTEM_OF_UNDYING
-                || item == Items.END_CRYSTAL
-            ) {
-
-                return true;
-            }
-
-        } else if (entity instanceof ArmorStandEntity) {
-
-            ArmorStandEntity armorStand = (ArmorStandEntity) entity;
-            for (ItemStack itemStack : armorStand.getArmorItems()) {
-
-                if (isEnchantedDiamondOrNetheriteArmor(itemStack)) {
-
-                    return true;
-                }
-            }
-
-        } else if (entity instanceof ItemFrameEntity) {
-
-            ItemFrameEntity itemFrame = (ItemFrameEntity) entity;
-            ItemStack itemStack = itemFrame.getHeldItemStack();
-            Item item = itemStack.getItem();
-
-            if (
-                isEnchantedDiamondOrNetheriteArmor(itemStack)
-                || isEnchantedDiamondOrNetheriteTool(itemStack)
-                || isEnchantedDiamondOrNetheriteWeapon(itemStack)
-                || isShulkerBox(item)
-                || item == Items.ELYTRA
-                || item == Items.EXPERIENCE_BOTTLE
-                || item == Items.ENCHANTED_GOLDEN_APPLE
-                || item == Items.TOTEM_OF_UNDYING
-                || item == Items.END_CRYSTAL
-            ) {
-
-                return true;
-            }
-        }
-
-    return false;
-}
-
-
-
-    private boolean isChestBoat (Entity entity) {
-
-        return (
-            entity instanceof ChestBoatEntity
-            && !((ChestBoatEntity) entity).hasPlayerRider()
-        );
-    }
-
-    private boolean isChestAnimal (Entity entity) {
-
-        return (
-            entity instanceof AbstractDonkeyEntity
-            && ((AbstractDonkeyEntity) entity).hasChest()
-            && !((AbstractDonkeyEntity) entity).hasPlayerRider()
-        )
-        
-        ||
-
-        (
-            entity instanceof LlamaEntity
-            && ((LlamaEntity) entity).hasChest()
-            && !((LlamaEntity) entity).hasPlayerRider()
-        );
-    }
-
-    private boolean isShulkerBox (Item item) {
-
-        return (
-            item == Items.SHULKER_BOX 
-            || item == Items.WHITE_SHULKER_BOX
-            || item == Items.ORANGE_SHULKER_BOX 
-            || item == Items.MAGENTA_SHULKER_BOX
-            || item == Items.LIGHT_BLUE_SHULKER_BOX 
-            || item == Items.YELLOW_SHULKER_BOX
-            || item == Items.LIME_SHULKER_BOX 
-            || item == Items.PINK_SHULKER_BOX
-            || item == Items.GRAY_SHULKER_BOX 
-            || item == Items.LIGHT_GRAY_SHULKER_BOX
-            || item == Items.CYAN_SHULKER_BOX 
-            || item == Items.PURPLE_SHULKER_BOX
-            || item == Items.BLUE_SHULKER_BOX 
-            || item == Items.BROWN_SHULKER_BOX
-            || item == Items.GREEN_SHULKER_BOX 
-            || item == Items.RED_SHULKER_BOX
-            || item == Items.BLACK_SHULKER_BOX
-        );
-    }
-
-    private boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
-
-        
-        Item item = itemStack.getItem();
-        if (!itemStack.getEnchantments().isEmpty() && item instanceof ArmorItem) {
-
-            return 
-                item == Items.DIAMOND_BOOTS
-                || item == Items.DIAMOND_CHESTPLATE
-                || item == Items.DIAMOND_HELMET
-                || item == Items.DIAMOND_LEGGINGS
-                || item == Items.NETHERITE_BOOTS
-                || item == Items.NETHERITE_CHESTPLATE
-                || item == Items.NETHERITE_HELMET
-                || item == Items.NETHERITE_LEGGINGS;
-        } else {
-
-            return false;
-        }
-    }
-
-    private boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
-
-        Item item = itemStack.getItem();
-        if (!itemStack.getEnchantments().isEmpty() && item instanceof ToolItem) {
-
-            return 
-                item == Items.DIAMOND_PICKAXE
-                || item == Items.DIAMOND_AXE
-                || item == Items.DIAMOND_SHOVEL
-                || item == Items.NETHERITE_PICKAXE
-                || item == Items.NETHERITE_AXE
-                || item == Items.NETHERITE_SHOVEL;
-        } else {
-
-            return false;
-        }
-    }
-
-    private boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
-
-        Item item = itemStack.getItem();
-        if (!itemStack.getEnchantments().isEmpty() && item instanceof SwordItem) {
-
-            return 
-                item == Items.DIAMOND_SWORD
-                || item == Items.NETHERITE_SWORD;
-        } else {
-
-            return false;
-        }
     }
 }

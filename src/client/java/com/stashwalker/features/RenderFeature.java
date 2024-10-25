@@ -2,7 +2,7 @@ package com.stashwalker.features;
 
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 
-public interface Renderable {
+public interface RenderFeature {
 
     void render (WorldRenderContext context);
 } 

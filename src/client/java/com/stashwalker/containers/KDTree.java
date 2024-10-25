@@ -11,7 +11,7 @@ public class KDTree<T> {
     private Node<T> root;
     private final Function<T, BlockPos> positionExtractor;
 
-    public KDTree (Function<T, BlockPos> positionExtractor) {
+    public KDTree(Function<T, BlockPos> positionExtractor) {
 
         this.positionExtractor = positionExtractor;
     }
@@ -28,12 +28,12 @@ public class KDTree<T> {
         }
     }
 
-    public void insert (T point) {
+    public synchronized void insert (T point) {
 
         root = insertRec(root, point, 0);
     }
 
-    public void insertAll (List<T> points) {
+    public synchronized void insertAll (List<T> points) {
 
         for (T point : points) {
 
@@ -84,7 +84,90 @@ public class KDTree<T> {
         return node;
     }
 
-    public Set<T> rangeSearch (BlockPos targetPos, double radius) {
+    public synchronized boolean remove (T point) {
+
+        int initialSize = getSize(root);
+        root = removeRec(root, point, 0);
+        
+        return getSize(root) < initialSize;
+    }
+
+    private Node<T> removeRec (Node<T> node, T point, int depth) {
+
+        if (node == null) {
+
+            return null;
+        }
+
+        BlockPos pos = positionExtractor.apply(point);
+        BlockPos nodePos = positionExtractor.apply(node.point);
+
+        int axis = depth % 3;
+        if (nodePos.equals(pos)) {
+
+            if (node.right != null) {
+
+                node.point = findMin(node.right, axis).point;
+                node.right = removeRec(node.right, node.point, depth + 1);
+            } else {
+
+                return node.left;
+            }
+        } else {
+            if (axis == 0) {
+
+                if (pos.getX() < nodePos.getX()) {
+
+                    node.left = removeRec(node.left, point, depth + 1);
+                } else {
+
+                    node.right = removeRec(node.right, point, depth + 1);
+                }
+            } else if (axis == 1) {
+
+                if (pos.getY() < nodePos.getY()) {
+
+                    node.left = removeRec(node.left, point, depth + 1);
+                } else {
+
+                    node.right = removeRec(node.right, point, depth + 1);
+                }
+            } else {
+
+                if (pos.getZ() < nodePos.getZ()) {
+
+                    node.left = removeRec(node.left, point, depth + 1);
+                } else {
+
+                    node.right = removeRec(node.right, point, depth + 1);
+                }
+            }
+        }
+
+        return node;
+    }
+
+    private Node<T> findMin (Node<T> node, int depth) {
+
+        if (node == null) {
+
+            return null;
+        }
+
+        int axis = depth % 3;
+        if (axis == 0) {
+
+            return (node.left == null) ? node : findMin(node.left, depth + 1);
+        } else {
+
+            Node<T> minNode = findMin(node.left, depth + 1);
+
+            return (minNode != null && positionExtractor.apply(minNode.point)
+                    .getY() < positionExtractor.apply(node.point).getY()) ? minNode : node;
+        }
+    }
+
+    public synchronized Set<T> rangeSearch (BlockPos targetPos, double radius) {
 
         Set<T> result = new HashSet<>();
         rangeSearchRec(root, targetPos, radius, 0, result);
@@ -92,7 +175,13 @@ public class KDTree<T> {
         return result;
     }
 
-    private void rangeSearchRec (Node<T> node, BlockPos targetPos, double radius, int depth, Set<T> result) {
+    private void rangeSearchRec (
+        Node<T> node, 
+        BlockPos targetPos, 
+        double radius, 
+        int depth,
+        Set<T> result
+    ) {
 
         if (node == null) {
 
@@ -135,5 +224,15 @@ public class KDTree<T> {
                 rangeSearchRec(node.left, targetPos, radius, depth + 1, result);
             }
         }
+    }
+
+    private int getSize (Node<T> node) {
+
+        if (node == null) {
+
+            return 0;
+        }
+
+        return 1 + getSize(node.left) + getSize(node.right);
     }
 }

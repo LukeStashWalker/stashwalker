@@ -6,8 +6,8 @@ import com.stashwalker.containers.BoundedMap;
 import com.stashwalker.containers.DoubleListBuffer;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.PositionProcessor;
-import com.stashwalker.features.Processor;
-import com.stashwalker.features.Renderable;
+import com.stashwalker.features.EntityProcessor;
+import com.stashwalker.features.RenderFeature;
 import com.stashwalker.models.AlteredDungeon;
 import com.stashwalker.models.AlteredMine;
 import com.stashwalker.utils.FinderUtil;
@@ -18,10 +18,11 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.SpiderEntity;
 import net.minecraft.entity.mob.ZombieEntity;
-import net.minecraft.entity.vehicle.ChestMinecartEntity;
+import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Pair;
 import net.minecraft.util.math.BlockPos;
@@ -34,20 +35,24 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.stream.Collectors;
 
-public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, Processor, Renderable  {
+public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements PositionProcessor, EntityProcessor, RenderFeature  {
 
     // Cache dungeon when found
     private final Map<BlockPos, AlteredDungeon> dungeonsCache = new BoundedMap<>(100);
     // Every call has it's own List to reduce contention between writing threads
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
 
-    private final Map<BlockPos, AlteredMine> minesCache = new BoundedMap<>(100);
-    private final Map<UUID, List<AlteredMine>> minesTempMap = Collections.synchronizedMap(new HashMap<>());
+    private final Map<Integer, Set<Pair<Entity, AlteredMine>>> minesBuffer = new ConcurrentHashMap<>();
+
     // Use double buffer for fast rendering
     private final DoubleListBuffer<AlteredDungeon> dungeonsBuffer = new DoubleListBuffer<>();
-    private final DoubleListBuffer<AlteredMine> minesBuffer = new DoubleListBuffer<>();
+    // private final DoubleListBuffer<AlteredMine> minesBuffer = new DoubleListBuffer<>();
 
     private final String alteredDungeonSpawnerColorKey = "alteredDungeonSpawnerColor";
     private final Color alteredDungeonSpawnerColorDefaultValue = Color.BLUE;
@@ -152,49 +157,6 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     }
 
     @Override
-    public void process () {
-
-        if (this.enabled) {
-
-            List<AlteredMine> mines = Collections.synchronizedList(new ArrayList<>());
-            Constants.MC_CLIENT_INSTANCE.world.getEntities().forEach(e -> {
-            
-                if (e instanceof ChestMinecartEntity) {
-            
-                    BlockPos pos = new BlockPos(e.getBlockPos());
-                    if (this.minesCache.containsKey(pos)) {
-            
-                        mines.add(this.minesCache.get(pos));
-            
-                        return; // Skip this iteration
-                    }
-            
-                    Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
-                    Integer horizontalSearchRadius = integerConfigs.get(this.alteredMinePillarSearchRadiusKey);
-                    Integer minimumPillarHeight = integerConfigs.get(this.alteredMineMinimumPillarHeightKey);
-                    if (
-                            this.hasPillar(
-                                pos,
-                                horizontalSearchRadius,
-                                minimumPillarHeight
-                            )
-                        ) {
-            
-                            final AlteredMine alteredMine = new AlteredMine();
-                            List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
-                            addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight, pillarPositions);
-            
-                            alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
-                            mines.add(alteredMine);
-                            this.minesCache.put(pos, alteredMine);
-                    }
-                }
-            });
-            this.minesBuffer.updateBuffer(mines);
-        }
-    }
-
-    @Override
     public void updateBlockPositions (UUID callIdentifier) {
 
         if (this.enabled) {
@@ -202,6 +164,46 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
             this.dungeonsBuffer.updateBuffer(this.dungeonsTempMap.get(callIdentifier));
             this.dungeonsTempMap.remove(callIdentifier);
         }
+    }
+
+    @Override
+    public void loadEntity (Entity entity) {
+
+        int dimensionHash =
+                Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
+        if (!this.minesBuffer.containsKey(dimensionHash)) {
+
+            this.minesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
+        }
+
+        if (entity instanceof StorageMinecartEntity) {
+
+            BlockPos pos = new BlockPos(entity.getBlockPos());
+            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+            Integer horizontalSearchRadius =
+                    integerConfigs.get(this.alteredMinePillarSearchRadiusKey);
+            Integer minimumPillarHeight =
+                    integerConfigs.get(this.alteredMineMinimumPillarHeightKey);
+            if (this.hasPillar(
+                    pos,
+                    horizontalSearchRadius,
+                    minimumPillarHeight)) {
+
+                final AlteredMine alteredMine = new AlteredMine();
+                List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
+                addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight,
+                        pillarPositions);
+
+                alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
+                this.minesBuffer.get(dimensionHash).add(new Pair<>(entity, alteredMine));
+            }
+        }
+    }
+
+    @Override
+    public void unloadEntity (Entity entity) {
+
+        this.minesBuffer.values().forEach(l -> l.removeIf(p -> p.getLeft().equals(entity))); 
     }
 
     @Override
@@ -273,7 +275,12 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                 );
             }
 
-            List<AlteredMine> alteredMines = minesBuffer.readBuffer();
+            int dimensionHash = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
+            if (!this.minesBuffer.containsKey(dimensionHash)) {
+
+                this.minesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
+            }
+            Set<AlteredMine> alteredMines = minesBuffer.get(dimensionHash).stream().map(p -> p.getRight()).collect(Collectors.toSet());
             for (AlteredMine alteredMine: alteredMines) {
                 
                 for (Pair<Vec3d, Color> pair: alteredMine.getPillarPositions()) {
@@ -298,10 +305,6 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
         this.dungeonsBuffer.updateBuffer(Collections.emptyList());
         this.dungeonsTempMap.clear();
         this.dungeonsCache.clear();
-
-        this.minesBuffer.updateBuffer(Collections.emptyList());
-        this.minesTempMap.clear();
-        this.minesCache.clear();
     }
 
     public boolean isSpawnerInDungeonWithChest (BlockPos pos) {

@@ -15,6 +15,12 @@ import java.util.function.Function;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.containers.KDTree;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.ArmorItem;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.SwordItem;
+import net.minecraft.item.ToolItem;
 import net.minecraft.util.math.Box;
 
 public class FinderUtil {
@@ -91,5 +97,88 @@ public class FinderUtil {
         }
 
         return new ArrayList<>(closeProximityPositionObjects);
+    }
+
+    public static boolean isIterestingItemStack (ItemStack stack) {
+
+        return FinderUtil.isEnchantedDiamondOrNetheriteTool(stack)
+            || FinderUtil.isEnchantedDiamondOrNetheriteArmor(stack)
+            || FinderUtil.isEnchantedDiamondOrNetheriteWeapon(stack)
+            || FinderUtil.isShulkerBox(stack.getItem())
+            || stack.isOf(Items.ELYTRA)
+            || stack.isOf(Items.EXPERIENCE_BOTTLE)
+            || stack.isOf(Items.ENCHANTED_GOLDEN_APPLE)
+            || stack.isOf(Items.TOTEM_OF_UNDYING)
+            || stack.isOf(Items.END_CRYSTAL);
+    }
+    
+    private static boolean isShulkerBox (Item item) {
+
+        return (item == Items.SHULKER_BOX
+                || item == Items.WHITE_SHULKER_BOX
+                || item == Items.ORANGE_SHULKER_BOX
+                || item == Items.MAGENTA_SHULKER_BOX
+                || item == Items.LIGHT_BLUE_SHULKER_BOX
+                || item == Items.YELLOW_SHULKER_BOX
+                || item == Items.LIME_SHULKER_BOX
+                || item == Items.PINK_SHULKER_BOX
+                || item == Items.GRAY_SHULKER_BOX
+                || item == Items.LIGHT_GRAY_SHULKER_BOX
+                || item == Items.CYAN_SHULKER_BOX
+                || item == Items.PURPLE_SHULKER_BOX
+                || item == Items.BLUE_SHULKER_BOX
+                || item == Items.BROWN_SHULKER_BOX
+                || item == Items.GREEN_SHULKER_BOX
+                || item == Items.RED_SHULKER_BOX
+                || item == Items.BLACK_SHULKER_BOX);
+    }
+
+    public static boolean isEnchantedDiamondOrNetheriteArmor (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ArmorItem) {
+
+            return item == Items.DIAMOND_BOOTS
+                    || item == Items.DIAMOND_CHESTPLATE
+                    || item == Items.DIAMOND_HELMET
+                    || item == Items.DIAMOND_LEGGINGS
+                    || item == Items.NETHERITE_BOOTS
+                    || item == Items.NETHERITE_CHESTPLATE
+                    || item == Items.NETHERITE_HELMET
+                    || item == Items.NETHERITE_LEGGINGS;
+        } else {
+
+            return false;
+        }
+    }
+
+    private static boolean isEnchantedDiamondOrNetheriteTool (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof ToolItem) {
+
+            return item == Items.DIAMOND_PICKAXE
+                    || item == Items.DIAMOND_AXE
+                    || item == Items.DIAMOND_SHOVEL
+                    || item == Items.NETHERITE_PICKAXE
+                    || item == Items.NETHERITE_AXE
+                    || item == Items.NETHERITE_SHOVEL;
+        } else {
+
+            return false;
+        }
+    }
+
+    private static boolean isEnchantedDiamondOrNetheriteWeapon (ItemStack itemStack) {
+
+        Item item = itemStack.getItem();
+        if (!itemStack.getEnchantments().isEmpty() && item instanceof SwordItem) {
+
+            return item == Items.DIAMOND_SWORD
+                    || item == Items.NETHERITE_SWORD;
+        } else {
+
+            return false;
+        }
     }
 }

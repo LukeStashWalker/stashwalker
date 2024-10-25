@@ -7,7 +7,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.features.AbstractBaseFeature;
 import com.stashwalker.features.ChunkProcessor;
-import com.stashwalker.features.Renderable;
+import com.stashwalker.features.RenderFeature;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.MapUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -22,7 +22,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.chunk.Chunk;
 
 
-public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkProcessor, Renderable  {
+public class NewChunksFeatureImpl extends AbstractBaseFeature implements ChunkProcessor, RenderFeature  {
 
     // This List implementation is optimized for fast iteration and slow add and remove, so rendering will be fast
     private final List<ChunkPos> buffer = new CopyOnWriteArrayList<>();
