@@ -16,9 +16,10 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
+import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.world.World;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
         implements EntityProcessor, RenderFeature {
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
-    private final Map<Integer, Set<Entity>> entitiesBuffer = new ConcurrentHashMap<>();
+    private final Map<RegistryKey<World>, Set<Entity>> entitiesBuffer = new ConcurrentHashMap<>();
     private final Function<Entity, BlockPos> positionExtractor = e -> e.getBlockPos();
     private final KDTree<Entity> kdTree = new KDTree<>(positionExtractor);
 
@@ -68,42 +69,45 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
     @Override
     public void loadEntity (Entity entity) {
 
-        int dimensionHash =
-                Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
+        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+        if (world != null) {
 
-        if (!this.entitiesBuffer.containsKey(dimensionHash)) {
+            RegistryKey<World> dimensionKey = world.getRegistryKey();
 
-            this.entitiesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
-        }
+            if (!this.entitiesBuffer.containsKey(dimensionKey)) {
 
-        Set<Entity> entities = this.entitiesBuffer.get(dimensionHash);
-        if (entity instanceof StorageMinecartEntity minecartEntity) {
+                this.entitiesBuffer.put(dimensionKey, new CopyOnWriteArraySet<>());
+            }
 
-            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
-            this.kdTree.insert(minecartEntity);
-            entities
-                    .addAll(
-                            FinderUtil
-                                    .findCloseProximityBlockPositionObjects(
-                                            List.of(minecartEntity),
-                                            kdTree,
-                                            positionExtractor,
-                                            3,
-                                            1));
-            entities
-                    .addAll(
-                            FinderUtil
-                                    .findCloseProximityBlockPositionObjects(
-                                            List.of(minecartEntity),
-                                            kdTree,
-                                            positionExtractor,
-                                            integerConfigs.get(
-                                                    this.closeProximityStorageMinecartsMinimumAmountKey),
-                                            integerConfigs.get(
-                                                    this.closeProximityStorageMinecartsMaximumBlockDistanceKey)));
-        } else {
+            Set<Entity> entities = this.entitiesBuffer.get(dimensionKey);
+            if (entity instanceof StorageMinecartEntity minecartEntity) {
 
-            entities.add(entity);
+                Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+                this.kdTree.insert(minecartEntity);
+                entities
+                        .addAll(
+                                FinderUtil
+                                        .findCloseProximityBlockPositionObjects(
+                                                List.of(minecartEntity),
+                                                kdTree,
+                                                positionExtractor,
+                                                3,
+                                                1));
+                entities
+                        .addAll(
+                                FinderUtil
+                                        .findCloseProximityBlockPositionObjects(
+                                                List.of(minecartEntity),
+                                                kdTree,
+                                                positionExtractor,
+                                                integerConfigs.get(
+                                                        this.closeProximityStorageMinecartsMinimumAmountKey),
+                                                integerConfigs.get(
+                                                        this.closeProximityStorageMinecartsMaximumBlockDistanceKey)));
+            } else {
+
+                entities.add(entity);
+            }
         }
     }
 
@@ -121,16 +125,15 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
 
             ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
 
-            if (world != null && world.getRegistryKey() != null) {
+            if (world != null) {
 
-                int dimensionHash =
-                        world.getRegistryKey().getRegistry().hashCode();
+                RegistryKey<World> dimensionKey = world.getRegistryKey();
 
-                if (!this.entitiesBuffer.containsKey(dimensionHash)) {
+                if (!this.entitiesBuffer.containsKey(dimensionKey)) {
 
-                    this.entitiesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
+                    this.entitiesBuffer.put(dimensionKey, new CopyOnWriteArraySet<>());
                 }
-                for (Entity entity : this.entitiesBuffer.get(dimensionHash)) {
+                for (Entity entity : this.entitiesBuffer.get(dimensionKey)) {
 
                     Vec3d vecEnd;
                     if (entity instanceof ItemFrameEntity) {

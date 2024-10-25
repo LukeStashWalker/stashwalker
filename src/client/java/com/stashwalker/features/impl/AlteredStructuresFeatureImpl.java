@@ -18,6 +18,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.MapColor;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.entity.mob.SpiderEntity;
@@ -48,7 +49,7 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     // Every call has it's own List to reduce contention between writing threads
     private final Map<UUID, List<AlteredDungeon>> dungeonsTempMap = Collections.synchronizedMap(new HashMap<>());
 
-    private final Map<Integer, Set<Pair<Entity, AlteredMine>>> minesBuffer = new ConcurrentHashMap<>();
+    private final Map<RegistryKey<World>, Set<Pair<Entity, AlteredMine>>> minesBuffer = new ConcurrentHashMap<>();
 
     // Use double buffer for fast rendering
     private final DoubleListBuffer<AlteredDungeon> dungeonsBuffer = new DoubleListBuffer<>();
@@ -169,35 +170,39 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
     @Override
     public void loadEntity (Entity entity) {
 
-        int dimensionHash =
-                Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
-        if (!this.minesBuffer.containsKey(dimensionHash)) {
+        ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+        if (world != null) {
 
-            this.minesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
-        }
+            RegistryKey<World> registryKey = world.getRegistryKey();
+            if (!this.minesBuffer.containsKey(registryKey)) {
 
-        if (entity instanceof StorageMinecartEntity) {
+                this.minesBuffer.put(registryKey, new CopyOnWriteArraySet<>());
+            }
 
-            BlockPos pos = new BlockPos(entity.getBlockPos());
-            Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
-            Integer horizontalSearchRadius =
-                    integerConfigs.get(this.alteredMinePillarSearchRadiusKey);
-            Integer minimumPillarHeight =
-                    integerConfigs.get(this.alteredMineMinimumPillarHeightKey);
-            if (this.hasPillar(
-                    pos,
-                    horizontalSearchRadius,
-                    minimumPillarHeight)) {
+            if (entity instanceof StorageMinecartEntity) {
 
-                final AlteredMine alteredMine = new AlteredMine();
-                List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
-                addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight,
-                        pillarPositions);
+                BlockPos pos = new BlockPos(entity.getBlockPos());
+                Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
+                Integer horizontalSearchRadius =
+                        integerConfigs.get(this.alteredMinePillarSearchRadiusKey);
+                Integer minimumPillarHeight =
+                        integerConfigs.get(this.alteredMineMinimumPillarHeightKey);
+                if (this.hasPillar(
+                        pos,
+                        horizontalSearchRadius,
+                        minimumPillarHeight)) {
 
-                alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
-                this.minesBuffer.get(dimensionHash).add(new Pair<>(entity, alteredMine));
+                    final AlteredMine alteredMine = new AlteredMine();
+                    List<Pair<Vec3d, Color>> pillarPositions = alteredMine.getPillarPositions();
+                    addPillarPositions(pos, horizontalSearchRadius, minimumPillarHeight,
+                            pillarPositions);
+
+                    alteredMine.setChestMinecartPosition(RenderUtil.toVec3d(pos));
+                    this.minesBuffer.get(registryKey).add(new Pair<>(entity, alteredMine));
+                }
             }
         }
+
     }
 
     @Override
@@ -275,27 +280,35 @@ public class AlteredStructuresFeatureImpl extends AbstractBaseFeature implements
                 );
             }
 
-            int dimensionHash = Constants.MC_CLIENT_INSTANCE.world.getRegistryKey().getRegistry().hashCode();
-            if (!this.minesBuffer.containsKey(dimensionHash)) {
+            ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
+            if (world != null) {
 
-                this.minesBuffer.put(dimensionHash, new CopyOnWriteArraySet<>());
-            }
-            Set<AlteredMine> alteredMines = minesBuffer.get(dimensionHash).stream().map(p -> p.getRight()).collect(Collectors.toSet());
-            for (AlteredMine alteredMine: alteredMines) {
-                
-                for (Pair<Vec3d, Color> pair: alteredMine.getPillarPositions()) {
+                RegistryKey<World> registryKey = world.getRegistryKey();
+                if (!this.minesBuffer.containsKey(registryKey)) {
 
-                    RenderUtil.drawBlockSquare(context, pair.getLeft(), pair.getRight(), false, fillBoxes);
+                    this.minesBuffer.put(registryKey, new CopyOnWriteArraySet<>());
                 }
 
-                RenderUtil.drawLine(
-                    context, 
-                    alteredMine.getchestMinecartPosition(), 
-                    new Color(this.featureConfig.getIntegerConfigs().get(this.alteredMineChestMinecartColorKey)), 
-                    true, 
-                    fillBoxes
-                );
+                Set<AlteredMine> alteredMines = minesBuffer.get(registryKey).stream()
+                        .map(p -> p.getRight()).collect(Collectors.toSet());
+                for (AlteredMine alteredMine : alteredMines) {
+
+                    for (Pair<Vec3d, Color> pair : alteredMine.getPillarPositions()) {
+
+                        RenderUtil.drawBlockSquare(context, pair.getLeft(), pair.getRight(), false,
+                                fillBoxes);
+                    }
+
+                    RenderUtil.drawLine(
+                            context,
+                            alteredMine.getchestMinecartPosition(),
+                            new Color(this.featureConfig.getIntegerConfigs()
+                                    .get(this.alteredMineChestMinecartColorKey)),
+                            true,
+                            fillBoxes);
+                }
             }
+
         }
     }
 
