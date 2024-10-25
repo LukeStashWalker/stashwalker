@@ -239,9 +239,9 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature implements Pro
     private boolean isChestAnimal (Entity entity) {
 
         return (
-            entity instanceof AbstractDonkeyEntity
-            && ((AbstractDonkeyEntity) entity).hasChest()
-            && !((AbstractDonkeyEntity) entity).hasPlayerRider()
+            entity instanceof AbstractDonkeyEntity donkey
+            && donkey.hasChest()
+            && donkey.hasPlayerRider()
         );
     }
 
