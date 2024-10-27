@@ -6,7 +6,7 @@ import java.util.UUID;
 
 import net.minecraft.client.gui.hud.ClientBossBar;
 
-public interface BossBarHudMixinImpl {
+public interface IBossBarHudMixin {
 
     Map<UUID, ClientBossBar> getBossBars ();
     int getWidth ();

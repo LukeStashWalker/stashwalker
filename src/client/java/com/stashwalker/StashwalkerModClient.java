@@ -12,6 +12,7 @@ import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
@@ -43,7 +44,7 @@ import net.minecraft.client.world.ClientWorld;
 
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
-import com.stashwalker.events.AbstractDonkeyChestEvent;
+import com.stashwalker.events.AbstractDonkeyEntityEvent;
 import com.stashwalker.events.ArmorStandEntityEvent;
 import com.stashwalker.events.ItemEntityEvent;
 import com.stashwalker.events.ItemFrameEntityEvent;
@@ -52,7 +53,7 @@ import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
 import com.stashwalker.features.EntityProcessor;
 import com.stashwalker.features.RenderFeature;
-import com.stashwalker.mixininterfaces.BossBarHudMixinImpl;
+import com.stashwalker.mixininterfaces.IBossBarHudMixin;
 import com.stashwalker.utils.DaemonThreadFactory;
 import com.stashwalker.utils.FinderUtil;
 import com.stashwalker.utils.RenderUtil;
@@ -100,10 +101,10 @@ public class StashwalkerModClient implements ClientModInitializer {
                 || entity instanceof ChestBoatEntity
             ) {
 
-                this.onClientEntityLoadEvent(entity, Constants.MC_CLIENT_INSTANCE.world);
+                this.onClientEntityLoadEvent(entity, world);
             }
         });
-        AbstractDonkeyChestEvent.EVENT.register((donkeyEntity) -> {
+        AbstractDonkeyEntityEvent.EVENT.register((donkeyEntity) -> {
 
             this.onClientEntityLoadEvent(donkeyEntity, Constants.MC_CLIENT_INSTANCE.world);
         });
@@ -255,7 +256,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
     }
 
-    private void onClientEntityUnloadEvent (Entity entity1, ClientWorld clientworld2) {
+    private void onClientEntityUnloadEvent (Entity entity, ClientWorld clientworld2) {
 
         this.entityThreadPool.submit(() -> {
 
@@ -263,7 +264,7 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                 if (f instanceof EntityProcessor) {
 
-                    ((EntityProcessor) f).unloadEntity(entity1);
+                    ((EntityProcessor) f).unloadEntity(entity);
                 }
             });
         });
@@ -337,9 +338,9 @@ public class StashwalkerModClient implements ClientModInitializer {
 
                             int y = 2;
                             BossBarHud bossBarHud = Constants.MC_CLIENT_INSTANCE.inGameHud.getBossBarHud();
-                            if (bossBarHud instanceof BossBarHudMixinImpl) {
+                            if (bossBarHud instanceof IBossBarHudMixin) {
 
-                                BossBarHudMixinImpl bossBarHudMixin = (BossBarHudMixinImpl) bossBarHud;
+                                IBossBarHudMixin bossBarHudMixin = (IBossBarHudMixin) bossBarHud;
                                 Map<UUID, ClientBossBar> bossBars = bossBarHudMixin.getBossBars();
                                 // Split the HUD text so it doesn't overlap with the Boss bar HUD
                                 if (bossBarHudMixin != null && bossBars != null && bossBars.size() > 0) {

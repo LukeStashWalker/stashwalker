@@ -5,10 +5,11 @@
   "client": [
     "BossBarHudMixin",
 
-    "AbstractDonkeyEntityMixin",
     "ItemEntityMixin",
     "ItemFrameEntityMixin",
-    "ArmorStandEntityMixin"
+    "ArmorStandEntityMixin",
+    "AbstractDonkeyEntityMixin",
+    "DataTrackerMixin"
   ],
   "refmap": "client-stashwalker-refmap.json",
   "injectors": {

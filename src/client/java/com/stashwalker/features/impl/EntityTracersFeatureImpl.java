@@ -15,24 +15,25 @@ import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ItemFrameEntity;
+import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
-import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
-import net.minecraft.world.World;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 public class EntityTracersFeatureImpl extends AbstractBaseFeature
         implements EntityProcessor, RenderFeature {
 
     private final DoubleListBuffer<Entity> buffer = new DoubleListBuffer<>();
-    private final Map<RegistryKey<World>, Set<Entity>> entitiesBuffer = new ConcurrentHashMap<>();
+    private final Set<Entity> entitiesBuffer = new CopyOnWriteArraySet<>();
+    private final Set<Entity> tempEntitiesBuffer = new CopyOnWriteArraySet<>();
     private final Function<Entity, BlockPos> positionExtractor = e -> e.getBlockPos();
     private final KDTree<Entity> kdTree = new KDTree<>(positionExtractor);
 
@@ -46,6 +47,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
     private final String closeProximityStorageMinecartsMaximumBlockDistanceKey =
             "closeProximityStorageMinecartsMaximumBlockDistance";
     private final Integer closeProximityStorageMinecartsMaximumBlockDistanceDefaultValue = 20;
+    
 
     public EntityTracersFeatureImpl() {
 
@@ -69,22 +71,16 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
     @Override
     public void loadEntity (Entity entity) {
 
+        log.info("Loading Entity {}{}", entity, entity instanceof AbstractDonkeyEntity donkey ? " chest=" + donkey.hasChest() : "");
+
         ClientWorld world = Constants.MC_CLIENT_INSTANCE.world;
         if (world != null) {
 
-            RegistryKey<World> dimensionKey = world.getRegistryKey();
-
-            if (!this.entitiesBuffer.containsKey(dimensionKey)) {
-
-                this.entitiesBuffer.put(dimensionKey, new CopyOnWriteArraySet<>());
-            }
-
-            Set<Entity> entities = this.entitiesBuffer.get(dimensionKey);
             if (entity instanceof StorageMinecartEntity minecartEntity) {
 
                 Map<String, Integer> integerConfigs = this.featureConfig.getIntegerConfigs();
                 this.kdTree.insert(minecartEntity);
-                entities
+                this.entitiesBuffer
                         .addAll(
                                 FinderUtil
                                         .findCloseProximityBlockPositionObjects(
@@ -93,7 +89,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
                                                 positionExtractor,
                                                 3,
                                                 1));
-                entities
+                this.entitiesBuffer
                         .addAll(
                                 FinderUtil
                                         .findCloseProximityBlockPositionObjects(
@@ -106,16 +102,27 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
                                                         this.closeProximityStorageMinecartsMaximumBlockDistanceKey)));
             } else {
 
-                entities.add(entity);
+                this.entitiesBuffer.add(entity);
             }
+
+            if (!this.tempEntitiesBuffer.isEmpty()) {
+
+                this.entitiesBuffer.addAll(tempEntitiesBuffer);
+                this.tempEntitiesBuffer.clear();
+            }
+        } else {
+
+            this.tempEntitiesBuffer.add(entity);
         }
     }
 
     @Override
     public void unloadEntity (Entity entity) {
 
+        log.info("Unloading Entity {}{}", entity, entity instanceof AbstractDonkeyEntity donkey ? " chest=" + donkey.hasChest() : "");
+
         this.kdTree.remove(entity);
-        this.entitiesBuffer.values().forEach(l -> l.remove(entity));
+        this.entitiesBuffer.remove(entity);
     }
 
     @Override
@@ -127,13 +134,7 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
 
             if (world != null) {
 
-                RegistryKey<World> dimensionKey = world.getRegistryKey();
-
-                if (!this.entitiesBuffer.containsKey(dimensionKey)) {
-
-                    this.entitiesBuffer.put(dimensionKey, new CopyOnWriteArraySet<>());
-                }
-                for (Entity entity : this.entitiesBuffer.get(dimensionKey)) {
+                for (Entity entity : this.entitiesBuffer) {
 
                     Vec3d vecEnd;
                     if (entity instanceof ItemFrameEntity) {

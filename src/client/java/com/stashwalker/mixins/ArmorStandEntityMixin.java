@@ -16,11 +16,13 @@ public abstract class ArmorStandEntityMixin {
 
     @Inject(method = "equipStack", at = @At("HEAD"))
     private void onEquipStack(EquipmentSlot slot, ItemStack stack, CallbackInfo ci) {
+
         ArmorStandEntity entity = (ArmorStandEntity) (Object) this;
         if (
             FinderUtil.isEnchantedDiamondOrNetheriteArmor(stack)
             || stack.isOf(Items.ELYTRA)
         ) {
+            
             ArmorStandEntityEvent.EVENT.invoker().onEquipStack(entity);
         }
     }
