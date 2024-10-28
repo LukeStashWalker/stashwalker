@@ -21,7 +21,8 @@ Draws a tracer to valuable items and entities that may contain items:
 - totems
 - end crystals
 - item frames if they contain one of the above items
-- armor stands if they contain diamond/netherite armor
+- armor stands if they contain diamond/netherite armor or an elytra
+- living entities like zombies etc., if they are wearing or holding a valuable item 
 
 ### Block Tracers 
 

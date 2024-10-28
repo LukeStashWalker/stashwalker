@@ -15,9 +15,9 @@ public abstract class ItemFrameEntityMixin {
     @Inject(method = "setHeldItemStack(Lnet/minecraft/item/ItemStack;Z)V", at = @At("HEAD"))
     private void onSetHeldItemStack (ItemStack value, boolean update, CallbackInfo ci) {
 
-        ItemFrameEntity entity = (ItemFrameEntity) (Object) this;
-        if (FinderUtil.isIterestingItemStack(value)) {
+        if (FinderUtil.isValuableItemStack(value)) {
 
+            ItemFrameEntity entity = (ItemFrameEntity) (Object) this;
             ItemFrameEntityEvent.EVENT.invoker().onSetHeldStack(entity);
         }
     }

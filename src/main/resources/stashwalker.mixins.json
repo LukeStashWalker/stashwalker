@@ -7,9 +7,7 @@
 
     "ItemEntityMixin",
     "ItemFrameEntityMixin",
-    "ArmorStandEntityMixin",
-    "AbstractDonkeyEntityMixin",
-    "DataTrackerMixin"
+    "LivingEntityMixin"
   ],
   "refmap": "client-stashwalker-refmap.json",
   "injectors": {

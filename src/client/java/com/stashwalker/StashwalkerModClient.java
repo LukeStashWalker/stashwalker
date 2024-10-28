@@ -45,9 +45,9 @@ import net.minecraft.client.world.ClientWorld;
 import org.lwjgl.glfw.GLFW;
 import com.stashwalker.constants.Constants;
 import com.stashwalker.events.AbstractDonkeyEntityEvent;
-import com.stashwalker.events.ArmorStandEntityEvent;
 import com.stashwalker.events.ItemEntityEvent;
 import com.stashwalker.events.ItemFrameEntityEvent;
+import com.stashwalker.events.LivingEntityEvent;
 import com.stashwalker.features.ChunkProcessor;
 import com.stashwalker.features.Feature;
 import com.stashwalker.features.PositionProcessor;
@@ -92,37 +92,31 @@ public class StashwalkerModClient implements ClientModInitializer {
         registerKeyBindings();
 
         ClientTickEvents.START_CLIENT_TICK.register(this::onClientTickStartEvent);
+
         ClientChunkEvents.CHUNK_LOAD.register(this::onClientChunkLoadEvent);
         ClientChunkEvents.CHUNK_UNLOAD.register(this::onClientChunkUnloadEvent);
+
         ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> {
 
             if (
                 entity instanceof StorageMinecartEntity
                 || entity instanceof ChestBoatEntity
+                || entity instanceof AbstractDonkeyEntity
             ) {
 
-                this.onClientEntityLoadEvent(entity, world);
+                this.onClientEntityLoadEvent(entity);
             }
         });
-        AbstractDonkeyEntityEvent.EVENT.register((donkeyEntity) -> {
-
-            this.onClientEntityLoadEvent(donkeyEntity, Constants.MC_CLIENT_INSTANCE.world);
-        });
-        ItemEntityEvent.EVENT.register((itemEntity) -> {
-
-            this.onClientEntityLoadEvent(itemEntity, Constants.MC_CLIENT_INSTANCE.world);
-        });
-        ArmorStandEntityEvent.EVENT.register((armorStandEntity) -> {
-
-            this.onClientEntityLoadEvent(armorStandEntity, Constants.MC_CLIENT_INSTANCE.world);
-        });
-        ItemFrameEntityEvent.EVENT.register((itemFrameEntity) -> {
-
-            this.onClientEntityLoadEvent(itemFrameEntity, Constants.MC_CLIENT_INSTANCE.world);
-        });
+        AbstractDonkeyEntityEvent.EVENT.register(this::onClientEntityLoadEvent);
+        ItemEntityEvent.EVENT.register(this::onClientEntityLoadEvent);
+        LivingEntityEvent.EVENT.register(this::onClientEntityLoadEvent);
+        ItemFrameEntityEvent.EVENT.register(this::onClientEntityLoadEvent);
         ClientEntityEvents.ENTITY_UNLOAD.register(this::onClientEntityUnloadEvent);
+
         WorldRenderEvents.LAST.register(this::onWorldRenderEventLast);
+
         HudRenderCallback.EVENT.register(onHubRenderEvent());
+
         ClientTickEvents.END_CLIENT_TICK.register(onClientTickEndEvent());
     }
 
@@ -146,17 +140,6 @@ public class StashwalkerModClient implements ClientModInitializer {
                 Constants.FEATURES.forEach(f -> f.clear());
             }
             previousWorld = dimensionKey;
-
-            // this.processThreadPool.submit(() -> {
-
-            //     Constants.FEATURES.forEach(f -> {
-
-            //         if (f instanceof Processor) {
-
-            //             ((Processor) f).process();
-            //         }
-            //     });
-            // });
 
             this.positionsProcessThreadPool.submit(() -> {
 
@@ -242,7 +225,7 @@ public class StashwalkerModClient implements ClientModInitializer {
         });
     }
 
-    private void onClientEntityLoadEvent (Entity entity, ClientWorld world) {
+    private void onClientEntityLoadEvent (Entity entity) {
 
         this.entityThreadPool.submit(() -> {
 

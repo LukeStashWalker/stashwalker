@@ -99,7 +99,51 @@ public class FinderUtil {
         return new ArrayList<>(closeProximityPositionObjects);
     }
 
-    public static boolean isIterestingItemStack (ItemStack stack) {
+public static boolean isRareItemStack (ItemStack stack) {
+
+    return stack.isOf(Items.PLAYER_HEAD)
+        || stack.isOf(Items.SKELETON_SKULL)
+        || stack.isOf(Items.WITHER_SKELETON_SKULL)
+        || stack.isOf(Items.CREEPER_HEAD)
+        || stack.isOf(Items.ZOMBIE_HEAD)
+        || stack.isOf(Items.DRAGON_HEAD)
+        || stack.isOf(Items.WRITTEN_BOOK)
+        || stack.isOf(Items.NETHER_STAR)
+        || stack.isOf(Items.BEACON)
+        || stack.isOf(Items.ANCIENT_DEBRIS)
+        || stack.isOf(Items.NETHERITE_INGOT)
+        || stack.isOf(Items.NETHERITE_BLOCK)
+        || stack.isOf(Items.DRAGON_EGG)
+        || stack.isOf(Items.HEART_OF_THE_SEA)
+        || stack.isOf(Items.CONDUIT)
+        // Music Discs
+        || stack.isOf(Items.MUSIC_DISC_13)
+        || stack.isOf(Items.MUSIC_DISC_CAT)
+        || stack.isOf(Items.MUSIC_DISC_BLOCKS)
+        || stack.isOf(Items.MUSIC_DISC_CHIRP)
+        || stack.isOf(Items.MUSIC_DISC_FAR)
+        || stack.isOf(Items.MUSIC_DISC_MALL)
+        || stack.isOf(Items.MUSIC_DISC_MELLOHI)
+        || stack.isOf(Items.MUSIC_DISC_STAL)
+        || stack.isOf(Items.MUSIC_DISC_STRAD)
+        || stack.isOf(Items.MUSIC_DISC_WARD)
+        || stack.isOf(Items.MUSIC_DISC_11)
+        || stack.isOf(Items.MUSIC_DISC_PIGSTEP)
+        || stack.isOf(Items.MUSIC_DISC_5)
+        || stack.isOf(Items.MUSIC_DISC_RELIC)
+        // Rare Armor Trims
+        || stack.isOf(Items.SILENCE_ARMOR_TRIM_SMITHING_TEMPLATE)
+        || stack.isOf(Items.VEX_ARMOR_TRIM_SMITHING_TEMPLATE)
+        || stack.isOf(Items.RIB_ARMOR_TRIM_SMITHING_TEMPLATE)
+        || stack.isOf(Items.WAYFINDER_ARMOR_TRIM_SMITHING_TEMPLATE)
+        || stack.isOf(Items.SNOUT_ARMOR_TRIM_SMITHING_TEMPLATE)
+        || stack.isOf(Items.WARD_ARMOR_TRIM_SMITHING_TEMPLATE)
+        // Rare Goat Horns
+        || stack.isOf(Items.GOAT_HORN);
+}
+
+
+    public static boolean isValuableItemStack (ItemStack stack) {
 
         return FinderUtil.isEnchantedDiamondOrNetheriteTool(stack)
             || FinderUtil.isEnchantedDiamondOrNetheriteArmor(stack)

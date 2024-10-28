@@ -1,7 +1,6 @@
 package com.stashwalker.mixins;
 
 import com.stashwalker.events.ItemEntityEvent;
-import com.stashwalker.utils.FinderUtil;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -16,7 +15,7 @@ public abstract class ItemEntityMixin {
     private void onSetStack (ItemStack stack, CallbackInfo ci) {
 
         ItemEntity entity = (ItemEntity) (Object) this;
-        if (entity.getItemAge() != 0 && FinderUtil.isIterestingItemStack(stack)) {
+        if (entity.getItemAge() != 0) {
 
             ItemEntityEvent.EVENT.invoker().onSetStack(entity);
         }
