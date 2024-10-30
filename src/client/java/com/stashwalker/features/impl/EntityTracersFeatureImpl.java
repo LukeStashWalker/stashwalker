@@ -19,6 +19,7 @@ import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.vehicle.ChestBoatEntity;
 import net.minecraft.entity.vehicle.StorageMinecartEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
@@ -122,11 +123,17 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
 
                             this.valuableEntities.add(entity);
                         }
+
                         if (FinderUtil.isRareItemStack(s)) {
 
                             this.rareEntities.add(entity);
                         }
                     });
+
+                    if (FinderUtil.isRareEntity(entity)) {
+
+                        this.rareEntities.add(entity);
+                    }
                 }
             }
             case ItemFrameEntity itemFrameEntity -> {
@@ -151,9 +158,16 @@ public class EntityTracersFeatureImpl extends AbstractBaseFeature
                     this.rareEntities.add(entity);
                 }
             }
-            default -> {
+            case ChestBoatEntity boat -> {
 
                 this.valuableEntities.add(entity);
+            }
+            default -> {
+
+                if (FinderUtil.isRareEntity(entity)) {
+
+                    this.rareEntities.add(entity);
+                }
             }
         }
     }

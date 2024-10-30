@@ -1,7 +1,6 @@
 package com.stashwalker.mixins;
 
 import com.stashwalker.events.ItemFrameEntityEvent;
-import com.stashwalker.utils.FinderUtil;
 import net.minecraft.entity.decoration.ItemFrameEntity;
 import net.minecraft.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -15,10 +14,7 @@ public abstract class ItemFrameEntityMixin {
     @Inject(method = "setHeldItemStack(Lnet/minecraft/item/ItemStack;Z)V", at = @At("HEAD"))
     private void onSetHeldItemStack (ItemStack value, boolean update, CallbackInfo ci) {
 
-        if (FinderUtil.isValuableItemStack(value)) {
-
-            ItemFrameEntity entity = (ItemFrameEntity) (Object) this;
-            ItemFrameEntityEvent.EVENT.invoker().onSetHeldStack(entity);
-        }
+        ItemFrameEntity entity = (ItemFrameEntity) (Object) this;
+        ItemFrameEntityEvent.EVENT.invoker().onSetHeldStack(entity);
     }
 }

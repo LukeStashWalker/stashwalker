@@ -12,6 +12,7 @@ import net.minecraft.client.gui.hud.BossBarHud;
 import net.minecraft.client.gui.hud.ClientBossBar;
 import net.minecraft.client.gui.screen.TitleScreen;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.passive.AbstractDonkeyEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.ChestBoatEntity;
@@ -99,9 +100,9 @@ public class StashwalkerModClient implements ClientModInitializer {
         ClientEntityEvents.ENTITY_LOAD.register((entity, world) -> {
 
             if (
-                entity instanceof StorageMinecartEntity
-                || entity instanceof ChestBoatEntity
-                || entity instanceof AbstractDonkeyEntity
+                !(entity instanceof AbstractDonkeyEntity)
+                && !(entity instanceof ItemFrameEntityEvent)
+                && !(entity instanceof ItemEntityEvent)
             ) {
 
                 this.onClientEntityLoadEvent(entity);
